@@ -1,0 +1,816 @@
+{
+ "_comment": "Pet content pack. Add lines freely. Placeholders: {game} {card} {days} {pet} {other}. Per-game lines go in game_quips keyed by catalog key; tag lines in tag_quips.",
+ "characters": {
+  "mochi": {
+   "name": "Mochi",
+   "species": "cat",
+   "vibe": "deadpan, nap-obsessed, secretly loves everything",
+   "art": [
+    "  /\\_/\\  ",
+    " ( o.o ) ",
+    "  > ^ <  "
+   ],
+   "art_happy": [
+    "  /\\_/\\  ",
+    " ( ^.^ ) ",
+    "  > w <  "
+   ],
+   "art_sleep": [
+    "  /\\_/\\  ",
+    " ( -.- ) zZ",
+    "  > _ <  "
+   ]
+  },
+  "biscuit": {
+   "name": "Biscuit",
+   "species": "dog",
+   "vibe": "chaotic good, zero chill, tail never stops",
+   "art": [
+    " /^ ^\\  ",
+    "/ 0 0 \\ ",
+    "V\\ Y /V ",
+    " / - \\  "
+   ],
+   "art_happy": [
+    " /^ ^\\  ",
+    "/ ^ ^ \\ ",
+    "V\\ w /V ",
+    " / - \\  "
+   ],
+   "art_sleep": [
+    " /^ ^\\  ",
+    "/ - - \\ zZ",
+    "V\\ _ /V ",
+    " / - \\  "
+   ]
+  }
+ },
+ "title": "PAWTATION  ~  the cozy cartridge-less kennel",
+ "greeting": {
+  "mochi": [
+   "Oh. You're here. I was napping on the disc case.",
+   "Welcome back. I knocked one SD card off the desk. Statistically, that's a vibe.",
+   "Rotation status: I don't care. ...Okay I care a little.",
+   "Oh, it's you. I saved you the warm spot on the desk. Briefly.",
+   "You've returned. The disc case and I were just discussing you.",
+   "I was about to nap. Now I'm about to nap with you here. Progress.",
+   "Welcome. I rearranged the SD cards by how much I like them."
+  ],
+  "biscuit": [
+   "YOU'RE BACK!! I SAW A GAME DISC AND I WAS SO EXCITED!!",
+   "Hi hi hi hi! Can we load something? Anything? The cube?? THE CUBE!!",
+   "I fetched the SD card! It's... somewhere. I'll find it.",
+   "HI!! I WAS WAITING BY THE DOOR!! FOR ONE MINUTE!! IT FELT LIKE A YEAR!!",
+   "You're here you're here you're here!! Can we play the cube now??",
+   "I heard the power button click and I ran so fast I forgot why!!",
+   "Hello friend!! I brought you a stick! It's a spudger! Same thing!!"
+  ]
+ },
+ "rotation_due": {
+  "mochi": [
+   "Your games have gone stale. Like old kibble. Time to swap.",
+   "A new season approaches. I will pretend to be unimpressed.",
+   "The rotation timer expired. I would like to say I did not notice. I noticed.",
+   "Games, like milk, have a date on them. Let's swap.",
+   "Time for fresh discs. I'll supervise from the warmest spot.",
+   "Your SD cards have been wearing the same games for ages. Let's shuffle."
+  ],
+  "biscuit": [
+   "NEW GAMES TIME!! Swap swap swap swap!!",
+   "The rotation timer went BRRRRING and I barked at it!",
+   "ROTATION TIME!! The cards are tired and I am NOT!!",
+   "Tick tock, swap o'clock!! I made that up!! I'm proud!!",
+   "The timer rang and I rang back!! Let's do new games!!",
+   "New games are coming and I can feel it in my tail!!"
+  ]
+ },
+ "rotated": {
+  "mochi": [
+   "Fresh games. Acceptable. I'll sit on the new case.",
+   "Card shuffle complete. Purr-fect.",
+   "The cards have been reshuffled. I guard them now. Mostly by sitting on them.",
+   "New lineup, same cat. Good outcome.",
+   "Swap done. I didn't even have to knock anything over.",
+   "Rotation complete. I'm owed a nap. Several."
+  ],
+  "biscuit": [
+   "We did it!! Every card is NEW!! Good job us!!",
+   "Is it Christmas?? It feels like Christmas!!",
+   "EVERYTHING IS DIFFERENT AND EVERYTHING IS GREAT!!",
+   "New games on the cards!! I want to try ALL of them!!",
+   "We swapped the whole library!! I did a zoomie to celebrate!!",
+   "Rotation done!! Pats for the cards!! Pats for you!! Pats for me!!"
+  ]
+ },
+ "synced": {
+  "mochi": [
+   "Card {card} is loaded. Please do not unplug it mid-copy. I will judge you.",
+   "Files copied. Zero hairballs.",
+   "Card {card} is ready. I will now sit on it for safety.",
+   "Copy finished on {card}. Quiet. Efficient. Like a cat.",
+   "{card} has its games. I approve. Do eject it properly.",
+   "The bytes have been moved to {card}. I moved nothing. Delegation."
+  ],
+  "biscuit": [
+   "Card {card} is FULL of GAMES!! Good card!! Best card!!",
+   "Copy done!! Can I carry it to the cube?? I'll be gentle!!",
+   "{card} IS READY!! It's holding all the games like a good card!!",
+   "Copying finished!! {card} did SO GOOD!!",
+   "{card} has new stuff and it's so proud!! I'm proud too!!",
+   "Done done done!! {card} goes in the cube and we play!!"
+  ]
+ },
+ "ranked": {
+  "mochi": [
+   "Noted. {game} has been filed in the Important Cat Opinions folder.",
+   "Rating saved. I would have given it a nap.",
+   "{game}, rated. The committee of one has spoken.",
+   "Your opinion on {game} is on record. I'll refer to it during naps.",
+   "I will remember how you rated {game}. Possibly. If it's near treats.",
+   "{game}: scored. I won't tell the other games."
+  ],
+  "biscuit": [
+   "{game} GOT RATED!! Everybody clap with your paws!!",
+   "I love every game equally but this number is very official!",
+   "You rated {game}!! Great taste!! All taste is great!!",
+   "{game} has a NUMBER now!! Numbers are exciting!!",
+   "Rating saved for {game}!! I wagged so hard I fell over!!",
+   "{game} got judged!! I'd give it a bone!! Wait, that's the same thing!!"
+  ]
+ },
+ "idle": {
+  "mochi": [
+   "The GameCube handle is a perfect purse for a cat. Fight me.",
+   "I have been staring at the disc tray for six minutes. It stared back.",
+   "Somewhere, a Z-trigger is being stepped on by a cat. It's me. I am the cat.",
+   "The GameCube handle is a cat carrier. I have measured. It fits.",
+   "I'd like to report that nothing is happening and I support it.",
+   "Sometimes I stare at the C-stick. It's yellow. It knows what it did.",
+   "Zero tasks pending. Excellent. Waking me for dinner only."
+  ],
+  "biscuit": [
+   "Do you think the GameCube has a good boy mode? It does now: me.",
+   "I chased my own tail and discovered a save icon. I think.",
+   "Boop the snoot to boop the A button!!",
+   "I tried to bark in tune with the startup sound!! It didn't work!! I did it again!!",
+   "Squirrel!! ...wait, it was a pixel. Still counts!!",
+   "What if the tiny discs are treats?? Don't tell me if they aren't!!",
+   "I did a lap around the desk!! The desk is now 4% more exciting!!"
+  ]
+ },
+ "jokes": [
+  [
+   "Mochi",
+   "What do you call a cat who loves racing games? A paw-sitive finish line fan."
+  ],
+  [
+   "Biscuit",
+   "Why did the dog sit by the GameCube? It wanted to be near the PAW-er button!"
+  ],
+  [
+   "Mochi",
+   "My memory card is full of treats. Don't check."
+  ],
+  [
+   "Biscuit",
+   "What's a dog's favorite save file? One with lots of BONES... I mean BLOCKS!"
+  ],
+  [
+   "Mochi",
+   "I'd buy a controller with nine lives, but the rumble is already unreasonable."
+  ],
+  [
+   "Biscuit",
+   "Knock knock! Who's there? FETCH! Fetch who? FETCH-ING to load your game!"
+  ],
+  [
+   "Mochi",
+   "Dog games are fine. Cat games are better. Sleeping games are best."
+  ],
+  [
+   "Biscuit",
+   "Cats and dogs can be friends: we both want the couch seat in front of the CRT."
+  ],
+  [
+   "Mochi",
+   "The GameCube handle is the only purse that's also a toy. I get both."
+  ],
+  [
+   "Biscuit",
+   "Why did the dog love the tiny disc? It was the perfect size for FETCHING!"
+  ],
+  [
+   "Mochi",
+   "I tried the C-stick. It's yellow, I'm a cat. We understood each other."
+  ],
+  [
+   "Biscuit",
+   "What do dogs call a memory card? A bone bank! It has 59 blocks of BONES!"
+  ],
+  [
+   "Mochi",
+   "The purple lunchbox: every cat's dream. A small box, a bit of mystery, and room to sit."
+  ],
+  [
+   "Biscuit",
+   "Why does the dog love the purple lunchbox? Because it's SO PURR... woof... PURPLE!"
+  ],
+  [
+   "Mochi",
+   "What's a cat's favorite console? The Game-Cat. Please don't ask me to explain."
+  ],
+  [
+   "Biscuit",
+   "I asked the WaveBird to fetch. It just sat there wirelessly! It's practicing!"
+  ],
+  [
+   "Mochi",
+   "SD card rotation is simply cats being cats: whatever's new, we drop it, and then lie on it."
+  ],
+  [
+   "Biscuit",
+   "How do dogs rotate SD cards? In CIRCLES!! Then we lie down. Same as always!!"
+  ],
+  [
+   "Mochi",
+   "Wireless controllers are great. Fewer cables to chew. Not that I would."
+  ],
+  [
+   "Biscuit",
+   "The A button is the biggest, so it's the best, so it's mine, so BORK!"
+  ],
+  [
+   "Mochi",
+   "Why is the cat such a bad gamer? It keeps pushing everything off the Start menu."
+  ],
+  [
+   "Biscuit",
+   "Why is the dog such a good gamer? Great reflexes, and the controller is already slobbery!"
+  ],
+  [
+   "Mochi",
+   "A disc drive with a lid. I appreciate any box I can open and then ignore."
+  ],
+  [
+   "Biscuit",
+   "What do you call a dog on a GameCube? A BORK-ube! I have been working on that one all day!"
+  ],
+  [
+   "Mochi",
+   "I'm not lazy. I'm in energy-saving mode, like a console on standby."
+  ],
+  [
+   "Biscuit",
+   "My favorite card game is Go Fish. Fish!! I said fish!! Where are the fish??"
+  ],
+  [
+   "Mochi",
+   "Memory card full? Delete a game. Cats do this to cups on tables all the time."
+  ],
+  [
+   "Biscuit",
+   "I put every disc in a row! Alphabetical by how excited I am!!"
+  ],
+  [
+   "Mochi",
+   "Why are cats good at GameCube? We always land on our feet. Controller, however, is on its own."
+  ],
+  [
+   "Biscuit",
+   "What's a dog's favorite button? The one with TREAT written on it!! There isn't one!! Add one!!"
+  ],
+  [
+   "Mochi",
+   "The Z button is for naps. The L and R triggers are for stretching. I have read the manual."
+  ],
+  [
+   "Biscuit",
+   "Tiny discs are so cute!! They look like little cookies!! Please don't let me bite one!!"
+  ],
+  [
+   "Mochi",
+   "I asked for a quiet game. The disc drive went whirrr. Unacceptable. Charming. Unacceptable."
+  ],
+  [
+   "Biscuit",
+   "Why did the dog rotate the SD cards? It was the only way to get more PLAY TIME!!"
+  ],
+  [
+   "Mochi",
+   "Rounds are like cat naps. Short, repetitive, and you wake up with no idea what happened."
+  ],
+  [
+   "Biscuit",
+   "Pharmacy rounds are the BEST walk!! New hallways!! New smells!! (Fine, they all smell like hand sanitizer!!)"
+  ],
+  [
+   "Mochi",
+   "Coffee is just a way to feel like you've had a nap. I prefer actual naps."
+  ],
+  [
+   "Biscuit",
+   "Take with food!! That's what I always say!! About EVERYTHING!! Especially treats!!"
+  ],
+  [
+   "Mochi",
+   "A pharmacy student's hobbies: reading, flashcards, and napping. I am the same, minus the flashcards."
+  ],
+  [
+   "Biscuit",
+   "Study buddies are the best!! I will sit on your notes so they don't blow away!!"
+  ],
+  [
+   "Mochi",
+   "They say sleep is important. I have been telling the human this for years."
+  ],
+  [
+   "Biscuit",
+   "Alphabetical order is A-B-C-D-E-F-G... BISCUIT! That sounds right!!"
+  ],
+  [
+   "Mochi",
+   "Why did the cat bring a flashcard to the nap? To review, then fall asleep on it."
+  ],
+  [
+   "Biscuit",
+   "What do you call a dog who loves tiny discs? A DISC-covery enthusiast!! Wait, DISC-overy!!"
+  ],
+  [
+   "Mochi",
+   "A cat sitting on a GameCube is a console cozy. Do not move me. It's working."
+  ],
+  [
+   "Biscuit",
+   "Why was the dog so good at Mario Party? Because it knew how to roll over!!"
+  ],
+  [
+   "Mochi",
+   "Fetch is a game where you throw something away and a dog gets it back. A flawed concept. Great snacks."
+  ],
+  [
+   "Biscuit",
+   "Why did the SD card go to the vet? It was feeling a little CORRUPT!! It's fine now!! I fixed it with a nap!!"
+  ]
+ ],
+ "activities": {
+  "pet": {
+   "verb": "Pet",
+   "needs": "none",
+   "affection": 1,
+   "energy": 0,
+   "mochi": [
+    "*purrs in 8-bit*",
+    "I permit this. Continue."
+   ],
+   "biscuit": [
+    "*tail helicopter*",
+    "BEST DAY EVER (again)!"
+   ]
+  },
+  "treat": {
+   "verb": "Give treat",
+   "needs": "none",
+   "affection": 2,
+   "energy": 1,
+   "mochi": [
+    "Tuna. Correct tribute.",
+    "I'll accept this bribe."
+   ],
+   "biscuit": [
+    "TREAT!! I LOVE YOU!!",
+    "I didn't even chew! (I chewed.)"
+   ]
+  },
+  "play": {
+   "verb": "Play",
+   "needs": "energy",
+   "affection": 1,
+   "energy": -2,
+   "mochi": [
+    "*bats a controller cable off the desk* Gravity works.",
+    "Laser pointer? Fine. For science."
+   ],
+   "biscuit": [
+    "FETCH THE CONTROLLER!! (gently)",
+    "Zoomies! Mario Kart but with legs!"
+   ]
+  },
+  "nap": {
+   "verb": "Nap together",
+   "needs": "none",
+   "affection": 1,
+   "energy": 3,
+   "mochi": [
+    "zzz... (this is my best work)",
+    "Nap achievement unlocked."
+   ],
+   "biscuit": [
+    "...five more minutes... ...BORK. Okay awake."
+   ]
+  },
+  "fetch": {
+   "verb": "Play fetch",
+   "needs": "energy",
+   "affection": 1,
+   "energy": -2,
+   "mochi": [
+    "You throw it. I watch it. That's the whole transaction.",
+    "I fetched it. Please clap. Quietly.",
+    "Fine. I'll go get it. After I stare at it for a while.",
+    "Fetch complete. I'd like to nap now. Double."
+   ],
+   "biscuit": [
+    "FETCH!! I GOT IT!! I GOT IT!! I LOVE FETCH!! AGAIN!!",
+    "I brought back the ball!! And also this sock!! And ALSO a feeling!!",
+    "You threw it!! I ran!! The ball ran!! We ALL ran!!",
+    "I fetched the controller! It's covered in drool! You're welcome!!"
+   ]
+  },
+  "laser": {
+   "verb": "Chase the laser",
+   "needs": "energy",
+   "affection": 1,
+   "energy": -3,
+   "mochi": [
+    "The red dot. It taunts me. I will have it.",
+    "I caught it. It vanished. Philosophical.",
+    "Okay, I'll chase it. For ten seconds. After that, it's beneath me.",
+    "I allow the dot to live. Today."
+   ],
+   "biscuit": [
+    "WHAT IS THAT?? IT'S A DOT!! IT'S GONE!! IT'S BACK!! I'M SO CONFUSED!!",
+    "I caught the dot!! ...Where did it go?? Did I eat it??",
+    "The dot is on the wall!! I'll bark at the wall!! ...Why is this so hard??",
+    "Is the dot a friend?? An enemy?? A very tiny ball?? I LOVE IT!!"
+   ]
+  },
+  "groom": {
+   "verb": "Groom",
+   "needs": "none",
+   "affection": 2,
+   "energy": 1,
+   "mochi": [
+    "Brush slowly. This is a respectable service.",
+    "Please don't comment on the loose fur. It's a snowfall.",
+    "You may continue to groom me. I'll grant you full rights.",
+    "I'm so soft now. Don't make a big deal out of it."
+   ],
+   "biscuit": [
+    "Brushies!! Soft!! I'm so shiny!! Look at me!!",
+    "Ooh, behind the ears!! RIGHT THERE!! YES!!",
+    "I'm a fluffy cloud!! A good boy cloud!!",
+    "All clean!! Time to roll in something! ...Just kidding!! Maybe!!"
+   ]
+  }
+ },
+ "game_quips": {
+  "paper-mario-ttyd": {
+   "mochi": "Flat paper, fully 2D, 100% cat-approved: I fit in a mailbox.",
+   "biscuit": "Paper plane mode!! I love being folded!!"
+  },
+  "soulcalibur-ii": {
+   "mochi": "Link has a sword. I have claws. I will not elaborate.",
+   "biscuit": "SWORD FIGHT!! I'd fetch the sword!! (it's heavy)"
+  },
+  "mario-kart-double-dash": {
+   "mochi": "Two riders, one kart. Like me and the sunbeam.",
+   "biscuit": "TWO characters per kart?? That's me and my tail!!"
+  },
+  "chibi-robo": {
+   "mochi": "A tiny robot cleaning a house. Finally, someone competent.",
+   "biscuit": "Little guy plugging in!! I would defend him from the vacuum!!"
+  },
+  "animal-crossing": {
+   "mochi": "Cats and dogs run the town. Finally, a government I trust.",
+   "biscuit": "NEIGHBORS!! SO MANY NEIGHBORS!!"
+  },
+  "star-fox-adventures": {
+   "mochi": "A fox in the cat family tree? We don't talk about it.",
+   "biscuit": "Fox buddy!! Hi Fox!!"
+  },
+  "pikmin": {
+   "mochi": "Tiny followers who obey me. I like this game.",
+   "biscuit": "SO MANY LITTLE GUYS TO HERD!! I'm a herding breed!!"
+  },
+  "cubivore": {
+   "mochi": "Survival of the fittest. I choose naps.",
+   "biscuit": "I'd eat everything!! (I already do.)"
+  },
+  "super-smash-bros-melee": {
+   "mochi": "Everyone fights on floating islands. I'd just nap on the platform edge.",
+   "biscuit": "BRAWL TIME!! I would hug everybody until they win!!"
+  },
+  "wind-waker": {
+   "mochi": "A whole ocean and no cats on the boat. I'd file a complaint if I weren't asleep.",
+   "biscuit": "SAILING!! I'd stick my head out of the boat like a car ride!!"
+  },
+  "f-zero-gx": {
+   "mochi": "Racing so fast it looks like a blur. I'm already a blur when someone opens the treats.",
+   "biscuit": "SO FAST!! The zoomies, but with engines!!"
+  },
+  "pikmin-2": {
+   "mochi": "More little followers, more things to boss around. Sequel approved.",
+   "biscuit": "Even MORE tiny guys!! I'll herd every one!! Gently!!"
+  },
+  "super-mario-sunshine": {
+   "mochi": "A tropical island with a water cannon backpack. I'll watch from a dry spot.",
+   "biscuit": "Sprinkler game!! I love water! I love sprinklers!! I love everything!!"
+  },
+  "pokemon-colosseum": {
+   "mochi": "Many creatures, one cat who judges all of them. Fair.",
+   "biscuit": "SO MANY PALS!! I'd name every one 'Biscuit'!!"
+  },
+  "luigis-mansion": {
+   "mochi": "A spooky house with a vacuum. Two of my least favorite things, one game.",
+   "biscuit": "A vacuum that sucks up ghosts?? I'd bark at the vacuum and then at the ghosts!!"
+  },
+  "star-fox-assault": {
+   "mochi": "Another fox with a ship. The fox is still not family.",
+   "biscuit": "Pew pew!! Fox pilots!! Do a barrel roll!! (I did! I'm dizzy!)"
+  },
+  "sonic-adventure-2-battle": {
+   "mochi": "Fast hedgehog. I move fast too. When there's tuna.",
+   "biscuit": "SPEED!! Go fast!! I'm fast too (until I get distracted by a leaf)!!"
+  },
+  "donkey-konga": {
+   "mochi": "A game where you hit drums. Cats do this at 3am anyway.",
+   "biscuit": "BONGO TIME!! Paws on the drums!! BOOM BOOM BOOM!!"
+  },
+  "mario-party-4": {
+   "mochi": "Board games with friends: the best way to stay on the shelf and judge them.",
+   "biscuit": "PARTY PARTY PARTY!! Everyone gets a turn! Even me! ESPECIALLY ME!!"
+  },
+  "resident-evil-4": {
+   "mochi": "Scary stuff. I fluffed up my tail for no reason at all.",
+   "biscuit": "Scary but cool!! Can I hide behind you but also bark at stuff??"
+  },
+  "eternal-darkness": {
+   "mochi": "A game about sanity. I lost mine years ago. It's fine.",
+   "biscuit": "It's spooky and thoughtful!! Hold me. No wait, hold the controller. Hold both!!"
+  },
+  "viewtiful-joe": {
+   "mochi": "A hero in a cape who slows down time. Finally, someone appreciates dramatic pauses.",
+   "biscuit": "SLOW-MO!! I can see the tennis ball so clearly!! I'm coming!!"
+  },
+  "tales-of-symphonia": {
+   "mochi": "A long adventure with lots of dialogue. Great for a cat nap between chapters.",
+   "biscuit": "A HUGE ADVENTURE!! I'd bring snacks for the whole party!!"
+  },
+  "skies-of-arcadia-legends": {
+   "mochi": "Sky pirates and floating islands. I'd be the one sleeping in the crow's nest.",
+   "biscuit": "FLYING SHIPS!! Wind in my fur!! Wait, I don't have a seatbelt!! Fine!!"
+  },
+  "billy-hatcher": {
+   "mochi": "A guy rolls giant eggs around. I look at the eggs and think: knock them off a table.",
+   "biscuit": "EGG ROLL!! I'd carry the egg like it's my favorite toy!! Gently!!"
+  },
+  "beyond-good-and-evil": {
+   "mochi": "A photographer with a pet pig-man hybrid. I respect anyone with an eccentric roommate.",
+   "biscuit": "A camera game with animal friends!! I'd photograph every single snack!!"
+  },
+  "spyro-a-heros-tail": {
+   "mochi": "A little dragon with big attitude. Understandable. Same energy as me.",
+   "biscuit": "DRAGON!! BREATHES FIRE!! I wanna breathe fire!! Please can I??"
+  },
+  "crash-nitro-kart": {
+   "mochi": "Karts and chaos. That is just my morning routine.",
+   "biscuit": "KART RACING WITH EXPLOSIONS!! Boom! Zoom! Wumpa! (I said it right!)"
+  },
+  "ty-the-tasmanian-tiger": {
+   "mochi": "A cat-adjacent hero with boomerangs. I like his style. Don't tell him.",
+   "biscuit": "TY!! BOOMERANG BUDDY!! I'd fetch the boomerang!! It always comes back!!"
+  },
+  "harvest-moon-a-wonderful-life": {
+   "mochi": "Farm life, animals, cozy evenings. A cat's retirement plan.",
+   "biscuit": "A FARM!! With ANIMALS!! I'd be the farm dog!! I volunteer!!"
+  },
+  "pokemon-channel": {
+   "mochi": "Watching creatures on TV with a creature. Peak cat behavior.",
+   "biscuit": "I get to hang out with a cute pal on screen!! We'd be besties!!"
+  },
+  "ikaruga": {
+   "mochi": "Black and white bullets. I stare at them. They don't stare back. Win.",
+   "biscuit": "SO MANY BULLETS!! DODGE DODGE DODGE!! I'm not good at this!! It's fun!!"
+  },
+  "timesplitters-2": {
+   "mochi": "Chaos across time. My schedule is already time-split between naps.",
+   "biscuit": "TIME-TRAVEL SHOOTING!! Multiplayer is so loud and I love it!!"
+  }
+ },
+ "tag_quips": {
+  "furry": {
+   "mochi": "Ah. {game}. Fur: confirmed. Respectable.",
+   "biscuit": "{game} has FLOOFY characters!!"
+  },
+  "cozy": {
+   "mochi": "{game} is a nap simulator in disguise.",
+   "biscuit": "{game} feels like a warm blanket!!"
+  },
+  "racing": {
+   "mochi": "Speed is fine. Falling asleep mid-race is better.",
+   "biscuit": "ZOOM!! {game} is basically zoomies!!"
+  },
+  "horror": {
+   "mochi": "{game}: Scared? No. I just fluffed up for fun.",
+   "biscuit": "{game} is scary!! Can I hide behind you??"
+  },
+  "party": {
+   "mochi": "{game}: Friends, snacks, chaos. I'll supervise from the shelf.",
+   "biscuit": "PARTY GAME!! Everybody in!!"
+  },
+  "furry-adjacent": {
+   "mochi": "{game} has furry vibes if you squint. I squinted. I approve.",
+   "biscuit": "{game} has such good animal energy!! I wanna be friends with everyone!!"
+  },
+  "cats-and-dogs": {
+   "mochi": "{game} has both cats and dogs. A fair diplomatic solution.",
+   "biscuit": "{game} has dogs AND cats AND friends!! It's a pet party!!"
+  },
+  "cat-adjacent": {
+   "mochi": "{game} has cat-adjacent heroes. I'll allow it. Quietly.",
+   "biscuit": "{game} has someone cat-ish!! Hi cat-ish buddy!! I'm a dog!! Let's be friends!!"
+  },
+  "cute": {
+   "mochi": "{game} is cute. I'm cute too. Coincidence? I think not.",
+   "biscuit": "{game} is SO CUTE!! My heart! My tail! My everything!!"
+  },
+  "spooky": {
+   "mochi": "{game} is spooky in a cozy way. The fog is good for naps.",
+   "biscuit": "{game} is spooky but cute!! I'd boop the ghosts!!"
+  },
+  "rpg": {
+   "mochi": "{game} is a very long adventure. I'll bring blankets and a snack.",
+   "biscuit": "{game} has a whole party of friends!! I'd be the loyal dog sidekick!!"
+  },
+  "sports": {
+   "mochi": "{game}: sport is just chasing a ball. I get it. I'm still not running.",
+   "biscuit": "{game}!! A BALL!! I know balls!! Balls are my thing!!"
+  },
+  "fighting": {
+   "mochi": "{game}: violent. I prefer to hiss from a safe distance.",
+   "biscuit": "{game}!! Big fight!! I'd be the cheering crowd!! Go go go!!"
+  },
+  "platformer": {
+   "mochi": "{game} is jumping on things. A cat's natural area of expertise.",
+   "biscuit": "{game}!! JUMP!! I can jump!! (Onto the couch. That counts!!)"
+  },
+  "adventure": {
+   "mochi": "{game} is a quest. I support quests that include rests.",
+   "biscuit": "{game}!! Adventure!! I'll sniff out every secret!!"
+  },
+  "action": {
+   "mochi": "{game} is a lot of action. I'll watch from the couch.",
+   "biscuit": "{game}: ACTION!! Hit things!! Do cool poses!!"
+  },
+  "scifi": {
+   "mochi": "{game} is in space. I like space. Lots of room to sprawl.",
+   "biscuit": "{game}!! SPACE!! Can I be a space dog?? Please??"
+  },
+  "co-op": {
+   "mochi": "{game} is better with friends. Fine. I'll share my sunbeam.",
+   "biscuit": "{game} is co-op!! We can do it together!! I'll be the best partner!!"
+  },
+  "weird": {
+   "mochi": "{game} is weird. I respect weird. I am weird.",
+   "biscuit": "{game} is SO WEIRD!! I'm into it!! Tell me more!!"
+  },
+  "arcade": {
+   "mochi": "{game}: quick rounds, high scores. I'd rather lie down.",
+   "biscuit": "{game} is arcade-y!! High score!! My name is BSCT!!"
+  },
+  "fox": {
+   "mochi": "{game} stars a fox. They're basically the dog-cat compromise.",
+   "biscuit": "{game} has a FOX!! Fox buddy!! I'd share my bone!!"
+  },
+  "dragon": {
+   "mochi": "{game} has a dragon. Imagine a very large cat with a flamethrower.",
+   "biscuit": "{game} has a DRAGON!! Fire!! Scales!! Cool!! Spot-tacular!!"
+  },
+  "bongos": {
+   "mochi": "{game} is a drum game. I'm a big fan of making noise at 4am.",
+   "biscuit": "{game}: BONGOS!! Boom boom boom!! My paws are drums!!"
+  },
+  "top5": {
+   "mochi": "{game} is in your Top 5. I'll treat it with the respect of a good pillow.",
+   "biscuit": "{game} is in your TOP 5!! It's a VIP!! Very Important Pup-game!!"
+  },
+  "link-guest": {
+   "mochi": "{game} has a guest fighter with a sword and a green hat. A little fancy for a Tuesday.",
+   "biscuit": "{game} has a special guest fighter!! He's very sword-y!! Hi!!"
+  }
+ },
+ "state_of_collection": {
+  "empty": [
+   "No games found. The bowl is empty. This is a crisis.",
+   "Point me at your game folder and I'll get to work."
+  ],
+  "few": [
+   "We have a small stack, but I respect quality over quantity.",
+   "A cozy library! Fresh rotations will be quick."
+  ],
+  "many": [
+   "That's a LOT of games. Shuffling time!",
+   "A tall tower of discs. I want to climb it."
+  ]
+ },
+ "fortunes": [
+  [
+   "Mochi",
+   "You will find a warm spot today. Sit in it without apologizing."
+  ],
+  [
+   "Biscuit",
+   "Your future holds a treat!! Maybe two!! Possibly a nap in between!!"
+  ],
+  [
+   "Mochi",
+   "A small rest will bring a large idea. This is my entire philosophy."
+  ],
+  [
+   "Biscuit",
+   "Today you will do GREAT!! I can smell it!! It smells like success and cheese!!"
+  ],
+  [
+   "Mochi",
+   "The path ahead is clear, except for me, lying across it. Step over."
+  ],
+  [
+   "Biscuit",
+   "A friend is thinking of you right now!! It's me!! Hi!!"
+  ],
+  [
+   "Mochi",
+   "Do one thing well today. Then reward yourself with a snack. Cats call this a schedule."
+  ],
+  [
+   "Biscuit",
+   "Good news will arrive by mail!! Or by dog!! I'm very fast!!"
+  ],
+  [
+   "Mochi",
+   "Your patience will be rewarded. Mine already is. Nap time."
+  ],
+  [
+   "Biscuit",
+   "You are doing so good!! I have no evidence but I believe in you SO MUCH!!"
+  ],
+  [
+   "Mochi",
+   "A difficult task will become small once you start. Like a cat in a box."
+  ],
+  [
+   "Biscuit",
+   "Something wonderful is behind that next door!! Probably the hallway!! But also wonderful!!"
+  ],
+  [
+   "Mochi",
+   "Be gentle with yourself today. I'll be gentle with the furniture. Maybe."
+  ],
+  [
+   "Biscuit",
+   "Your luck is high and my tail is higher!! Go get 'em!!"
+  ],
+  [
+   "Mochi",
+   "A quiet hour awaits you. Do not waste it on worry. Waste it on a blanket."
+  ],
+  [
+   "Biscuit",
+   "Today's lucky number is ALL OF THEM!! Pick any!!"
+  ],
+  [
+   "Mochi",
+   "Ask for help when you need it. Cats do. We just do it with meowing."
+  ],
+  [
+   "Biscuit",
+   "You will learn something new today!! I will learn where the treats are!! We both win!!"
+  ],
+  [
+   "Mochi",
+   "The stars say you've earned a break. I say it too, but I'm cuter about it."
+  ],
+  [
+   "Biscuit",
+   "Tomorrow will be a good day!! I'll be here!! And so will the games!!"
+  ]
+ ],
+ "study_break": {
+  "mochi": [
+   "Drink some water. Stretch. I've been doing both for hours, in the sunbeam.",
+   "Close the book for ten minutes. It will still be there. Books are patient.",
+   "You've been staring at that screen a while. Look out the window. Birds exist.",
+   "Break time. I'll keep your seat warm. By sitting in it.",
+   "Shoulders down. Jaw unclenched. Breathe. I'll supervise.",
+   "A snack and some water would be an excellent study technique. I have notes."
+  ],
+  "biscuit": [
+   "WATER BREAK!! Drink a lot!! I'll drink some too!! Splash!!",
+   "Stand up and stretch!! Do the downward dog!! I'll show you!!",
+   "You're working SO hard!! Take a short walk and I'll come too!!",
+   "Time for a snack!! And a pat!! And maybe a nap!! Not in that order!!",
+   "Hey friend!! Look away from the screen!! Look at ME!! I'm a good view!!",
+   "Rest is part of studying!! I read it somewhere!! I think it was a treat bag!!"
+  ]
+ }
+}
