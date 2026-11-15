@@ -1,0 +1,9 @@
+config.json
+state.json
+__pycache__/
+*.pyc
+*.tmp
+*.part
+packs/*
+!packs/README.md
+art/out/

@@ -1,0 +1,57 @@
+{
+  "library_dir": "",
+  "extensions": [
+    ".iso",
+    ".gcm",
+    ".ciso",
+    ".gcz"
+  ],
+  "games_subdir": "games",
+  "rotation_days": 14,
+  "reserve_mb": 256,
+  "seed": 0,
+  "max_games_per_card": 0,
+  "boot_card": {
+    "label": "Boot card (<=2GB)",
+    "mount": "",
+    "swiss_dol": ""
+  },
+  "saves_dir": "",
+  "mods_dir": "",
+  "verify_copies": false,
+  "export_quips": true,
+  "cards": {
+    "1": {
+      "label": "Card 1",
+      "capacity_gb": 8,
+      "mount": ""
+    },
+    "2": {
+      "label": "Card 2",
+      "capacity_gb": 8,
+      "mount": ""
+    },
+    "3": {
+      "label": "Card 3",
+      "capacity_gb": 8,
+      "mount": ""
+    },
+    "4": {
+      "label": "Card 4",
+      "capacity_gb": 8,
+      "mount": ""
+    },
+    "5": {
+      "label": "Card 5",
+      "capacity_gb": 8,
+      "mount": ""
+    }
+  },
+  "pinned": [
+    "paper-mario-ttyd",
+    "animal-crossing",
+    "soulcalibur-ii",
+    "mario-kart-double-dash",
+    "chibi-robo"
+  ]
+}
