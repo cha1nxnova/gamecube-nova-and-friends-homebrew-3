@@ -111,7 +111,9 @@ character canon; this file is the plumbing.
 - Content: `data/afterdark/pets.json` and `data/afterdark/scenes.json` (same schemas, every scene
   `"rating": "afterdark"`) plus any user pack under `packs/<name>/` (`pack.json` = `{"name", "rating"}`, optional
   `pets.json`, `scenes.json`, `sprites/`). Packs rated `afterdark` and the built-in After Dark files are loaded
-  **only** when unlocked; `all`-rated packs always load. Loading merges lists (appends), never replaces.
+  **only** when unlocked; `all`-rated packs always load. Loading merges lists (appends), never replaces. A pack
+  whose `pack.json` is missing, unreadable or has any other rating is treated as `afterdark` (fail closed), except
+  `"hidden"` (section 9), which this loader skips entirely.
 - What ships in the built-in After Dark files: flirty, cheeky, innuendo-level banter between the three adults
   (think late-night sitcom). **Nothing sexually explicit is authored in this repository**, in text or art. The
   `packs/` folder is the owner's own space.
@@ -153,6 +155,9 @@ assets/
 - Runtime loader `pawtation/sprites.py` (stdlib, no tkinter import at module level):
   `load_manifest() -> dict`, `frames(char, anim, size) -> list[Path]`, `has(char) -> bool`,
   `available_sizes() -> list[int]`. Missing manifest or files -> empty results, never an exception.
+  (As built, also: `characters()` (excludes the `props` pseudo-character), `anim_info(char, anim)`,
+  `render(name) -> Path | None`, `render_frames(name) -> ([Path], fps)`, and a `pack_dirs=` argument on `frames`,
+  section 8. Details: `docs/ART_PIPELINE.md`.)
 - Low-poly renders: `assets/renders/manifest.json` = `{"version": 1, "renders": {"nova_bust": {"file":
   "nova_bust.png", "size": [512, 512]}, "nova_spin": {"frames": ["nova_spin_00.png", ...], "fps": 12,
   "size": [192, 192]}}}`.
@@ -201,7 +206,8 @@ assets/
   `<pack>/sprites/<char>/<size>/<anim>_<nn>.png` from the given pack directories (the caller decides which packs
   are allowed; After Dark packs only when unlocked).
 - **GUI settings** (in `config.json`, all optional): `gui_theme` (`light` | `dark`), `gui_reduce_motion` (bool; env
-  `PAWTATION_REDUCE_MOTION=1` also works), `gui_sprite_size` (96 | 192 | `auto`).
+  `PAWTATION_REDUCE_MOTION=1` also works), `gui_sprite_size` (96 | 192 | `auto`). As built, the GUI also reads
+  `gui_plain_widgets` (bool; env `PAWTATION_PLAIN_WIDGETS=1`): plain ttk widgets instead of the drawn pill buttons.
 - **After Dark stays as specified in section 4:** the repository ships innuendo-level banter only. No explicit
   text or art is authored here, by anyone, for any tier.
 - **Swiss fork** lives in `swiss_fork/`: `README.md`, `patches/*.patch` (a `git format-patch` series over the

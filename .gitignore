@@ -6,4 +6,4 @@ __pycache__/
 *.part
 packs/*
 !packs/README.md
-art/out/
+/art/out/

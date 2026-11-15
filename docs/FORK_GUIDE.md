@@ -77,3 +77,19 @@ Keep failure-tolerant: missing/invalid JSON must never block boot.
 
 ## 7. Sub-agent dispatch notes
 See `agent_tasks/SUPERVISOR.md`. Build/hardware/policy decisions stay with the supervising agent and the user.
+
+## 8. Status 2026-11-15: Pawtation theme patch queue built (not yet seen running)
+Path B was carried out under the terms in section 1. Everything is in `swiss_fork/` (see `swiss_fork/README.md`).
+- Local branch `pawtation-theme` in `/home/user/swiss-work/swiss-gc`, created from `v0.6r2119` (`163f8b1d`). Four local
+  commits: palette (`667f9e21`), identity (`825dd072`), art (`1d813f21`), mascot + quip (`f0504d6f`). Nothing was pushed.
+  The checkout's push URL is set to `DISABLED-never-push` and no remote was added.
+- `swiss_fork/patches/` holds the queue (13 upstream-tree files touched, +299/-42 lines, 3 new PNGs). `apply.sh` checks
+  the tag hash, the patch checksums and the resulting tree (`f8721a7a...`) before it builds.
+- Builds: `make dev` passed after every commit. The full `make` gives `swiss_r2123/` (the revision is 2123 because of the
+  4 local commits). The packed DOL / `AUTOEXEC.DOL` has sha256 `28d505fd...5b59`.
+- Attribution: every upstream line on info page 4/5 is unchanged, and the page gains one line, "Pawtation theme:
+  private, unofficial, not supported by the Swiss project". The title bar reads "unofficial theme, based on Swiss 0.6
+  r2119". The one `load_app` failure message that told users to open an upstream issue now tells them to retry with
+  stock Swiss.
+- **Not verified at runtime.** Dolphin shows a black screen here for stock Swiss too (BUILD_LOG section 6). Next step:
+  the section 5 hardware protocol, using the packed DOL (it has the commit trailer) on a spare card.

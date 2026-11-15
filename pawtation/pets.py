@@ -267,7 +267,8 @@ class PetBrain:
             b = doc.get("state_of_collection")
             lines += _strs(b.get(bucket)) if isinstance(b, dict) else []
         lines = lines or ["...", "..."]
-        return [self._line(p, lines[i % len(lines)]) for i, p in enumerate(self.speakers())]
+        # one line each, and never the same line twice (a trio with two lines in the bucket used to echo itself)
+        return [self._line(p, lines[i]) for i, p in enumerate(self.speakers()[:len(lines)])]
 
     def activities(self) -> dict:
         """name -> settings ({verb, needs, affection, energy, ...}) for every activity in play."""

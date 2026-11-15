@@ -1,9 +1,33 @@
 # Pawtation 🐾  (paw + rotation)
 
-Rotate your legally acquired GameCube disc images across 5 (or more) GC2SD SD cards, with a rotation timer,
-a desktop app, and two chat pets: **Mochi** (cat, deadpan) and **Biscuit** (dog, chaos).
+Rotate your own legally acquired GameCube disc images across 5 (or more) GC2SD SD cards, with a rotation timer, a
+desktop app, a CLI, and a small household of characters who live on the app's stage.
 
 Pure Python 3.9+, standard library only, works offline.
+
+## The cast
+- **Nova** (serval, he/him) and **Iggy** (fennec fox, they) are the mascots and are home most of the time, usually
+  together. **Duskie** (golden jackal, he/him) is a regular guest. Ten neighbours (Pickle, Vesper, Tuft, Hazel,
+  Sprout, Stilts, Flurry, The Refills, Mochi and Biscuit) drop in now and then for a few minutes. Vesper only comes
+  round at night and Sprout only by day. Canon: `docs/CHARACTERS.md`.
+- **Who is home** changes by itself every 20 to 90 minutes. You can also set up a **meetup** yourself: any one, any
+  pair, or all three (`cast --gather nova duskie`, `cast --everyone`, or the chips in the app).
+- They talk in **scenes**: short multi-character exchanges for whoever is home, the time of day, a rotation, a sync,
+  or a game. In chat, name a character to talk to them; if they are out, someone who is home answers for them.
+- **The stage** in the desktop app shows everyone who is home as die-cut sticker sprites (idle, blink, talk, wave,
+  happy, sleep, a special move), with walk-ons and walk-offs. A low-poly Nova is the window icon and the sync animation;
+  low-poly busts and turntables of all three are in `assets/renders/`.
+
+**After Dark** is an opt-in tier for adults (18+): flirtier, innuendo-level banter between the three adult main
+characters. It is off by default. Unlocking asks for your date of birth once, checks it against today's date and then
+forgets it: only "unlocked" and the day you confirmed are saved. Chat can explain it but never unlock it. While it is
+locked, its lines are not even read from disk. The lines written into `/pawtation/quips.txt` on your SD cards are
+always all-ages, unlocked or not. Nothing sexually explicit ships with Pawtation. `python -m pawtation afterdark --lock`
+turns it off again.
+
+**The look:** two themes, **Blush** (light) and **Cosmic** (dark), switched with the header button or F2. Every colour
+comes from `data/theme.json` and is checked for contrast (WCAG AA). Reduced motion is honoured
+(`gui_reduce_motion: true` in `config.json`, or `PAWTATION_REDUCE_MOTION=1`).
 
 ## Quick start
 ```
@@ -16,12 +40,17 @@ python -m pawtation sync 1 --mount E:\                   # dry run for card 1
 python -m pawtation sync 1 --mount E:\ --go              # really copy (add --verify to re-read and checksum)
 python -m pawtation sync all --go                        # every plugged-in card Pawtation has labelled before
 python -m pawtation cards                                # which cards are plugged in, what is on them
-python -m pawtation chat                                 # talk to the pets in a terminal ("help" lists ideas)
 python -m pawtation gui                                  # desktop app (needs tkinter)
+python -m pawtation chat                                 # talk to whoever is home ("help" lists ideas)
+python -m pawtation cast                                 # who is home right now
+python -m pawtation cast --gather nova duskie            # a meetup (also --everyone, --random, --minutes N)
+python -m pawtation scene                                # play a scene now (--when night, rotated, game:<key>...)
+python -m pawtation afterdark                            # After Dark: --status, unlock (asks once), --lock
 python -m pawtation mods / patch / saves / wrapped       # mod files, patched copies, save summaries, season recap
 python -m unittest discover -s tests                     # run tests
 ```
-Linux GUI: `sudo apt install python3-tk`. Every command has `--help`. Making it your own: `docs/MODDING.md`.
+Linux GUI: `sudo apt install python3-tk`. Every command has `--help`. Making it your own (characters, scenes, packs,
+plugins): `docs/MODDING.md`.
 
 ## Your hardware flow (Action Replay + GC2SD)
 1. **Boot card:** a *separate small standard SD, 2 GB or less* (the Action Replay SD Media Launcher reads only standard SD, not SDHC/SDXC).
@@ -35,7 +64,7 @@ Linux GUI: `sudo apt install python3-tk`. Every command has `--help`. Making it 
 - **Pinned favorites:** your top 5 (`config.json -> pinned`) go one-per-card, in order, so every card has a favorite.
 - **Everything else:** fills remaining space by score = star rating (dominant) + weeks since last loaded + a little randomness.
   A non-pinned game is on at most one card per season.
-- **Timer:** `rotation_days` (default 14). The app shows a countdown and Mochi/Biscuit nag when it's due.
+- **Timer:** `rotation_days` (default 14). The app shows a countdown, and whoever is home mentions it once per session when it's due.
 - **Sync is safe:** only files Pawtation wrote (tracked in `.pawtation.json` on the card) are ever deleted.
   Your Swiss files, saves and other games are left alone. Removal happens before copying; files are copied one at a
   time to reduce fragmentation (Swiss prefers contiguous files; for best results re-format a card now and then and let Pawtation refill it).
@@ -45,11 +74,28 @@ Linux GUI: `sudo apt install python3-tk`. Every command has `--help`. Making it 
 - **Multi-disc games** count as one game and both discs travel together.
 - **Interrupted copy?** Pull the card or press Ctrl+C whenever; no half-written game is left under a real name, and the next sync continues.
 
+## Art
+The sprites and renders are committed PNGs under `assets/`; the app never needs the art tools, and it still starts
+(with text instead of pictures) if every image is missing. To change or rebuild art you need the dev-time tools
+(headless Chromium for the 2D rasteriser; Pillow optional):
+```
+python3 art/build.py                 # 2D sticker sprites -> assets/sprites (--only nova, --contact, --check)
+python3 art/lowpoly/build.py         # low-poly renders -> assets/renders (--only iggy, --list)
+```
+Details: `docs/ART_PIPELINE.md`, `docs/ART_LOWPOLY.md`.
+
+## The Swiss theme
+`swiss_fork/` holds a private, unofficial, cosmetic theme for the Swiss loader (Pawtation colours, logo, backdrop
+and Nova in the title bar) as a patch queue over Swiss `v0.6r2119`, with a script that builds it in Docker. Swiss's
+authors and GPL-2.0 licence stay credited, and nothing is ever sent upstream. Read `docs/FORK_GUIDE.md` section 1
+and `swiss_fork/README.md` first.
+
 ## Things you should know (honest notes)
 1. **Top 5:** Paper Mario TTYD, Animal Crossing, Soulcalibur II, Mario Kart Double Dash, Chibi-Robo (Animal Crossing replaced Katamari Damacy, which is a PS2 game, not GameCube). Change `pinned` in `config.json` any time.
 2. **Image formats:** Swiss starts `.iso`/`.gcm`. It refuses `.gcz`/`.rvz` and has no `.ciso` support, so Pawtation shows those in `scan` but never puts them on a card. Convert them to `.iso` with Dolphin or NKit.
-3. **Game list:** `data/catalog.json` has 651 titles (from Wikipedia's GameCube list), 444 with a North American disc ID checked against GameTDB. Games without an ID match by file name, including dump-set names like `Legend of Zelda, The - The Wind Waker (USA).iso`. Only the original 79 have tags (which drive pet quips). Sources: `docs/CATALOG_SOURCES.md`.
-4. **Saves:** `saves` (and asking the pets about "saves") shows game, size, date and the description text each save carries. Real story progress needs a per-game reader; none ship because none could be checked against a real save (`docs/MODDING.md`). Set `saves_dir` in `config.json` to a folder of exported `.gci`/`.gcs` files.
-5. **Loader / fork:** Swiss was not forked or modified. Read `docs/FORK_GUIDE.md` section 1 before deciding; the Swiss maintainer asks that AI tools not be used on that code.
-6. **Tested how:** the logic has automated tests (temp folders standing in for SD cards). The desktop app was run under a virtual Linux display; see `docs/GUI_CHECKLIST.md` for what was and was not exercised. Nothing has been run on Windows or macOS, on a real SD card, or on a real GameCube.
+3. **Game list:** `data/catalog.json` has 651 titles (from Wikipedia's GameCube list), 444 with a North American disc ID checked against GameTDB. Games without an ID match by file name, including dump-set names like `Legend of Zelda, The - The Wind Waker (USA).iso`. Only the original 79 have tags (which drive game quips). Sources: `docs/CATALOG_SOURCES.md`.
+4. **Saves:** `saves` (and asking about "saves" in chat) shows game, size, date and the description text each save carries. Real story progress needs a per-game reader; none ship because none could be checked against a real save (`docs/MODDING.md`). Set `saves_dir` in `config.json` to a folder of exported `.gci`/`.gcs` files.
+5. **Swiss theme status:** it builds, but it has **not been seen running**: the emulator in the build container shows a black screen even for stock Swiss, and nothing has run on a real console. Try it on your own hardware with a stock Swiss boot card at hand. Our build of unmodified Swiss is not byte-identical to the official release.
+6. **Tested how:** the logic has automated tests (temp folders standing in for SD cards). The desktop app was run under a virtual Linux display only; see `docs/GUI_CHECKLIST.md` for what was and was not exercised. Nothing has been run on Windows or macOS, on a real SD card, or on a real GameCube.
 7. **Action Replay boot:** how your AR disc launches Swiss from the GC2SD varies by AR version. Swiss's release archive contains an `ActionReplay/AUTOEXEC.DOL`; that is the file to give `boot-card`. An existing `autoexec.dol` is kept as `autoexec.dol.bak`.
+8. **Version 1 saves:** an old `state.json` keeps loading; Mochi's and Biscuit's version-1 stats are left alone.

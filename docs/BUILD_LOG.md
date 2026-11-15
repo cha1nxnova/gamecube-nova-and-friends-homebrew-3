@@ -236,3 +236,38 @@ or WSL2 when Docker is already running.
 - No DOL from these builds (or the official one) has been seen running in an emulator.
 - Bit-identity with the official release: not achieved; cause only partly explained (section 4).
 - Docker Desktop and Apple Silicon instructions: written from the Linux setup, not tested.
+
+## 10. Themed build: Pawtation patch queue (2026-11-15)
+
+Unofficial, private. Source: branch `pawtation-theme` in `/home/user/swiss-work/swiss-gc` = `v0.6r2119` + 4 local
+commits (`667f9e21`, `825dd072`, `1d813f21`, `f0504d6f`). The patch queue is in `swiss_fork/patches/`. Image:
+`swiss-build:local` (devkitPPC 16.2.0).
+
+| Step | Command | Result | Log (`/home/user/swiss-work/logs/`) |
+|---|---|---|---|
+| 1 palette | `build.sh dev` | exit 0, `swiss.dol` 3913696 B | `paw-step1-dev.log` |
+| 2 identity | `build.sh dev` | exit 0 | `paw-step2-dev.log` |
+| 3 art | `build.sh dev` | exit 0, `swiss.dol` 4028576 B (CMPR backdrop adds about 115 KB) | `paw-step3-dev.log` |
+| 4 mascot + quip | `build.sh dev` | exit 0, `swiss.dol` 4064128 B | `paw-step4-dev.log` |
+| full | `build.sh` | exit 0 in 2 min 15 s, `swiss_r2123/` + `.7z` + `.tar.xz` | `paw-full-r2123.log` |
+| reproduce | `SWISS_SRC=<fresh clone> swiss_fork/apply.sh dev` | tree `f8721a7a...` matched, built, `swiss.dol` 4064128 B | `paw-apply-test.log` |
+
+**Revision: 2123** (`git rev-list HEAD | wc -l`; tag = 2119, + 4 commits). On screen it is labelled "fork rev", and the
+base is given as "Swiss 0.6 r2119".
+
+Artifacts, copied to `/home/user/swiss-work/artifacts/themed/` (with `SHA256SUMS`):
+
+| File | Bytes | sha256 |
+|---|---|---|
+| `DOL/swiss_r2123.dol` (packed, trailer `f0504d6f`) | 1416776 | `28d505fdba52ed46b418bd5284254683216bd56fee056d14dec0d1ce92975b59` |
+| `ActionReplay/AUTOEXEC.DOL` (identical) | 1416776 | `28d505fdba52ed46b418bd5284254683216bd56fee056d14dec0d1ce92975b59` |
+| `swiss_unpacked_r2123.dol` (`cube/swiss/swiss.dol` from the same full build) | 4064128 | `cafc938c30d833b4be134f4e52df7ae6f99f5b4ebe360b02ecee218a8acd9b56` |
+
+The full set is still in `swiss-gc/swiss_r2123/` (its own `swiss_r2123.sha256`). The earlier `swiss_r2119/` release build
+there was left untouched.
+
+Emulator: one forced attempt, `SHOT_FORCE=1 SHOT_EMU_PATCH=1 shot.sh` on the unpacked themed DOL, gave a black frame
+(log `logs/dolphin/shot_try-20261115-131625.log`), the same as stock (section 6). **The theme has not been seen
+running.** Static checks done instead: the built textures were decoded from the objects, the quip reader was tested
+on the PC with sanitizers, and the layout coordinates were checked against the 640x480 title bar. See
+`swiss_fork/README.md`.

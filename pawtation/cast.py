@@ -495,6 +495,8 @@ def _pack_dirs() -> list:
             folders = []
         for folder in folders:
             meta = load_json(folder / "pack.json", {})
+            if isinstance(meta, dict) and meta.get("rating") == "hidden":
+                continue                     # SPEC_V2 section 9: never loaded, listed or counted by this engine
             rating = "all" if meta.get("rating") == "all" else "afterdark"
             found.append((folder, _text(meta.get("name")) or folder.name, rating))
         _CACHE["packs"] = found

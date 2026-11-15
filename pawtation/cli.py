@@ -293,8 +293,11 @@ def cmd_cast(a):
         print(f"(a meetup you set up; it lasts until about {until}, then who is home is random again)"
               if cast.is_manual(state) else f"(the next change is around {until})")
     home = brain.home()
-    for cid, c in cast.characters().items():
-        print(f"  {c['name']:<10} {c['species']:<14} {c['role']:<6} {'home' if cid in home else 'out'}")
+    chars = cast.characters()
+    wn = max([len(c["name"]) for c in chars.values()] + [10])          # long names/species ("The Refills") stay aligned
+    ws = max([len(c["species"]) for c in chars.values()] + [14])
+    for cid, c in chars.items():
+        print(f"  {c['name']:<{wn}} {c['species']:<{ws}} {c['role']:<6} {'home' if cid in home else 'out'}")
     return 0
 
 
