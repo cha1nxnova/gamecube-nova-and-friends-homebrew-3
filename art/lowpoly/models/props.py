@@ -14,7 +14,7 @@ from functools import lru_cache
 
 from ..mesh import Mesh, box, compose, decal, merge, mix, ngon, prism, rect, rot_x, rot_y, rot_z, star4, star4_outline
 from ..pipeline import Job
-from ..render import Camera, Scene, Shadow, house_lighting
+from ..render import Camera, Scene, Shadow, house_lighting, house_outline
 
 HOT_PINK = "#ff4fa3"
 PINK = "#ff6fb8"
@@ -121,19 +121,21 @@ def star(radius=1.0, color=STAR, color2="#ffd96b"):
 def disc_scene(i=0, n=12):
     """The disc tilted towards the camera, turning once on its own axis."""
     cam = Camera(target=(0.0, 0.0, 0.0), pitch=0.0, ortho=2.5)
-    scene = Scene(cam, house_lighting(rim=0.6), shadow=Shadow((0.0, -1.02, 0.0), (0.80, 0.50), opacity=0.22))
+    scene = Scene(cam, house_lighting(rim=0.6), shadow=Shadow((0.0, -1.02, 0.0), (0.80, 0.50), opacity=0.22),
+                  outline=house_outline())
     return scene.add(disc(spin=-360.0 * i / n), compose(rot_x(-58.0), rot_z(-12.0)))
 
 
 def card_scene(i=0, n=1):
     cam = Camera(target=(0.0, 0.0, 0.0), pitch=10.0, ortho=1.5)
-    scene = Scene(cam, house_lighting(rim=0.7), shadow=Shadow((0.0, -0.56, 0.0), (0.42, 0.30), opacity=0.25))
+    scene = Scene(cam, house_lighting(rim=0.7), shadow=Shadow((0.0, -0.56, 0.0), (0.42, 0.30), opacity=0.25),
+                  outline=house_outline())
     return scene.add(sd_card(), compose(rot_y(-28.0), rot_z(8.0)))
 
 
 def star_scene(i=0, n=1):
     cam = Camera(target=(0.0, 0.0, 0.0), ortho=2.4)
-    return Scene(cam, house_lighting(rim=0.5)).add(star(), rot_y(-18.0))
+    return Scene(cam, house_lighting(rim=0.5), outline=house_outline()).add(star(), rot_y(-18.0))
 
 
 JOBS = [

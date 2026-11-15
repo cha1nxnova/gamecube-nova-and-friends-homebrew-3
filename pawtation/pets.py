@@ -13,6 +13,7 @@ Content tiers: data/pets.json and packs rated "all" are always in play. data/aft
 from __future__ import annotations
 
 import datetime
+import math
 import random
 import re
 import time
@@ -59,7 +60,11 @@ RX_SCENE = re.compile(r"\bhang(?:ing)? out\b|\bhangout\b|\bscenes?\b|\bmeet ?ups
 
 # ---------- content access (every shape is checked: a damaged file must never crash the app) ----------
 def _num(x) -> bool:
-    return isinstance(x, (int, float)) and not isinstance(x, bool)
+    """A real, finite number (a hand-edited state or content file can hold NaN, Infinity or a 400-digit integer)."""
+    try:
+        return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
+    except OverflowError:
+        return False
 
 
 def _strs(x) -> list:
@@ -167,7 +172,12 @@ class PetBrain:
         return t if isinstance(t, datetime.datetime) else datetime.datetime.now()
 
     def unlocked(self) -> bool:
-        return afterdark.is_unlocked(self.state)
+        """Is After Dark on for this state? Asked before every piece of content is fetched. While the answer is
+        no, the After Dark tier is not just filtered out: it is not kept in memory at all."""
+        on = afterdark.is_unlocked(self.state)
+        if not on:
+            cast.forget_afterdark()
+        return on
 
     def _content(self) -> list:
         return _layers(self.unlocked())
@@ -337,7 +347,7 @@ class PetBrain:
         for r in roms:
             rating = self.state["ratings"].get(r.key, 3)
             last = self.state["last_on_card"].get(r.key, 0)
-            w.append(max(0.5, (rating if _num(rating) else 3) + (1.5 if not last else 0)))
+            w.append((rating if _num(rating) and 1 <= rating <= 5 else 3) + (1.5 if not last else 0))
         pick = self.rng.choices(roms, weights=w, k=1)[0]
         where = self.where(pick.key)
         out = [f"Tonight's pick: {pick.title}" + (f" (it's on card {where})" if where else " (not on a card this season)")]
@@ -493,9 +503,13 @@ class PetBrain:
         return self.presence_lines(change) or [self._line(self._anyone(), "Everyone's already here.")]
 
     def _scene_lines(self, who, when: str, **context) -> list[str]:
+        return self._play(who, when, False, context)
+
+    def _play(self, who, when, exact: bool, context: dict) -> list[str]:
+        """Lines of a scene for `who` at `when`, or []. exact=True refuses the "any" fallback pool."""
         scene = cast.pick_scene(who, when, unlocked=self.unlocked(), rng=self.rng, context=context,
                                 avoid=self._last_scene)
-        if not scene:
+        if not scene or (exact and scene["when"] != when):
             return []
         self._last_scene = scene["id"]
         return cast.play(scene, context)
@@ -509,17 +523,35 @@ class PetBrain:
                 when = "any"
         return self._scene_lines(self.home(), when, **context) or self.duo("idle")
 
-    def event(self, when: str, **context) -> list[str]:
+    def game_scene(self, key) -> list[str]:
+        """A scene written about one game (when = "game:<catalog key>") or, failing that, about one of its tags
+        ("tag:<tag>"), for exactly who is home; {game} is the title. [] if nobody wrote one. Never raises."""
+        try:
+            g = self.catalog.by_key.get(key) if isinstance(key, str) else None
+            g = g if isinstance(g, dict) else {}
+            if not isinstance(key, str) or not key:
+                return []
+            title = g["title"] if isinstance(g.get("title"), str) and g["title"] else key
+            tags = g["tags"] if isinstance(g.get("tags"), list) else []
+            for when in [f"game:{key}"] + [f"tag:{t}" for t in tags if isinstance(t, str) and t]:
+                lines = self._play(self.home(), when, True, {"game": title})
+                if lines:
+                    return lines
+        except Exception:
+            pass
+        return []
+
+    def event(self, when, /, **context) -> list[str]:
         """Lines for something that just happened: "rotated", "synced" (card=...), "due", "arrive", "leave".
         A scene written for that moment and the present group wins; otherwise each character who is home says
         a line from the matching bucket (rotated / synced / rotation_due / arrive / leave).
+        Anything that is not one of those events gets [] (use scene() for "night", "game:<key>" and friends).
         Never raises: a missing line must not make a finished sync look like a failure."""
         try:
-            lines = self._scene_lines(self.home(), when, **context)
-            if lines:
-                return lines
             bucket = EVENT_BUCKETS.get(when) if isinstance(when, str) else None
-            return self.duo(bucket, **context) if bucket else []
+            if not bucket:
+                return []
+            return self._scene_lines(self.home(), when, **context) or self.duo(bucket, **context)
         except Exception:
             return []
 
@@ -534,7 +566,8 @@ class PetBrain:
     def _presence_lines(self, change) -> list[str]:
         if not isinstance(change, dict):
             return []
-        who, arrived, left = (cast.order(change.get(k) or []) for k in ("who", "arrived", "left"))
+        who, arrived, left = (cast.order(v) if isinstance(v, (list, tuple)) else []        # step()'s shape or nothing
+                              for v in (change.get(k) for k in ("who", "arrived", "left")))
         content = self._content()
         speaks = lambda p, bucket: cast.role(p) != "cameo" or _lines(content, bucket, p)
         out = []
@@ -636,7 +669,11 @@ class PetBrain:
             return self._line(pet, f"{r.title} is on card {c}." if c else f"{r.title} is resting this season. Not on any card.")
         r = self._mentioned(t, roms)                                # a game by name beats small talk
         if r:
-            return self.game_quip(pet, r.key) or self._line(pet, f"Ooh, {r.title}.")
+            quip = self.game_quip(pet, r.key)
+            talk = [] if asked else self.game_scene(r.key)          # nobody in particular asked: maybe everyone chimes in
+            if talk and (not quip or self.rng.random() < 0.5):
+                return "\n".join(talk)
+            return quip or self._line(pet, f"Ooh, {r.title}.")
         acts = [n for n in self.activities() if re.search(rf"\b{re.escape(n)}(s|ies|ing)?\b", t)]
         if acts:
             return self.activity(pet, acts[-1])                     # "play fetch" -> fetch (later = more specific)

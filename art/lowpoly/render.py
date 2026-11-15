@@ -4,7 +4,7 @@ Pure standard library. The whole public API:
 
     cam   = Camera(target=(0, 0, 0), yaw=0, pitch=8, distance=14, fov=24)     # perspective
     cam   = Camera(target=(0, 0, 0), ortho=5.0)                               # orthographic
-    scene = Scene(cam, lighting=house_lighting(), shadow=Shadow(...), outline=Outline(...))
+    scene = Scene(cam, lighting=house_lighting(), shadow=Shadow(...), outline=house_outline())
     scene.add(mesh)                              # as modelled
     scene.add(mesh, rot_y(30))                   # or with a transform (lowpoly.mesh matrices)
     image = render(scene, 192, 192, ss=3)        # -> Image (straight-alpha RGBA, transparent bg)
@@ -55,7 +55,7 @@ class Camera:
         """World -> camera space (x right, y up, the camera looks down -z)."""
         yw, pt = math.radians(self.yaw), math.radians(self.pitch)
         back = (math.sin(yw) * math.cos(pt), math.sin(pt), math.cos(yw) * math.cos(pt))   # target -> camera
-        right = v_norm((back[2], 0.0, -back[0]))
+        right = (math.cos(yw), 0.0, -math.sin(yw))       # from the yaw alone: still defined looking straight down
         up = (back[1] * right[2] - back[2] * right[1],
               back[2] * right[0] - back[0] * right[2],
               back[0] * right[1] - back[1] * right[0])
@@ -165,7 +165,7 @@ def house_lighting(rim=1.0):
         lights=[((-0.48, 0.52, 0.71), (0.60, 0.56, 0.48)),      # key: warm white, upper left front
                 ((0.78, -0.10, 0.50), (0.12, 0.15, 0.22)),      # fill: soft and cool, from the right
                 ((0.0, -0.85, 0.53), (0.13, 0.10, 0.12))],      # bounce: a little warmth from the ground
-        rim_dir=(0.80, 0.28, -0.53), rim_color=HOT_PINK, rim_strength=0.90 * rim, rim_power=1.4,
+        rim_dir=(0.74, 0.25, -0.62), rim_color=HOT_PINK, rim_strength=1.00 * rim, rim_power=1.6,
         edge_color=HOT_PINK, edge_strength=0.22 * rim, edge_power=3.0,
         sheen=0.07)
 
@@ -206,6 +206,12 @@ class Outline:
         self.color = None if color is None else rgb(color)
         self.strength = float(strength)
         self.width = float(width)
+
+
+def house_outline():
+    """The project's silhouette edge: one output pixel, each face's own colour 30% darker. It keeps
+    white fur and pale props readable on a white or pale pink page and is invisible on dark ones."""
+    return Outline(color=None, strength=0.30, width=1.0)
 
 
 class Scene:

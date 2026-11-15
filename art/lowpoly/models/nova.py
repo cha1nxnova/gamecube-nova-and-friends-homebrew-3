@@ -20,10 +20,10 @@ import math
 from functools import lru_cache
 
 from ..mesh import (UNLIT, Mesh, clip_halfplane, compose, cone_between, decal, decals, facet_angles, icosphere,
-                    loft, merge, mirror2d, ngon, polygon, rect, ring, rot_x, rot_y, scale, star4, stroke, translate,
+                    loft, merge, mirror2d, ngon, polygon, rect, ring, rot_x, rot_y, rot_z, scale, star4, stroke, translate,
                     v_dot, v_norm)
 from ..pipeline import Job
-from ..render import Camera, Scene, Shadow, house_lighting
+from ..render import Camera, Scene, Shadow, house_lighting, house_outline
 from . import props
 
 # ---- palette (docs/CHARACTERS.md, Nova) -----------------------------------------------------------
@@ -38,6 +38,7 @@ IRIS_HI = "#7cc4ff"
 IRIS_LO = "#1f6fc4"
 NOSE = "#e9cfe2"
 TONGUE = "#ee7fa6"
+WHISKER = NAVY_SHADE      # fine dark whiskers, as on the reference sheet
 TEE = "#e8894a"
 TEE_SHADE = "#cf7137"
 SMILEY = "#f7bd45"
@@ -57,11 +58,11 @@ BASE_Y = -2.25           # where the bust is cut
 # ---- head -----------------------------------------------------------------------------------------
 #             y     rx    rz front  rz back      (bottom to top)
 HEAD_RINGS = [(-0.68, 0.66, 0.68, 0.52),
-              (-0.44, 0.96, 0.87, 0.74),
-              (-0.17, 1.06, 0.91, 0.88),      # the mask line: white below, navy above
-              (0.43, 1.03, 0.89, 0.90),       # brow line; the band between is where the eyes sit
-              (0.68, 0.80, 0.70, 0.77),
-              (0.85, 0.47, 0.40, 0.48)]
+              (-0.44, 0.98, 0.88, 0.74),
+              (-0.17, 1.09, 0.92, 0.88),      # the mask line: white below, navy above. Widest here (cheeks)
+              (0.43, 0.99, 0.87, 0.90),       # brow line; the band between is where the eyes sit
+              (0.68, 0.78, 0.69, 0.77),
+              (0.85, 0.46, 0.40, 0.48)]
 
 
 def _head():
@@ -74,7 +75,7 @@ def _head():
 
 
 def _muzzle():
-    m = icosphere((0.48, 0.31, 0.36), 1, WHITE).translate(0.0, -0.41, 0.73)
+    m = icosphere((0.48, 0.31, 0.40), 1, WHITE).translate(0.0, -0.41, 0.76)
     # the bridge of the nose stays navy: the muzzle faces that look upwards, near the middle
     m.paint(NAVY, lambda c, n, i: n[1] > 0.45 and abs(c[0]) < 0.17)
     return m
@@ -82,7 +83,7 @@ def _muzzle():
 
 def _nose():
     r = ring(0.03, 0.115, 0.06, 6)
-    return loft([r, r], NOSE, cap_start=(0.0, -0.085, 0.015), cap_end=(0.0, 0.06, -0.02)).translate(0.0, -0.265, 1.045)
+    return loft([r, r], NOSE, cap_start=(0.0, -0.085, 0.015), cap_end=(0.0, 0.06, -0.02)).translate(0.0, -0.265, 1.112)
 
 
 def _mouth(muzzle):
@@ -95,19 +96,19 @@ def _mouth(muzzle):
 
 def _cheek_tufts():
     """A white spike on each cheek where the mask line flares, with a smaller navy one above it."""
-    big = cone_between((0.80, -0.38, 0.24), (1.30, -0.56, 0.10), 0.19, 0.0, 4, WHITE, squash=1.6)
-    low = cone_between((0.72, -0.54, 0.30), (1.06, -0.78, 0.20), 0.14, 0.0, 4, WHITE, squash=1.4)
-    small = cone_between((0.90, -0.06, 0.14), (1.25, -0.11, 0.0), 0.11, 0.0, 4, NAVY, squash=1.5)
+    big = cone_between((0.84, -0.36, 0.22), (1.40, -0.57, 0.08), 0.20, 0.0, 4, WHITE, squash=1.6)
+    low = cone_between((0.74, -0.54, 0.30), (1.08, -0.82, 0.20), 0.14, 0.0, 4, WHITE, squash=1.4)
+    small = cone_between((0.94, -0.10, 0.12), (1.33, -0.30, -0.02), 0.13, 0.0, 4, NAVY, squash=1.5)
     side = merge(big, low, small)
     return merge(side, side.mirrored("x"))
 
 
 def _whiskers():
     side = Mesh()
-    for tip in [(1.02, -0.19, 0.64), (1.10, -0.41, 0.60), (0.98, -0.63, 0.62)]:
-        base = (0.40, -0.39 + (tip[1] + 0.41) * 0.15, 0.91)
+    for tip in [(1.02, -0.19, 0.66), (1.10, -0.41, 0.62), (0.98, -0.63, 0.64)]:
+        base = (0.40, -0.39 + (tip[1] + 0.41) * 0.15, 0.965)
         side.extend(polygon([(base[0], base[1] - 0.012, base[2]), tip, (base[0], base[1] + 0.012, base[2])],
-                            WHITE, two_sided=True))
+                            WHISKER, two_sided=True))
     return merge(side, side.mirrored("x"))
 
 
@@ -175,36 +176,42 @@ def _forehead(head):
 
 
 # ---- ears: the star of the show --------------------------------------------------------------------
-EAR_H = 1.95
+EAR_H = 2.06
+EAR_TURN = 34.0           # how far each cup turns outwards (degrees)
+EAR_TILT = 21.0           # how far each ear leans outwards
+EAR_SEAT = (0.62, 0.47, -0.06)   # where the middle of the ear's base sits on the head
+EAR_RIM_OUT = 0.20        # navy rim on the front of the ear, as a fraction of the half-width: the outer
+EAR_RIM_IN = 0.11         # edge is thick, the inner edge (where the fine hairs grow) is thin
 #               v     half-width  back   cup    (v is the fraction of EAR_H; depths are how far the
-EAR_LEVELS = [(0.00, 0.36, 0.22, 0.04, 0.36),      # back bulges and how deep the inner cup is; the last
-              (0.12, 0.50, 0.28, 0.12, 0.46),      # column is how much of the half-width the periwinkle
-              (0.30, 0.62, 0.29, 0.16, 0.48),      # patch takes at that level)
-              (0.50, 0.66, 0.25, 0.15, 0.40),
-              (0.70, 0.60, 0.20, 0.12, 0.22),
-              (0.86, 0.45, 0.14, 0.08, 0.20),
-              (0.96, 0.25, 0.09, 0.04, 0.20)]
-EAR_PERI_TOP = 4          # the periwinkle patch fills the middle of the cup up to this level
+EAR_LEVELS = [(0.00, 0.47, 0.24, 0.04, 0.36),      # back bulges and how deep the inner cup is; the last
+              (0.10, 0.65, 0.30, 0.12, 0.46),      # column is how much of the half-width the periwinkle
+              (0.25, 0.80, 0.32, 0.17, 0.50),      # patch takes at that level)
+              (0.42, 0.86, 0.30, 0.17, 0.46),      # widest well below the middle: a serval's ear is a broad
+              (0.60, 0.80, 0.25, 0.14, 0.34),      # rounded spoon, not a rabbit's long oval
+              (0.76, 0.65, 0.19, 0.11, 0.22),
+              (0.89, 0.45, 0.13, 0.07, 0.20),
+              (0.97, 0.24, 0.08, 0.03, 0.20)]
+EAR_PERI_TOP = 5          # the periwinkle patch fills the middle of the cup up to this level
 
 
 def _ear():
     """The viewer's-right ear, base at the origin, pointing up, cup facing +z.
 
-    Each level is a 9-point crescent: cup centre, periwinkle edge, pale edge, rim (right), two
-    points round the back, rim (left), pale edge, periwinkle edge.
+    Each level is a 9-point crescent: cup centre, periwinkle edge, pale edge, rim (right, the outer
+    side), two points round the back, rim (left, the inner side), pale edge, periwinkle edge.
     """
     rings = []
     for v, hw, back, cup, peri in EAR_LEVELS:
         y = v * EAR_H
-        lean = 0.06 * math.sin(v * math.pi)             # the outer edge bows out a little more
+        lean = 0.08 * math.sin(v * math.pi)             # the outer edge bows out a little more
         rings.append([(lean, y, -cup),
                       (lean + peri * hw, y, -cup * 0.80),
-                      (lean + 0.80 * hw, y, -cup * 0.30),
+                      (lean + (1.0 - EAR_RIM_OUT) * hw, y, -cup * 0.30),
                       (lean + hw, y, 0.0),
                       (lean + 0.52 * hw, y, -back),
                       (lean - 0.52 * hw, y, -back),
                       (lean - hw, y, 0.0),
-                      (lean - 0.80 * hw, y, -cup * 0.30),
+                      (lean - (1.0 - EAR_RIM_IN) * hw, y, -cup * 0.30),
                       (lean - peri * hw, y, -cup * 0.80)])
 
     def colour(k, i):
@@ -214,7 +221,7 @@ def _ear():
             return EAR_IN
         return NAVY
 
-    tip = (0.03, EAR_H, -0.03)
+    tip = (0.04, EAR_H, -0.03)
     return loft(rings, colour, cap_end=tip, alternate=False,
                 cap_color=lambda k, i: EAR_IN if i in (0, 1, 7, 8) else NAVY)
 
@@ -222,8 +229,8 @@ def _ear():
 def _ear_hairs():
     """Three long fine hairs sweeping up from the inner edge of the (viewer's right) ear, in ear space."""
     out = Mesh()
-    for (bx, by), (tx, ty) in [((-0.40, 0.50), (-0.14, 1.30)), ((-0.36, 0.44), (0.02, 1.06)),
-                               ((-0.30, 0.38), (0.12, 0.80))]:
+    for (bx, by), (tx, ty) in [((-0.52, 0.58), (-0.20, 1.42)), ((-0.48, 0.50), (-0.02, 1.16)),
+                               ((-0.42, 0.42), (0.12, 0.88))]:
         out.extend(polygon([(bx - 0.017, by, 0.02), (bx + 0.017, by, 0.02), (tx, ty, 0.02)], NAVY, two_sided=True))
     return out
 
@@ -231,7 +238,7 @@ def _ear_hairs():
 def _ears():
     right = merge(_ear(), _ear_hairs())
     # turn the cup slightly outwards, lean it back a little, tip it outwards, then seat it in the head
-    right.rotate_y(22).rotate_x(-7).rotate_z(-20).translate(0.50, 0.52, -0.06)
+    right.rotate_y(EAR_TURN).rotate_x(-7).rotate_z(-EAR_TILT).translate(*EAR_SEAT)
     return merge(right, right.mirrored("x"))
 
 
@@ -287,16 +294,36 @@ def _smiley(torso):
 
 
 # ---- assembly --------------------------------------------------------------------------------------
+NECK_PIVOT = (0.0, -0.80, 0.0)     # the head turns, nods and tilts about this point inside the neck
+
+
 @lru_cache(maxsize=None)
-def build():
-    """The whole bust as one mesh. Cached: treat the result as read-only."""
+def parts():
+    """``(head, body)``: everything above the neck, and the neck, tee and arm stubs. Cached: read-only."""
     head = _head()
     muzzle = _muzzle()
     neck = _neck()
     torso = _torso()
-    return merge(head, muzzle, _nose(), _mouth(muzzle), _cheek_tufts(), _whiskers(),
-                 _eye(head, 1), _eye(head, -1), _forehead(head), _ears(),
-                 neck, _neck_dashes(neck), torso, _sleeves(), _smiley(torso))
+    top = merge(head, muzzle, _nose(), _mouth(muzzle), _cheek_tufts(), _whiskers(),
+                _eye(head, 1), _eye(head, -1), _forehead(head), _ears())
+    bottom = merge(neck, _neck_dashes(neck), torso, _sleeves(), _smiley(torso))
+    return top, bottom
+
+
+@lru_cache(maxsize=64)
+def build(turn=0.0, nod=0.0, tilt=0.0):
+    """The whole bust as one mesh. Cached: treat the result as read-only.
+
+    The optional pose moves the head on the neck (degrees; keep them small, about 20 / 10 / 10):
+    ``turn`` swings his nose towards the viewer's right, ``nod`` tips his chin down, ``tilt``
+    leans the top of his head towards the viewer's left. The shoulders stay where they are.
+    """
+    head, body = parts()
+    if turn or nod or tilt:
+        px, py, pz = NECK_PIVOT
+        pose = compose(translate(-px, -py, -pz), rot_z(tilt), rot_x(nod), rot_y(turn), translate(px, py, pz))
+        head = head.copy().transform(pose)
+    return merge(head, body)
 
 
 def bounds():
@@ -304,8 +331,10 @@ def bounds():
 
 
 # ---- scenes ----------------------------------------------------------------------------------------
-def _ground(radius=(1.15, 0.85), opacity=0.30):
-    return Shadow(center=(0.0, BASE_Y, 0.0), radius=radius, opacity=opacity)
+def _stage(cam, shadow=True):
+    """A scene with the house lighting, the silhouette edge and (optionally) the ground shadow."""
+    ground = Shadow(center=(0.0, BASE_Y, 0.0), radius=(1.15, 0.85), opacity=0.30) if shadow else None
+    return Scene(cam, house_lighting(), shadow=ground, outline=house_outline())
 
 
 def _sparkles(seed_positions):
@@ -315,40 +344,46 @@ def _sparkles(seed_positions):
     return out
 
 
+def _wide_camera():
+    """The whole bust, ear tips to ground shadow. The turntable and the sync loop share it, so the
+    bust is the same size in both and one can replace the other without a jump."""
+    return Camera(target=(0.0, 0.13, 0.0), pitch=7.0, distance=17.0, fov=17.9)
+
+
 def bust_scene(i=0, n=1):
-    """The hero still: three-quarter view, turned towards the key light, a few sparkles."""
-    cam = Camera(target=(0.0, 0.10, 0.0), pitch=7.0, distance=17.0, fov=19.5)
-    scene = Scene(cam, house_lighting(), shadow=_ground())
-    scene.add(build(), rot_y(-32.0))
-    scene.add(_sparkles([((-1.95, 1.55, 0.3), 0.20, STAR), ((1.92, 0.55, 0.2), 0.14, "#ffd1ea"),
-                         ((-1.75, -0.95, 0.6), 0.12, "#ffd1ea"), ((1.72, 2.25, -0.2), 0.11, STAR)]))
+    """The hero still: three-quarter view, shoulders turned away, head turned back with his chin up."""
+    cam = Camera(target=(0.0, 0.22, 0.0), pitch=7.0, distance=17.0, fov=18.7)
+    scene = _stage(cam)
+    scene.add(build(turn=12.0, nod=-3.0, tilt=-6.0), rot_y(-34.0))
+    scene.add(_sparkles([((-2.05, 1.60, 0.3), 0.21, STAR), ((2.12, 0.30, 0.2), 0.15, "#ffd1ea"),
+                         ((-1.80, -0.95, 0.6), 0.13, "#ffd1ea"), ((-1.42, 2.46, 0.0), 0.10, "#ffd1ea"),
+                         ((2.00, -1.45, 0.3), 0.11, STAR)]))
     return scene
 
 
 def icon_scene(i=0, n=1):
-    """App icon: straight on, cropped to the head, ears and shoulders."""
-    cam = Camera(target=(0.0, 0.55, 0.0), pitch=3.0, distance=17.0, fov=15.6)
-    return Scene(cam, house_lighting()).add(build())
+    """App icon: straight on, cropped to the ears, the face and the collar of the tee."""
+    cam = Camera(target=(0.0, 0.755, 0.0), pitch=3.0, distance=17.0, fov=14.0)
+    return _stage(cam, shadow=False).add(build())
 
 
 def spin_scene(i=0, n=24):
     """Turntable: the camera and lights stay put, the bust turns one full circle."""
-    cam = Camera(target=(0.0, 0.04, 0.0), pitch=7.0, distance=17.0, fov=18.0)
-    scene = Scene(cam, house_lighting(), shadow=_ground())
-    return scene.add(build(), rot_y(360.0 * i / n))
+    return _stage(_wide_camera()).add(build(), rot_y(360.0 * i / n))
 
 
 def sync_scene(i=0, n=24):
-    """The copy-to-card loop: a disc orbits his head once, and he follows it a little with his nose."""
+    """The copy-to-card loop: a disc orbits his head once and he follows it with his nose."""
     t = 2.0 * math.pi * i / n
-    cam = Camera(target=(0.0, 0.04, 0.0), pitch=7.0, distance=17.0, fov=18.4)
-    scene = Scene(cam, house_lighting(), shadow=_ground())
-    scene.add(build(), rot_y(11.0 * math.sin(t)))
+    scene = _stage(_wide_camera())
+    # shoulders still; the head swings after the disc, chin down as it passes low in front and up
+    # as it climbs behind the ears. Rounded so the 24 poses are cached exactly.
+    scene.add(build(turn=round(17.0 * math.sin(t), 3), nod=round(4.0 * math.cos(t), 3)))
     # the orbit is tilted so the disc passes in front at collar height and behind at ear height
-    radius, tilt = 2.40, math.radians(27.0)
+    radius, tilt = 2.70, math.radians(25.0)
     x, z = radius * math.sin(t), radius * math.cos(t)
-    y = 0.10 - z * math.tan(tilt)
-    scene.add(props.disc(spin=-2.0 * 360.0 * i / n), compose(scale(0.60), rot_x(-62.0), translate(x, y, z)))
+    y = 0.12 - z * math.tan(tilt)
+    scene.add(props.disc(spin=-2.0 * 360.0 * i / n), compose(scale(0.62), rot_x(-62.0), translate(x, y, z)))
     return scene
 
 

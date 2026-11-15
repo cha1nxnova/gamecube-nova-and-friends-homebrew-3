@@ -50,7 +50,17 @@ _CACHE: dict = {}
 
 # ---------- small helpers ----------
 def _num(x) -> bool:
-    return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
+    """A real, finite number that fits in a float (JSON can hold NaN, Infinity and integers of any size)."""
+    try:
+        return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
+    except OverflowError:
+        return False
+
+
+def _weighted(rng, items, weights):
+    """One of `items` by positive finite `weights`. Scaled first, so even absurd weights cannot overflow the sum."""
+    top = max(weights)
+    return rng.choices(items, weights=[w / top for w in weights], k=1)[0]
 
 
 def _text(x) -> str:
@@ -348,7 +358,7 @@ def _draw(rng) -> list:
     cast = load_cast()
     groups = cast["presence"]["groups"]
     keys = list(groups)
-    key = rng.choices(keys, weights=[groups[k] for k in keys], k=1)[0]
+    key = _weighted(rng, keys, [groups[k] for k in keys])
     if key == CAMEO_GROUP:
         who = default_group()
         walk_ons = cameos()
@@ -468,31 +478,45 @@ def _pack_dirs() -> list:
 
 def _tier(rating: str) -> dict:
     """Everything one rating tier adds, read on first use: {"scenes": [...], "pets": [pets.json-shaped dicts]}.
-    The "afterdark" tier is only ever asked for by a caller that passed unlocked=True."""
+    The "afterdark" tier is only ever asked for by a caller that passed unlocked=True, and it is the only place
+    After Dark content is ever held: a scene rated "afterdark" inside an all-rated file (data/scenes.json, a pack
+    rated "all") is kept out of the "all" tier and read again as part of this one."""
     cached = _CACHE.setdefault("tiers", {})
-    if rating not in cached:
+    tier = cached.get(rating)
+    if tier is None:
         after = rating == "afterdark"
         scenes, pets = [], []
+        open_files = [(SCENES_PATH, "builtin")] + [(folder / "scenes.json", f"pack:{folder.name}")
+                                                   for folder, _name, pack_rating in _pack_dirs() if pack_rating == "all"]
+        for path, source in open_files:
+            scenes += [s for s in _scenes_file(path, source, False) if (s["rating"] != "all") == after]
         if after:
             scenes += _scenes_file(AFTERDARK_DIR / "scenes.json", "afterdark", True)
             pets.append(load_json(AFTERDARK_DIR / "pets.json", {}))
-        else:
-            scenes += _scenes_file(SCENES_PATH, "builtin", False)
         for folder, _name, pack_rating in _pack_dirs():
             if pack_rating == rating:
-                scenes += _scenes_file(folder / "scenes.json", f"pack:{folder.name}", after)
+                if after:
+                    scenes += _scenes_file(folder / "scenes.json", f"pack:{folder.name}", True)
                 pets.append(load_json(folder / "pets.json", {}))
-        cached[rating] = {"scenes": scenes, "pets": [p for p in pets if p]}
-    return cached[rating]
+        tier = cached[rating] = {"scenes": scenes, "pets": [p for p in pets if p]}
+    return tier
+
+
+def forget_afterdark() -> None:
+    """Drop the After Dark tier from memory (it is read again the next time an unlocked caller asks). PetBrain
+    calls this whenever its state is locked, so relocking a running app leaves nothing behind to surface."""
+    tiers = _CACHE.get("tiers")
+    if tiers:
+        tiers.pop("afterdark", None)
 
 
 def all_scenes(unlocked: bool = False) -> list:
-    """Every usable scene: data/scenes.json and packs rated "all", plus (only when unlocked) data/afterdark and
-    packs rated "afterdark". Sources are appended, never replaced. Each scene is the validated dict
-    {id, who, key, when, rating, weight, lines, about, source, needs}; treat them as read-only."""
-    unlocked = unlocked is True
-    scenes = [s for s in _tier("all")["scenes"] if unlocked or s["rating"] == "all"]
-    return scenes + (_tier("afterdark")["scenes"] if unlocked else [])
+    """Every usable scene: data/scenes.json and packs rated "all", plus (only when unlocked) data/afterdark, packs
+    rated "afterdark" and any scene rated "afterdark" inside the all-rated files. Sources are appended, never
+    replaced. Each scene is the validated dict {id, who, key, when, rating, weight, lines, about, source, needs};
+    treat them as read-only. Only a real True unlocks."""
+    scenes = [s for s in _tier("all")["scenes"] if s["rating"] == "all"]            # belt and braces: see _tier()
+    return scenes + (_tier("afterdark")["scenes"] if unlocked is True else [])
 
 
 def extra_pets(unlocked: bool = False) -> list:
@@ -547,7 +571,7 @@ def pick_scene(who, when="any", *, unlocked: bool = False, rng=None, context=Non
         if hits:
             if avoid is not None and len(hits) > 1:
                 hits = [s for s in hits if s["id"] != avoid] or hits
-            return rng.choices(hits, weights=[s["weight"] for s in hits], k=1)[0]
+            return _weighted(rng, hits, [s["weight"] for s in hits])
     return None
 
 

@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "renders": {
+    "disc_spin": {
+      "frames": [
+        "disc_spin_00.png",
+        "disc_spin_01.png",
+        "disc_spin_02.png",
+        "disc_spin_03.png",
+        "disc_spin_04.png",
+        "disc_spin_05.png",
+        "disc_spin_06.png",
+        "disc_spin_07.png",
+        "disc_spin_08.png",
+        "disc_spin_09.png",
+        "disc_spin_10.png",
+        "disc_spin_11.png"
+      ],
+      "fps": 12,
+      "size": [
+        96,
+        96
+      ]
+    },
+    "nova_bust": {
+      "file": "nova_bust.png",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "nova_icon": {
+      "file": "nova_icon.png",
+      "size": [
+        256,
+        256
+      ]
+    },
+    "nova_spin": {
+      "frames": [
+        "nova_spin_00.png",
+        "nova_spin_01.png",
+        "nova_spin_02.png",
+        "nova_spin_03.png",
+        "nova_spin_04.png",
+        "nova_spin_05.png",
+        "nova_spin_06.png",
+        "nova_spin_07.png",
+        "nova_spin_08.png",
+        "nova_spin_09.png",
+        "nova_spin_10.png",
+        "nova_spin_11.png",
+        "nova_spin_12.png",
+        "nova_spin_13.png",
+        "nova_spin_14.png",
+        "nova_spin_15.png",
+        "nova_spin_16.png",
+        "nova_spin_17.png",
+        "nova_spin_18.png",
+        "nova_spin_19.png",
+        "nova_spin_20.png",
+        "nova_spin_21.png",
+        "nova_spin_22.png",
+        "nova_spin_23.png"
+      ],
+      "fps": 12,
+      "size": [
+        192,
+        192
+      ]
+    },
+    "sd_card": {
+      "file": "sd_card.png",
+      "size": [
+        128,
+        128
+      ]
+    },
+    "star": {
+      "file": "star.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "sync_loop": {
+      "frames": [
+        "sync_loop_00.png",
+        "sync_loop_01.png",
+        "sync_loop_02.png",
+        "sync_loop_03.png",
+        "sync_loop_04.png",
+        "sync_loop_05.png",
+        "sync_loop_06.png",
+        "sync_loop_07.png",
+        "sync_loop_08.png",
+        "sync_loop_09.png",
+        "sync_loop_10.png",
+        "sync_loop_11.png",
+        "sync_loop_12.png",
+        "sync_loop_13.png",
+        "sync_loop_14.png",
+        "sync_loop_15.png",
+        "sync_loop_16.png",
+        "sync_loop_17.png",
+        "sync_loop_18.png",
+        "sync_loop_19.png",
+        "sync_loop_20.png",
+        "sync_loop_21.png",
+        "sync_loop_22.png",
+        "sync_loop_23.png"
+      ],
+      "fps": 12,
+      "size": [
+        256,
+        192
+      ]
+    }
+  }
+}

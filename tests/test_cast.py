@@ -685,12 +685,29 @@ class Lockdown(Fixture):
         return {k: [x for x in v if SENTINEL in x or SENTINEL.lower() in x][:3] for k, v in got.items()
                 if any(SENTINEL in x or SENTINEL.lower() in x for x in v)}
 
+    def watched(self, fn):
+        """Run fn() and also return every file the cast module opened meanwhile."""
+        opened, real = [], cast.load_json
+
+        def spy(path, default):
+            opened.append(Path(path))
+            return real(path, default)
+        cast.load_json = spy
+        try:
+            return fn(), opened
+        finally:
+            cast.load_json = real
+
     def test_locked_state_can_never_surface_afterdark_content(self):
         self.add_afterdark()
         self.assertGreater(len(cast.all_scenes(True)), 500)                                   # the fixture really is in place
+        self.assertIn(SENTINEL, repr(cast._CACHE))                                            # ...and in memory right now
+        harmless = lambda f: f == cast.SCENES_PATH or f.name == "pack.json" or f.parent == self.packs / "cozy"
         for scene in ({"unlocked": False}, None):
             state = dict(self.state) if scene is None else dict(self.state, afterdark=scene)
-            got = self.sweep(state)
+            if scene is None:
+                cast.reload()                                                                 # second pass: from a cold cache
+            got, opened = self.watched(lambda: self.sweep(state))
             calls = sum(len(v) for v in got.values())
             self.assertGreater(calls, 20000, "the sweep must stay a brute-force hunt")
             self.assertEqual(self.leaks(got), {})
@@ -698,6 +715,10 @@ class Lockdown(Fixture):
             self.assertTrue(any(PACK_ALL in x for x in got["scene"])); self.assertTrue(any(PACK_ALL in x for x in got["cards"]))
             self.assertNotIn(SENTINEL, json.dumps(state)); self.assertFalse(afterdark.is_unlocked(state))
             self.assertNotIn("afterdark", cast._CACHE.get("tiers", {}))                       # the files were never even read
+            self.assertEqual([str(f) for f in opened if not harmless(f)], [])                 # ...literally: not one was opened
+            self.assertNotIn(SENTINEL, repr(cast._CACHE))                                     # and nothing of it is held in memory
+            if scene is None:
+                self.assertIn(cast.SCENES_PATH, opened)                                       # (the watcher does see file reads)
 
     def test_states_that_only_look_unlocked_stay_locked(self):
         self.add_afterdark()
@@ -719,9 +740,11 @@ class Lockdown(Fixture):
             self.assertIn(kind, found, f"the hunt cannot see After Dark content through {kind}")   # so the locked hunt means something
         self.assertNotIn("cards", found)                                                      # card quips are all-rated, always
         self.assertTrue(got["cards"])
+        self.assertIn(SENTINEL, repr(cast._CACHE))
         afterdark.lock(state)
         self.assertEqual(state["afterdark"], {"unlocked": False})
         self.assertEqual(self.leaks(self.sweep(state, rounds=1)), {})
+        self.assertNotIn(SENTINEL, repr(cast._CACHE))                                         # relocking empties the memory too
 
     def test_chat_explains_but_never_unlocks(self):
         self.add_afterdark()
@@ -805,13 +828,16 @@ class Brain(Fixture):
         self.assertEqual((b.event("bogus"), b.event(None), b.event(5), b.event("night")), ([], [], [], []))
         self.assertEqual(b.event("synced", who="x", when="y", card="1"), [])                  # clashing keywords: contained
         self.home(["iggy", "nova"])
-        self.assertEqual(b.event("synced"), ["Nova: synced line 1 from nova {card}"][:0] or b.event("synced"))   # never raises
-        self.assertEqual(len(b.event("synced")), 2)
+        raw = {f"{name_of(p)}: {l}" for p in ("nova", "iggy") for l in pets.PETS["synced"][p]}
+        for _ in range(10):                                                                   # no card given: the scene that needs
+            out = b.event("synced")                                                           # {card} is skipped, and the bucket
+            self.assertEqual(len(out), 2); self.assertTrue(set(out) <= raw, out)              # lines print as written; never raises
 
     def test_scene_follows_the_clock_and_never_repeats_back_to_back(self):
         self.home(["iggy", "nova"])
         night = Counter(l for s in range(60) for l in self.brain(s, NIGHT).scene())
-        self.assertTrue(night["Nova: night scene"]); self.assertTrue(night["Nova: any scene 1 for iggy+nova"])   # about half and half
+        self.assertTrue(night["Nova: night scene"]); self.assertTrue(night["Iggy: any scene 1 for iggy+nova"])   # about half and half
+        self.assertTrue(15 <= night["Nova: night scene"] <= 45, night)
         day = Counter(l for s in range(60) for l in self.brain(s, NOON).scene())
         self.assertFalse(day["Nova: night scene"])
         self.assertEqual(self.brain().scene("night"), ["Nova: night scene"])
@@ -929,7 +955,7 @@ class ChatIntents(Fixture):
             self.assertEqual([l.split(":")[0] for l in out], ["Iggy", "Duskie"], text); self.assertEqual(b.home(), REGULARS, text)
         self.assertRegex(b.reply("everyone"), r"^(Nova|Iggy|Duskie): Everyone's already here\.$")
         self.home(["iggy", "nova"])
-        self.assertIn("idle line", b.reply("hello everyone"))                                 # a greeting, not a summons... (idle or greeting)
+        self.assertRegex(b.reply("hello everyone"), r"^(Nova|Iggy): greeting line")           # a greeting, not a summons
         self.assertEqual(b.home(), ["nova", "iggy"])
         self.assertIn("card 1", b.reply("where is pikmin 2, everyone?", self.roms)); self.assertEqual(b.home(), ["nova", "iggy"])
 
@@ -1006,7 +1032,8 @@ class ChatIntents(Fixture):
         self.assertEqual(b.reply("iggy boop"), "Iggy: Boop.")
         self.assertEqual({k: seen[0][k] for k in ("pet", "text", "roms", "saves")}, {"pet": "iggy", "text": "iggy boop", "roms": [], "saves": None})
         self.assertEqual((seen[0]["home"], seen[0]["named"]), (["nova", "iggy"], ["iggy"]))
-        self.assertEqual(b.reply("invite duskie boop"), b.reply("boop").split(":")[0] + ": Boop.")   # hooks beat the new intents
+        self.assertRegex(b.reply("invite duskie boop"), r"^(Nova|Iggy): Boop\.$")              # hooks beat the new intents
+        self.assertEqual(b.home(), ["nova", "iggy"]); self.assertNotIn("scene", self.state)   # ...so nobody was invited
         self.assertRegex(b.reply("bang"), r"^(Nova|Iggy): A plugin tripped over its own tail \(ZeroDivisionError")
         self.assertRegex(b.reply("nothing hi"), r"^(Nova|Iggy): greeting line")
 
@@ -1164,7 +1191,7 @@ class CastCli(unittest.TestCase):
         self.assertIn("staying put", out)                                                     # the last main refused to leave
         self.assertIn("python -m pawtation afterdark", out)
         st = self.state()
-        self.assertEqual(st["scene"]["who"], ["iggy"]); self.assertTrue(st["scene"]["manual"])
+        self.assertEqual(st["scene"]["who"], ["duskie", "iggy"]); self.assertTrue(st["scene"]["manual"])   # "everyone" brought Duskie back
         self.assertEqual(st["afterdark"], {"unlocked": False})
         self.assertEqual(sorted(st["pets"]), ["duskie", "iggy", "nova"])
         (self.home / "state.json").write_text(json.dumps({"scene": {"who": ["duskie"], "until": 12, "manual": True}, "pets": 5}))
