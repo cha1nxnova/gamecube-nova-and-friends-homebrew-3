@@ -2,10 +2,12 @@
 
 Safety: config/state are pointed at a temp dir for this module (setUpModule) and every test asserts it before
 building a window. SD cards are temp dirs; disc images are sparse fakes with the GameCube magic word."""
+import atexit
 import datetime
 import json
 import os
 import re
+import shutil
 import sys
 import tempfile
 import time
@@ -13,6 +15,7 @@ import unittest
 from pathlib import Path
 
 HOME = tempfile.mkdtemp(prefix="pawtation-gui-")
+atexit.register(shutil.rmtree, HOME, True)    # also when the module is imported but its tests never run
 GUI_PY = Path(__file__).resolve().parent.parent / "pawtation" / "gui.py"
 SENTINEL = "ZZGUIAFTERDARKZZ"
 
@@ -42,6 +45,7 @@ def setUpModule():
 
 def tearDownModule():
     core.CONFIG_PATH, core.STATE_PATH = _REAL["paths"]
+    shutil.rmtree(HOME, ignore_errors=True)      # the temp home made at import time
     for key in ("PAWTATION_REDUCE_MOTION", "PAWTATION_PLAIN_WIDGETS"):
         if _REAL.get(key) is not None:
             os.environ[key] = _REAL[key]
@@ -82,6 +86,7 @@ class SourceTests(unittest.TestCase):
 class GuiTests(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp(dir=HOME))
+        self.addCleanup(shutil.rmtree, str(self.tmp), ignore_errors=True)
         assert str(core.CONFIG_PATH).startswith(HOME), "refusing to run GUI tests against the real config"
         for f in (core.CONFIG_PATH, core.STATE_PATH):
             if f.exists():
@@ -286,6 +291,45 @@ class GuiTests(unittest.TestCase):
         for cid in cast.regulars():
             self.assertEqual(a.stage.actors[cid]["kind"], "sprite" if sprites.has(cid) else "text")
 
+    def test_stage_sprite_size_rule(self):
+        """Up to three regulars get the large stickers on a wide, tall stage (a walk-on stays small beside them);
+        the compact size only when they do not fit. Name tags never overlap."""
+        a = self.app
+        a.geometry("1400x900+0+0")
+        a.everyone()
+        for _ in range(20):
+            a.update(); time.sleep(0.01)
+        st, sp = a.stage, a.tok["sprite"]
+        regs = st.present()
+        w, h = st.dims()
+        self.assertGreaterEqual(h, a.size("stage"))
+        self.assertEqual(st.size, sp["stage"], (w, h))
+        cam = cast.cameos()[0]
+        st.set_cast(regs + [cam]); a.update()
+        self.assertEqual(st.size, sp["stage"])
+        self.assertEqual(st.actor_px(cam), sp["cameo"])
+        xs = st.targets()
+        order = sorted(xs, key=xs.get)
+        for left, right in zip(order, order[1:]):
+            gap = xs[right] - xs[left] - (st.tag_width(left) + st.tag_width(right)) / 2.0
+            self.assertGreater(gap, 0, (left, right))
+        inner = w - a.tok["elevation"]["card"][0] - 6
+        self.assertLessEqual(xs[order[-1]] + st.tag_width(order[-1]) / 2.0, inner)
+        self.assertGreaterEqual(xs[order[0]] - st.tag_width(order[0]) / 2.0, 0)
+        # a stage too narrow for three large stickers falls back to the compact size
+        self.assertFalse(st.plan(sp["stage"], 360, regs, [])[1])
+        self.assertTrue(st.plan(sp["stage"], 560, regs, [])[1])
+
+    def test_game_column_takes_spare_width(self):
+        a = self.app
+        a.geometry("1400x900+0+0")
+        for _ in range(10):
+            a.update(); time.sleep(0.01)
+        a._fit_columns()
+        self.assertGreaterEqual(int(a.tree.column("game", "width")), dict((c[0], c[2]) for c in a.COLUMNS)["game"])
+        total = sum(int(a.tree.column(c[0], "width")) for c in a.COLUMNS)
+        self.assertLessEqual(total, a.tree.winfo_width())
+
     def test_chips_invite_and_send_out(self):
         a = self.app
         cast.gather(a.state, [cast.mains()[0]]); a._after_brain(); a.update()
@@ -485,6 +529,181 @@ class GuiTests(unittest.TestCase):
         left = interp.call("after", "info")
         left = left if isinstance(left, tuple) else tuple(str(left).split())
         self.assertFalse([i for i in pending if i in left], left)       # every after() we made was cancelled
+
+
+
+@unittest.skipUnless(DISPLAY, "tkinter or a display is not available")
+class SealedSectionGui(unittest.TestCase):
+    """SPEC_V2 section 9 in the window: nothing visible before it is opened; the bare prompt; the opened window."""
+    CODE, PASS = "Tq7Wm2Zx", "4815162342"           # test values only
+
+    def setUp(self):
+        from pawtation import hidden
+        self.hidden = hidden
+        assert str(core.CONFIG_PATH).startswith(HOME), "refusing to run GUI tests against the real config"
+        self.tmp = Path(tempfile.mkdtemp(dir=HOME))
+        self.addCleanup(shutil.rmtree, str(self.tmp), ignore_errors=True)
+        kept = (cast.PACKS_DIR, hidden.ITERATIONS)
+
+        def restore():
+            hidden.close()
+            cast.PACKS_DIR, hidden.ITERATIONS = kept
+            cast.reload()
+        self.addCleanup(restore)
+        cast.PACKS_DIR = self.tmp / "packs"
+        cast.PACKS_DIR.mkdir()
+        hidden.ITERATIONS = 1000
+        cast.reload()
+        for f in (core.CONFIG_PATH, core.STATE_PATH):
+            if f.exists():
+                f.unlink()
+        core.update_config(library_dir="")
+        st = core.load_state()
+        st["afterdark"] = {"unlocked": True, "confirmed_on": "2026-11-01"}
+        self.assertTrue(hidden.setup(st, self.CODE, self.PASS)[0])
+        core.save_state(st)
+        self.msgs = []
+        self.app = gui.App()
+        self.app.show_info = lambda t, x: self.msgs.append((t, x))
+        self.app.show_error = lambda t, x: self.msgs.append((t, x))
+        self.app.update()
+        self.addCleanup(self._destroy)
+
+    def _destroy(self):
+        try:
+            self.app.destroy()
+        except Exception:
+            pass
+
+    def walk(self, w):
+        yield w
+        for child in w.winfo_children():
+            yield from self.walk(child)
+
+    def texts(self, root):
+        out = []
+        for w in self.walk(root):
+            for opt in ("text", "title"):
+                if w.winfo_class() in ("Entry", "TEntry"):              # "text" would abbreviate to textvariable
+                    continue
+                try:
+                    out.append(str(w.cget(opt)))
+                except Exception:
+                    pass
+            if isinstance(w, tkinter.Canvas):
+                for item in w.find_all():
+                    try:
+                        out.append(str(w.itemcget(item, "text")))
+                    except Exception:
+                        pass
+            if isinstance(w, tkinter.Menu):
+                for i in range((w.index("end") or -1) + 1):
+                    try:
+                        out.append(str(w.entrycget(i, "label")))
+                    except Exception:
+                        pass
+            if isinstance(w, (tkinter.Toplevel, tkinter.Tk)):
+                out.append(w.title())
+        return out
+
+    def type_line(self, text):
+        self.app.entry.delete(0, "end")
+        self.app.entry.insert(0, text)
+        self.app.chat()
+        self.app.update()
+
+    def test_nothing_mentions_it_before_it_is_opened(self):
+        a = self.app
+        blob = self.texts(a)
+        a.show_help()
+        blob += [x for m in self.msgs for x in m]
+        blob += [t for t, _fn in a._tools()] + [str(x) for x in a.brain.activities()]
+        blob += [a.status.get(), a.log.get("1.0", "end"), a.title()]
+        popups = []
+        a._popup = lambda anchor, items: popups.extend(t for t, _fn in items)
+        blob += popups
+        self.assertTrue(any("Help" in t or "help" in t for t in blob))       # the walk did see real text
+        hits = [t for t in blob if "hidden" in t.lower() or "hw-setup" in t]
+        self.assertEqual(hits, [])
+        self.assertIsNone(getattr(a, "_sealed_win", None))
+
+    def test_wrong_code_is_logged_and_answered(self):
+        before = self.app.log.get("1.0", "end")
+        self.type_line("Tq7Wm2Zy")
+        after = self.app.log.get("1.0", "end")
+        self.assertIn("You: Tq7Wm2Zy", after)
+        self.assertGreater(len(after.split("You: Tq7Wm2Zy", 1)[1].strip()), 0)     # somebody answered
+        self.assertTrue(after.startswith(before.rstrip("\n")))
+        self.assertIsNone(getattr(self.app, "_sealed_prompt", None))
+
+    def test_full_flow(self):
+        a = self.app
+        before = a.log.get("1.0", "end")
+        self.type_line(self.CODE)
+        self.assertEqual(a.entry.get(), "")
+        self.assertEqual(a.log.get("1.0", "end"), before)                  # swallowed: nothing logged
+        prompt = a._sealed_prompt
+        self.assertEqual(prompt.title(), "")
+        kinds = [w.winfo_class() for w in self.walk(prompt)]
+        self.assertNotIn("Label", kinds)
+        self.assertEqual(kinds.count("Entry"), 1)
+        self.assertEqual(a._sealed_entry.cget("show"), "•")
+        self.assertTrue(all(t in ("", "None") for t in self.texts(prompt)), self.texts(prompt))
+        a._sealed_entry.insert(0, self.PASS)
+        a._sealed_entry.event_generate("<Return>")
+        a.update()
+        self.assertFalse(prompt.winfo_exists())
+        self.assertTrue(self.hidden.is_open())
+        win = a._sealed_win
+        self.assertEqual(win.title(), "The Hidden World")
+        self.assertIn("Nothing here yet.", self.texts(win))
+        self.assertEqual(a.log.get("1.0", "end"), before)
+        self.assertEqual(core.load_state()["hw"]["fails"], 0)
+        raw = core.STATE_PATH.read_text(encoding="utf-8")
+        self.assertNotIn(self.CODE, raw); self.assertNotIn(self.PASS, raw)
+        a.tk.call(win.protocol("WM_DELETE_WINDOW"))                       # the window's close button
+        a.update()
+        self.assertFalse(win.winfo_exists())
+        self.assertFalse(self.hidden.is_open())
+        self.assertIsNone(a._sealed_win)
+
+    def test_wrong_passcode_just_closes(self):
+        a = self.app
+        before = a.log.get("1.0", "end")
+        self.type_line(self.CODE)
+        prompt = a._sealed_prompt
+        a._sealed_entry.insert(0, "0000000000")
+        a._sealed_entry.event_generate("<Return>")
+        a.update()
+        self.assertFalse(prompt.winfo_exists())
+        self.assertFalse(self.hidden.is_open())
+        self.assertIsNone(getattr(a, "_sealed_win", None))
+        self.assertEqual(a.log.get("1.0", "end"), before)
+        self.assertEqual(core.load_state()["hw"]["fails"], 1)             # the throttle was saved
+
+    def test_pack_gallery_and_quit_locks(self):
+        folder = cast.PACKS_DIR / "mine"
+        (folder / "gallery").mkdir(parents=True)
+        (folder / "pack.json").write_text(json.dumps({"name": "Mine", "rating": "hidden"}), encoding="utf-8")
+        img = tkinter.PhotoImage(master=self.app, width=900, height=40)
+        img.put("red", to=(0, 0, 900, 40))
+        img.write(str(folder / "gallery" / "a.png"), format="png")
+        (folder / "gallery" / "b.gif").write_bytes(b"not really a gif")
+        cast.reload()
+        self.assertTrue(self.hidden.try_open(self.app.state, self.PASS))
+        win = self.app._sealed_window_open()
+        self.app.update()
+        ui = self.app._sealed_ui
+        self.assertEqual(ui["list"].get(0, "end"), ("Mine",))
+        self.assertEqual(len(ui["images"]), 2)
+        self.assertIsNotNone(ui["img"])
+        self.assertLessEqual(ui["img"].width(), 450)                      # subsampled to fit
+        self.assertEqual(ui["count"].cget("text"), "1 / 2")
+        self.app._sealed_show(1)                                          # a broken file shows a note, not a crash
+        self.assertIsNone(ui["img"])
+        self.assertEqual(str(ui["play"].cget("state")), "disabled")       # no scenes in this pack
+        self.app.destroy()
+        self.assertFalse(self.hidden.is_open())
 
 
 if __name__ == "__main__":

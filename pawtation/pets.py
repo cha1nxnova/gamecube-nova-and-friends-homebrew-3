@@ -509,7 +509,7 @@ class PetBrain:
     def _play(self, who, when, exact: bool, context: dict) -> list[str]:
         """Lines of a scene for `who` at `when`, or []. exact=True refuses the "any" fallback pool."""
         scene = cast.pick_scene(who, when, unlocked=self.unlocked(), rng=self.rng, context=context,
-                                avoid=self._last_scene)
+                                avoid=self._last_scene, exact=exact)
         if not scene or (exact and scene["when"] != when):
             return []
         self._last_scene = scene["id"]

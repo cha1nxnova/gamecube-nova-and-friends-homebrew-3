@@ -6,6 +6,7 @@ import os
 import random
 import subprocess
 import sys
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -14,6 +15,13 @@ from pawtation import cast, cli, core, pets
 from pawtation.core import Catalog
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def mktmp(case):
+    """A temp folder that is removed when the test finishes."""
+    d = tempfile.mkdtemp()
+    case.addCleanup(shutil.rmtree, d, ignore_errors=True)
+    return Path(d)
 
 
 def isolate_plugins(case):
@@ -36,7 +44,7 @@ def isolate_plugins(case):
 
 class Doctor(unittest.TestCase):
     def run_doctor(self, state):
-        home = Path(tempfile.mkdtemp())
+        home = mktmp(self)
         (home / "state.json").write_text(json.dumps(state), encoding="utf-8")
         env = dict(os.environ, PAWTATION_HOME=str(home))
         r = subprocess.run([sys.executable, str(ROOT / "scripts" / "doctor.py")], cwd=str(ROOT), env=env,
@@ -59,7 +67,7 @@ class Doctor(unittest.TestCase):
 class CliCastTable(unittest.TestCase):
     def test_columns_stay_aligned_with_long_names(self):
         isolate_plugins(self)
-        home = Path(tempfile.mkdtemp())
+        home = mktmp(self)
         old = (core.CONFIG_PATH, core.STATE_PATH)
         self.addCleanup(lambda: (setattr(core, "CONFIG_PATH", old[0]), setattr(core, "STATE_PATH", old[1])))
         core.CONFIG_PATH, core.STATE_PATH = home / "config.json", home / "state.json"
@@ -78,7 +86,7 @@ class HiddenRatedPacks(unittest.TestCase):
     while After Dark is unlocked (it used to fall through to the After Dark tier). Odd pack.json shapes never crash."""
 
     def test_hidden_packs_stay_out_even_when_unlocked(self):
-        tmp = Path(tempfile.mkdtemp())
+        tmp = mktmp(self)
         old = cast.PACKS_DIR
         self.addCleanup(lambda: (setattr(cast, "PACKS_DIR", old), cast.reload()))
         cast.PACKS_DIR = tmp
@@ -111,3 +119,53 @@ class Collection(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SyncProgressOutput(unittest.TestCase):
+    """`sync --go`: the carriage-return percentage line never runs into core's "copy ..." log lines."""
+
+    def run_sync(self, go):
+        from unittest import mock
+        import argparse
+
+        def fake_sync(cfg, cid, keys, roms, mount, dry_run=True, log=print, progress=None, **kw):
+            progress = progress or (lambda i: None)
+            for n, title in enumerate(("Alpha", "Beta")):
+                log(f"{'' if not dry_run else '[dry-run] '}copy {title} -> games/{title}.iso")
+                for done in range(1, 4):
+                    progress({"phase": "copy", "title": title, "all_done": n * 3 + done, "all_total": 6})
+            progress({"phase": "done", "all_done": 6, "all_total": 6})
+            return {"copied": ["a", "b"], "removed": [], "kept": [], "warnings": [], "errors": []}
+
+        class Brain:
+            def __init__(self, *a, **k): pass
+            def card_quips(self, keys): return []
+            def event(self, *a, **k): return []
+
+        clock = iter(range(0, 1000))
+        a = argparse.Namespace(mount=None, go=go, verify=False, force=False)
+        out = io.StringIO()
+        with mock.patch.object(cli.core, "sync_card", fake_sync), \
+                mock.patch.object(cli.core, "current_plan", lambda st: {"1": ["k"]}), \
+                mock.patch.object(cli.core, "resolve_mount", lambda cfg, cid, m=None: "/card"), \
+                mock.patch.object(cli.pets, "PetBrain", Brain), \
+                mock.patch.object(cli.plugins, "fire", lambda *a, **k: None), \
+                mock.patch.object(cli.time, "time", lambda: float(next(clock))), \
+                contextlib.redirect_stdout(out):
+            self.assertTrue(cli._sync_one({}, {}, None, [], "1", a))
+        return out.getvalue()
+
+    def test_each_copy_line_starts_clean_and_once(self):
+        text = self.run_sync(go=True)
+        self.assertIn("%", text)                                           # the percentage is still shown
+        shown = [seg.split("\r")[-1] for seg in text.split("\n")]          # what a terminal leaves on each line
+        for title in ("Alpha", "Beta"):
+            self.assertEqual(shown.count(f"copy {title} -> games/{title}.iso"), 1, text)
+        self.assertFalse([l for l in shown if "%" in l and "copy" in l], text)
+        self.assertTrue(any(l.startswith("Card 1 @ /card: DONE") for l in shown), text)
+
+    def test_dry_run_output_is_unchanged(self):
+        text = self.run_sync(go=False)
+        self.assertNotIn("\r", text)
+        self.assertEqual(text.splitlines()[:3], ["[dry-run] copy Alpha -> games/Alpha.iso",
+                                                 "[dry-run] copy Beta -> games/Beta.iso", ""])

@@ -11,6 +11,7 @@ import random
 import re
 import subprocess
 import sys
+import shutil
 import tempfile
 import unittest
 from collections import Counter
@@ -47,6 +48,13 @@ NIGHT = datetime.datetime(2026, 11, 15, 23, 30)
 MORNING = datetime.datetime(2026, 11, 16, 7, 0)
 GAMES = [{"key": "pikmin-2", "title": "Pikmin 2", "tags": ["cozy"]}, {"key": "chibi-robo", "title": "Chibi-Robo!", "tags": []},
          {"key": "star-fox-adventures", "title": "Star Fox Adventures", "tags": []}]
+
+
+def mktmp(case):
+    """A temp folder that is removed when the test finishes."""
+    d = tempfile.mkdtemp()
+    case.addCleanup(shutil.rmtree, d, ignore_errors=True)
+    return Path(d)
 
 
 def name_of(cid):
@@ -129,7 +137,7 @@ class Fixture(unittest.TestCase):
     """A private data tree: cast.json, scenes.json, afterdark/, packs/ and pets content, all under a temp dir."""
 
     def setUp(self):
-        self.tmp = Path(tempfile.mkdtemp())
+        self.tmp = mktmp(self)
         self.data = self.tmp / "data"; (self.data / "afterdark").mkdir(parents=True)
         self.packs = self.tmp / "packs"; self.packs.mkdir()
         paths = (cast.CAST_PATH, cast.SCENES_PATH, cast.AFTERDARK_DIR, cast.PACKS_DIR)
@@ -584,6 +592,22 @@ class Scenes(Fixture):
         self.assertTrue(self.pick(["iggy", "nova"])["id"].startswith("any-"))                 # cameo scenes need the cameo home
         self.assertTrue(self.pick(["iggy", "mochi", "nova"], seed=4)["id"] == "mochi-nova")
         self.assertIsNone(self.pick(["duskie"], "rotated"))
+
+    def test_exact_moment_falls_through_to_the_mains_while_a_cameo_visits(self):
+        """Regression: a cameo "any" scene used to win the first pool and then be rejected as inexact, so game and
+        tag scenes were never reached during a walk-on."""
+        visit = ["biscuit", "iggy", "nova"]
+        mine = {"id": "biscuit-any", "who": ["biscuit", "nova"], "when": "any", "rating": "all", "lines": [["biscuit", "Hi!"]]}
+        self.put(cast.SCENES_PATH, {"scenes": ok_scenes() + [mine]})
+        ctx = {"game": "Pikmin 2"}
+        for seed in range(20):
+            self.assertEqual(self.pick(visit, "game:pikmin-2", seed, context=ctx, exact=True)["id"], "game-pikmin")
+            self.assertEqual(self.pick(visit, "game:pikmin-2", seed, context=ctx)["id"], "biscuit-any")   # default unchanged
+        self.assertIsNone(self.pick(visit, "tag:nothing", context=ctx, exact=True))
+        self.assertIsNone(self.pick(["iggy", "nova"], "morning", exact=True))                # no "any" pool at all
+        self.home(visit)
+        self.assertEqual(self.brain().game_scene("pikmin-2"), ["Nova: scene about Pikmin 2"])
+        self.assertEqual(self.brain().game_scene("chibi-robo"), [])
 
     def test_play_and_script(self):
         scene = {"who": ["iggy", "nova"], "lines": [["nova", "Card {card}, {game}."], ["*", "A pause."], ["iggy", "{unknown} {"],
@@ -1180,7 +1204,7 @@ class CastCli(unittest.TestCase):
     """End to end through `python -m pawtation`, against the shipped data files, with PAWTATION_HOME in a temp dir."""
 
     def setUp(self):
-        self.home = Path(tempfile.mkdtemp())
+        self.home = mktmp(self)
         self.names = {c["name"] for c in json.loads((ROOT / "data" / "cast.json").read_text(encoding="utf-8"))["characters"].values()}
 
     def run_cli(self, *args, stdin=None):

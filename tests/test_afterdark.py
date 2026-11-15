@@ -14,6 +14,7 @@ import datetime
 import io
 import json
 import struct
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -24,6 +25,13 @@ from pawtation import afterdark, cast, cli, core, discimage, pets
 SENTINEL = "QQNIGHTSENTINELQQ"
 ADULT = "1984-07-09"                                    # an arbitrary test date, not anyone's birthday on record
 WHENS = ["any", "night", "morning", "arrive", "leave", "rotated", "synced", "due"]
+
+
+def mktmp(case):
+    """A temp folder that is removed when the test finishes."""
+    d = tempfile.mkdtemp()
+    case.addCleanup(shutil.rmtree, d, ignore_errors=True)
+    return Path(d)
 
 
 def isolate_plugins(case):
@@ -54,7 +62,7 @@ def disc(code6: str, title: str, size: int = 64 * 1024) -> bytes:
 class CliAfterDark(unittest.TestCase):
     def setUp(self):
         isolate_plugins(self)
-        self.tmp = Path(tempfile.mkdtemp())
+        self.tmp = mktmp(self)
         self.home, self.lib, self.sd = self.tmp / "home", self.tmp / "lib", self.tmp / "sd"
         for d in (self.home, self.lib, self.sd):
             d.mkdir()

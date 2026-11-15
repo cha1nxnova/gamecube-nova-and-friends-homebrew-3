@@ -128,6 +128,13 @@ def load_state() -> dict:
             st["pets"][pet] = {"affection": 5, "energy": 5}
     st["scene"] = cast.clean_scene_state(st.get("scene"))           # who is home: {"who": [ids], "until": ts, "manual": bool}
     st["afterdark"] = afterdark.clean_state(st.get("afterdark"))    # {"unlocked": False} or {"unlocked": True, "confirmed_on"}
+    if "hw" in st:                                                  # SPEC_V2 section 9; damaged = not configured
+        from . import hidden
+        hw = hidden.clean_state(st["hw"])
+        if hw is None:
+            st.pop("hw")
+        else:
+            st["hw"] = hw
     return st
 
 

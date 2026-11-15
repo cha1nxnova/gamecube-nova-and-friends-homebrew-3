@@ -1,17 +1,27 @@
+import shutil
 import tempfile, unittest, time
 from pathlib import Path
 from pawtation import cast, core, pets, saves
 from pawtation.core import Catalog
 
 
+def mktmp(case):
+    """A temp folder that is removed when the test finishes."""
+    d = tempfile.mkdtemp()
+    case.addCleanup(shutil.rmtree, d, ignore_errors=True)
+    return Path(d)
+
+
 def fake_iso(path: Path, code6: str, title: str, mb: float):
     head = code6.encode() + b"\0" * 22 + bytes.fromhex("c2339f3d") + title.encode().ljust(0x40, b"\0")
-    path.write_bytes(head + b"\0" * (int(mb * 1024 * 1024) - len(head)))
+    with open(path, "wb") as fh:                      # header, then a sparse tail: no megabytes of zeros on disk
+        fh.write(head)
+        fh.truncate(int(mb * 1024 * 1024))
 
 
 class T(unittest.TestCase):
     def setUp(self):
-        self.tmp = Path(tempfile.mkdtemp())
+        self.tmp = mktmp(self)
         lib = self.tmp / "lib"; lib.mkdir()
         fake_iso(lib / "ttyd.iso", "G8ME01", "Paper Mario", 4)
         fake_iso(lib / "Mario Kart Double Dash.iso", "GM4E01", "MKDD", 4)

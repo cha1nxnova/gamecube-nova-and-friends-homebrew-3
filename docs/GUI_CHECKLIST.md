@@ -23,7 +23,10 @@ fallback (`PAWTATION_PLAIN_WIDGETS=1`); After Dark gate (under-age and invalid s
 string never reaches state.json / config.json / the log, second open does not ask, "Lock again" works); a sentinel in
 a temp After Dark data dir never reaches the log over 25 rounds of hang-out / joke / fortune / study break / pet /
 chat while locked (and does appear once unlocked, so the fixture is live); reduced motion schedules no timers but
-the countdown; closing mid-animation leaves none of our after() callbacks pending.
+the countdown; closing mid-animation leaves none of our after() callbacks pending; the stage sizing rule (trio at
+192 px at 1400x900, a visiting cameo at 96 px beside them, name tags never overlapping or leaving the stage, a narrow
+stage falling back to 96 px) and the Game column taking spare width. Every temp folder the module makes is removed
+(per-test `addCleanup`, `tearDownModule`, an `atexit` fallback).
 
 ## Driven by hand (art/out/gui/)
 
@@ -35,7 +38,10 @@ the countdown; closing mid-animation leaves none of our after() callbacks pendin
 | `sync_mid.png` | Dark, 400 MB sparse fake mid-copy (worker throttled by the driver so the frame can be caught): low-poly sync loop beside the chunky bar with sparkle, "7% Copying Big: 29 MB of 400 MB", speed and ETA, Cancel sync enabled, library buttons and chips disabled. `sync_cancelled.png`: cancelled text. |
 | `gate.png` | After Dark gate over the light window: "optional · 18+" tag, plain body, one date field, "Not now" focused (ring), "Check and turn on". |
 | `narrow_start.png`, `narrow_hangout.png` | 1000x660: compact stage (96 px), activities folded into "Activities ▾" / "Ask ▾" menus, everything visible, no clipping; the game table is short (about 3 rows) but scrolls. |
-| `cameo_start.png`, `cameo_talk.png` | Nova + Iggy + Mochi (cameo sprite from the 2D art set, standing at the right edge of the stage, 96 px because three do not fit at 192). |
+| `cameo_start.png`, `cameo_talk.png` | Nova + Iggy + Mochi (cameo sprite from the 2D art set, standing at the right edge of the stage). Taken before the wave-3 sizing rule: the pair was at 96 px then; it is now 192 px with the cameo at 96 px. |
+| `stage_trio_light.png`, `stage_trio_dark.png` | Wave 3 sizing rule, 1400x900: Nova, Iggy and Duskie at 192 px on a 540x292 stage, two-line bubble over Nova, name tags apart and inside the stage, Game column wider (long titles show in full when Tags has room). |
+| `stage_trio_cameo.png` | 1400x900, light: the trio at 192 px (squeezed a little closer) and Mochi at 96 px at the right edge; no name tag touches another or the stage edge. |
+| `stage_narrow_light.png`, `stage_narrow_dark.png` | 1000x660 with the trio: the 188 px compact stage, so 96 px stickers; tags and bubble inside the stage. The table hides Rating/Tags at this width, as before. |
 
 Fixed after looking: wrapped button rows (were aligned to a shared grid, now each row packs left), pill shapes (true
 arcs), header timer text invisible in dark (now `primary_ink` on `keyline`), right column clipped at 1000x660

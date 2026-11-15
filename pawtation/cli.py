@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import getpass
 import json
 import os
+import sys
 import time
 from pathlib import Path
 
-from . import afterdark, cast, core, patching, pets, plugins, saves
+from . import afterdark, cast, core, hidden, patching, pets, plugins, saves
 from .core import Catalog
 
 
@@ -87,24 +89,39 @@ def _sync_one(cfg, state, cat, roms, cid, a) -> bool:
     if not mount:
         print(f"Card {cid}: not found. Give --mount PATH (or set cards.{cid}.mount in config.json; "
               "cards synced once are found automatically when plugged in)."); return False
-    last = [0.0]
+    last, shown = [0.0], [False]
+
+    def clear():
+        """Wipe the percentage line (if one is showing) so the next line starts at column 0."""
+        if shown[0]:
+            print("\r" + " " * 60 + "\r", end="", flush=True)
+            shown[0] = False
+
+    def log(msg):
+        clear()
+        print(msg, flush=True)
 
     def progress(i):
         if i.get("phase") == "copy" and i.get("all_total") and time.time() - last[0] > 0.5:
             last[0] = time.time()
             pct = 100 * i["all_done"] // i["all_total"]
-            print(f"\r  {pct:3d}%  {i['title'][:50]:<50}", end="", flush=True)
-        elif i.get("phase") == "done" and last[0]:
-            print("\r" + " " * 60 + "\r", end="")
+            print(f"\r  {pct:3d}%  {str(i.get('title', ''))[:50]:<50}", end="", flush=True)
+            shown[0] = True
+        elif i.get("phase") == "done":
+            clear()
 
     quips = pets.PetBrain(state, cat).card_quips(keys)
     try:
         rep = core.sync_card(cfg, cid, keys, roms, mount, dry_run=not a.go, progress=progress if a.go else None,
-                             verify=True if a.verify else None, quips=quips, force=a.force)
+                             log=log if a.go else print, verify=True if a.verify else None, quips=quips,
+                             force=a.force)
     except KeyboardInterrupt:
-        print("\nStopped. Files already finished stay on the card; re-run to continue."); return False
+        clear()
+        print("Stopped. Files already finished stay on the card; re-run to continue."); return False
     except Exception as e:
+        clear()
         print(f"Card {cid}: could not sync ({type(e).__name__}: {e})"); return False
+    clear()
     print(f"\nCard {cid} @ {mount}: {'DONE' if a.go else 'DRY RUN (add --go to copy)'}: "
           f"{len(rep['copied'])} copy, {len(rep['removed'])} remove, {len(rep['kept'])} keep")
     for w in rep["warnings"]: print("WARNING:", w)
@@ -262,6 +279,10 @@ def cmd_chat(a):
             try: t = input("> ")
             except EOFError: break
             if t.strip().lower() in ("q", "quit", "exit", "bye"): break
+            if hidden.check_code(state, t):                         # never echoed, never sent to the characters
+                del t
+                _open_sealed(state)
+                continue
             change = cast.step(state, datetime.datetime.now(), brain.rng)
             if change["changed"]:                                   # someone came home or headed out meanwhile
                 for l in brain.presence_lines(change): print(l)
@@ -270,7 +291,62 @@ def cmd_chat(a):
                 print(brain.reply(t, roms, sv))
     except KeyboardInterrupt:
         print()
+    finally:
+        hidden.close()
     core.save_state(state)
+
+
+def _secret(prompt: str = "") -> str:
+    """Read one line without echo: getpass on a terminal, else a plain line from stdin (pipes, tests). '' at EOF."""
+    try:
+        if sys.stdin is not None and sys.stdin.isatty():
+            return getpass.getpass(prompt)
+        if prompt:
+            print(prompt, end="", flush=True)
+        line = sys.stdin.readline() if sys.stdin is not None else ""
+        if prompt:
+            print()
+        return line.rstrip("\r\n")
+    except (EOFError, KeyboardInterrupt, OSError, ValueError):
+        return ""
+
+
+def _open_sealed(state) -> None:
+    """Section 9: a bare no-echo prompt. Wrong passcode: nothing printed at all. The throttle is saved either way."""
+    ok = hidden.try_open(state, _secret(""))
+    core.save_state(state)
+    if not ok:
+        return
+    print("The Hidden World")
+    found = hidden.packs()
+    for p in found:
+        print(f"  {p['name']}")
+    if not found:
+        print("Nothing here yet.")
+
+
+def _sealed_setup(args) -> int:
+    """`hw-setup [--clear]`: deliberately not registered with argparse, so it never shows up in --help."""
+    state = core.load_state()
+    if args == ["--clear"]:
+        hidden.clear(state); core.save_state(state)
+        print(hidden.MSG_CLEARED); return 0
+    code, again = _secret("Code (8 letters or digits): "), _secret("Code again: ")
+    if not hidden.valid_code(code):
+        print(hidden.MSG_BAD_CODE); return 1
+    if code != again:
+        print(hidden.MSG_MISMATCH); return 1
+    passcode, again = _secret("Passcode (10 digits): "), _secret("Passcode again: ")
+    if not hidden.valid_passcode(passcode):
+        print(hidden.MSG_BAD_PASS); return 1
+    if passcode != again:
+        print(hidden.MSG_MISMATCH); return 1
+    ok, message = hidden.setup(state, code, passcode)
+    del code, passcode, again
+    if ok:
+        core.save_state(state)
+    print(message)
+    return 0 if ok else 1
 
 
 def cmd_cast(a):
@@ -344,6 +420,9 @@ def _gui(a):
 
 
 def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv[:1] == ["hw-setup"] and argv[1:] in ([], ["--clear"]):
+        return _sealed_setup(argv[1:])
     stars = cast.names(cast.regulars())
     p = argparse.ArgumentParser(prog="pawtation", description=f"Rotate GameCube games across GC2SD cards, with {stars}.")
     sub = p.add_subparsers(dest="cmd", required=True)

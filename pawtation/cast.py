@@ -9,6 +9,8 @@ Rules this module keeps:
   `now` may be a datetime, a POSIX timestamp or None (= the real clock).
 - After Dark content (data/afterdark/, packs rated "afterdark") is read from disk only when a caller passes
   unlocked=True; callers get that flag from `afterdark.is_unlocked(state)`.
+- Packs rated "hidden" (section 9) are read only while pawtation/hidden.py says the section is open in this
+  process AND the caller passed unlocked=True. Card quips (extra_pets(False)) never see them.
 """
 from __future__ import annotations
 
@@ -535,6 +537,28 @@ def forget_afterdark() -> None:
     tiers = _CACHE.get("tiers")
     if tiers:
         tiers.pop("afterdark", None)
+    _CACHE.pop("sealed", None)
+
+
+def _sealed_open() -> bool:
+    from . import hidden                    # imported here: hidden imports this module when it opens or closes
+    return hidden.is_open()
+
+
+def _sealed(unlocked) -> dict:
+    """Section 9 content, {"scenes", "pets", "packs"}: empty unless the caller is unlocked and the section is open
+    in this process. Read on first use after opening; hidden.close() calls reload(), which drops it."""
+    if unlocked is not True or not _sealed_open():
+        return {"scenes": [], "pets": [], "packs": []}
+    if _CACHE.get("sealed") is None:
+        from . import hidden
+        found = hidden.packs()
+        scenes, pets = [], []
+        for p in found:
+            scenes += _scenes_file(p["path"] / "scenes.json", f"pack:{p['path'].name}", True)
+            pets.append(load_json(p["path"] / "pets.json", {}))
+        _CACHE["sealed"] = {"scenes": scenes, "pets": [d for d in pets if d], "packs": found}
+    return _CACHE["sealed"]
 
 
 def all_scenes(unlocked: bool = False) -> list:
@@ -543,18 +567,20 @@ def all_scenes(unlocked: bool = False) -> list:
     replaced. Each scene is the validated dict {id, who, key, when, rating, weight, lines, about, source, needs};
     treat them as read-only. Only a real True unlocks."""
     scenes = [s for s in _tier("all")["scenes"] if s["rating"] == "all"]            # belt and braces: see _tier()
-    return scenes + (_tier("afterdark")["scenes"] if unlocked is True else [])
+    return scenes + (_tier("afterdark")["scenes"] + _sealed(True)["scenes"] if unlocked is True else [])
 
 
 def extra_pets(unlocked: bool = False) -> list:
     """pets.json-shaped dicts whose lists are appended to data/pets.json: packs rated "all", plus (only when
     unlocked) data/afterdark/pets.json and packs rated "afterdark". Unvalidated: pawtation/pets.py checks shapes."""
-    return _tier("all")["pets"] + (_tier("afterdark")["pets"] if unlocked is True else [])
+    return _tier("all")["pets"] + (_tier("afterdark")["pets"] + _sealed(True)["pets"] if unlocked is True else [])
 
 
-def packs(unlocked: bool = False) -> list:
-    """Packs whose content is in play: [{"name", "rating", "path"}] (for the sprite loader and `doctor`)."""
-    return [{"name": n, "rating": r, "path": folder} for folder, n, r in _pack_dirs() if r == "all" or unlocked is True]
+def packs(unlocked: bool = False, sealed: bool = False) -> list:
+    """Packs whose content is in play: [{"name", "rating", "path"}] (for the sprite loader and `doctor`).
+    sealed=True (the GUI sprite loader only) also lists section 9 packs while that section is open."""
+    out = [{"name": n, "rating": r, "path": folder} for folder, n, r in _pack_dirs() if r == "all" or unlocked is True]
+    return out + (list(_sealed(unlocked)["packs"]) if sealed is True else [])
 
 
 def time_when(now=None) -> str:
@@ -570,7 +596,8 @@ def _about_ok(scene: dict, when: str, movers) -> bool:
     return set(scene["about"]) == {i for i in movers if isinstance(i, str)}
 
 
-def pick_scene(who, when="any", *, unlocked: bool = False, rng=None, context=None, avoid=None):
+def pick_scene(who, when="any", *, unlocked: bool = False, rng=None, context=None, avoid=None,
+               exact: bool = False):
     """A scene for exactly the set `who` at the moment `when`, or None.
 
     Scenes whose `when` equals the moment are preferred. If there are none, "any" scenes are the fallback pool,
@@ -580,7 +607,9 @@ def pick_scene(who, when="any", *, unlocked: bool = False, rng=None, context=Non
     non-cameo set, so a walk-on never silences the others.
     `context` supplies placeholder values ({game}, {card}); a scene that needs one the context lacks is skipped.
     For "arrive" / "leave", context["movers"] (who arrived / left) must equal the scene's `about`.
-    `avoid` is a scene id to skip while there is another choice (no immediate repeats)."""
+    `avoid` is a scene id to skip while there is another choice (no immediate repeats).
+    `exact=True` never uses the "any" pool, so a moment nobody wrote for the cameo's group (a "game:<key>" or
+    "tag:<tag>" scene, say) falls through to the non-cameo set's scenes instead of stopping at a cameo "any" scene."""
     rng = rng or random
     ctx = context if isinstance(context, dict) else {}
     when = when.strip().lower() if isinstance(when, str) and when.strip() else "any"
@@ -599,7 +628,7 @@ def pick_scene(who, when="any", *, unlocked: bool = False, rng=None, context=Non
     for test in tests:
         pool = [s for s in scenes if test(s) and all(n in ctx for n in s["needs"])]
         hits = [s for s in pool if s["when"] == when and _about_ok(s, when, ctx.get("movers"))]
-        if not hits and when not in EVENT_WHENS:
+        if not hits and not exact and when not in EVENT_WHENS:
             hits = [s for s in pool if s["when"] == "any"]
         if hits:
             if avoid is not None and len(hits) > 1:

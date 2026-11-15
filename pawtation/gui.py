@@ -37,7 +37,7 @@ except Exception:                       # pragma: no cover - depends on the mach
     tk = tkfont = filedialog = ttk = None
     HAVE_TK = False
 
-from . import afterdark, cast, core, pets, plugins, saves, sprites, theme
+from . import afterdark, cast, core, hidden, pets, plugins, saves, sprites, theme
 from .core import Catalog
 
 PAW = "(=^.^=) "                        # title prefix when a rotation is due (ASCII: safe on every Tk build)
@@ -350,7 +350,7 @@ if HAVE_TK:
             return self.images[key]
 
         def frames(self, cid, anim, size=None):
-            size = size or self.size
+            size = size or self.actor_px(cid)
             key = (cid, anim, size)
             if key not in self.frame_cache:
                 out = []
@@ -379,34 +379,72 @@ if HAVE_TK:
             w, h = self.dims()
             return int((h - 4) * self.app.tok["sprite"]["baseline"])
 
+        def actor_px(self, cid):
+            """Sprite size for one character: a cameo walk-on stays at the walk-on size beside large mains."""
+            sp = self.app.tok["sprite"]
+            if self.size >= sp["stage"] and cast.role(cid) == "cameo":
+                return min(self.size, int(sp.get("cameo", sp["stage_compact"])))
+            return self.size
+
+        def _split(self):
+            here = [cid for cid in self.order() if not self.actors[cid].get("leaving")]
+            return ([c for c in here if cast.role(c) != "cameo"], [c for c in here if cast.role(c) == "cameo"])
+
+        def tag_width(self, cid):
+            app = self.app
+            name, pron = cast.name(cid), cast.character(cid).get("pronouns", "")
+            tw = app.fonts["tag"].measure(name) + ((5 + app.fonts["small"].measure(pron)) if pron else 0)
+            return tw + 2 * app.space(4)
+
+        def plan(self, s, w, regs, cams):
+            """(x positions, fits) for mains at size `s` with walk-ons at the right edge. `fits` is False when
+            the mains' name tags would overlap each other or a walk-on's, or a sticker would leave the stage."""
+            sp = self.app.tok["sprite"]
+            inner = w - self.app.tok["elevation"]["card"][0] - 6
+            right = inner - sp["pad"]
+            out = {}
+            for cid in cams:                                    # walk-ons stand at the edge of the stage
+                room = max(int(self.actor_px(cid) * 0.8), self.tag_width(cid) + 6) if s >= sp["stage"] else \
+                    max(int(s * 0.8), self.tag_width(cid) + 6)
+                out[cid] = right - room / 2.0
+                right -= room
+            tw = [self.tag_width(c) for c in regs] or [0]
+            pair = max([(x + y) / 2.0 + 6 for x, y in zip(tw, tw[1:])] or [0])    # neighbouring tags never touch
+            half = s * 0.34                                     # half the visible sticker (transparent margins)
+            ends = max(half, tw[0] / 2.0) + max(half, tw[-1] / 2.0)
+            room = right - sp["pad"]
+            if s >= sp["stage"]:
+                # big stickers may overlap a little; squeeze further only when a walk-on needs the room
+                steps = [s - max(sp["overlap"], s // 4), s - s // 3, int(s * 0.625)]
+            else:
+                steps = [s + sp["gap_compact"], s]
+            steps = [max(st, pair) for st in steps]
+            n = max(1, len(regs))
+            step = next((st for st in steps if (n - 1) * st + ends <= room), steps[-1])
+            fits = (n - 1) * step + ends <= room
+            cx = (sp["pad"] + right) / 2.0
+            start = cx - (len(regs) - 1) * step / 2.0
+            for i, cid in enumerate(regs):
+                out[cid] = start + i * step
+            return out, fits
+
         def pick_size(self):
             want = self.app.cfg.get("gui_sprite_size", "auto")
             if want in (96, 192) or str(want) in ("96", "192"):
                 return int(want)
+            sp = self.app.tok["sprite"]
+            big, small = int(sp["stage"]), int(sp["stage_compact"])
             w, h = self.dims()
-            n = len([a for a in self.actors.values() if not a.get("leaving")]) or 1
-            if n >= 4:
-                return self.app.tok["sprite"]["stage_compact"]
-            return theme.stage_sprite_size(w, n, h)
+            regs, cams = self._split()
+            if len(regs) >= 4:                                 # four or more: always the compact stage
+                return small
+            if h < self.app.size("stage"):                     # no headroom for the bubble over big stickers
+                return small
+            return big if self.plan(big, w, regs, cams)[1] else small
 
         def targets(self):
-            w, _h = self.dims()
-            sp = self.app.tok["sprite"]
-            s = self.size
-            here = [cid for cid in self.order() if not self.actors[cid].get("leaving")]
-            regs = [c for c in here if cast.role(c) != "cameo"]
-            cams = [c for c in here if cast.role(c) == "cameo"]
-            step = s - sp["overlap"] if s >= sp["stage"] else s + sp["gap_compact"]
-            cam_step = int(s * 0.8)
-            usable = w - 8 - len(cams) * cam_step
-            cx = usable / 2.0
-            out = {}
-            start = cx - (len(regs) - 1) * step / 2.0
-            for i, cid in enumerate(regs):
-                out[cid] = start + i * step
-            for i, cid in enumerate(cams):                      # walk-ons stand at the edge of the stage
-                out[cid] = w - 8 - sp["pad"] - s / 2.0 - i * cam_step
-            return out
+            regs, cams = self._split()
+            return self.plan(self.size, self.dims()[0], regs, cams)[0]
 
         def order(self):
             return cast.order(list(self.actors))
@@ -545,7 +583,7 @@ if HAVE_TK:
             a = self.actors.get(cid)
             if not a:
                 return
-            cv, app, s = self.cv, self.app, self.size
+            cv, app, s = self.cv, self.app, self.actor_px(cid)
             tag = "actor:" + cid
             cv.delete(tag)
             fy = self.floor_y()
@@ -1046,6 +1084,7 @@ if HAVE_TK:
 
         def destroy(self):
             self._closing = True
+            hidden.close()                                   # section 9: quitting always locks it again
             for name in list(self._after):
                 self._cancel(name)
             self._after.clear()
@@ -1113,7 +1152,7 @@ if HAVE_TK:
 
         def pack_dirs(self):
             try:
-                return [p["path"] for p in cast.packs(self.brain.unlocked())]
+                return [p["path"] for p in cast.packs(self.brain.unlocked(), sealed=True)]
             except Exception:
                 return []
 
@@ -1164,6 +1203,32 @@ if HAVE_TK:
             if getattr(self, "_last_w", None) != w:
                 self._last_w = w
                 self._place_sash(w - 2 * self.tok["layout"]["gutter"])
+
+        def _fit_columns(self):
+            """Give the Game column the spare width (up to its longest title) once Tags has room for its
+            longest entry (up to twice its base width); Tags takes whatever is left."""
+            tree = getattr(self, "tree", None)
+            if tree is None:
+                return
+            try:
+                avail = tree.winfo_width()
+                if avail <= 1:
+                    return
+                base = {c[0]: c[2] for c in self.COLUMNS}
+                fixed = sum(w for cid, w in base.items() if cid not in ("game", "tags"))
+                font = self.fonts["body_strong"]
+                rows = tree.get_children("")
+                need = max([font.measure(str(tree.set(i, "game"))) for i in rows] or [0]) + self.space(6)
+                tneed = max([font.measure(str(tree.set(i, "tags"))) for i in rows] or [0]) + self.space(4)
+                tneed = max(base["tags"], min(tneed, base["tags"] * 2))
+                game = max(base["game"], min(need, avail - fixed - tneed - 4))
+                tags = max(base["tags"], avail - fixed - game - 4)
+                if int(tree.column("game", "width")) != game:
+                    tree.column("game", width=game)
+                if int(tree.column("tags", "width")) != tags:
+                    tree.column("tags", width=tags)
+            except (tk.TclError, KeyError, ValueError):
+                pass
 
         def _place_sash(self, w=None):
             try:
@@ -1230,12 +1295,13 @@ if HAVE_TK:
                                      selectmode="browse")
             for cid, text, w, anchor in self.COLUMNS:
                 self.tree.heading(cid, text=text, command=lambda c=cid: self.sort_by(c))
-                self.tree.column(cid, width=w, minwidth=30, anchor=anchor, stretch=(cid in ("game", "tags")))
+                self.tree.column(cid, width=w, minwidth=30, anchor=anchor, stretch=(cid == "tags"))
             sb = ttk.Scrollbar(tcard, orient="vertical", command=self.tree.yview)
             self.tree.configure(yscrollcommand=sb.set)
             self.tree.pack(side="left", fill="both", expand=True)
             sb.pack(side="left", fill="y")
             self.tree.bind("<Double-1>", self.on_game_double)
+            self.tree.bind("<Configure>", lambda _e: self._fit_columns(), add="+")
             self.tree.bind("<<TreeviewSelect>>", lambda _e: self._sync_pin_button())
             for n in range(1, 6):
                 self.tree.bind(f"<Key-{n}>", lambda _e, n=n: self.rate(n))
@@ -1673,6 +1739,7 @@ if HAVE_TK:
         def open_afterdark(self, _e=None):
             if afterdark.is_unlocked(self.state):
                 if self.ask_afterdark_unlocked():
+                    self._close_sealed()
                     afterdark.lock(self.state)
                     self.brain.unlocked()                      # drops the tier from memory
                     self._save()
@@ -1692,6 +1759,195 @@ if HAVE_TK:
                     self.say("After Dark is on. The moon button locks it again at any time.", "sys")
             self._update_moon()
             self.stage.relayout(redraw=True)
+
+        # ---------- section 9 (docs/SPEC_V2.md) ----------
+        # Nothing here creates a widget, label, menu entry or log line until the right code has been typed.
+        def _sealed_prompt_open(self):
+            """A bare, untitled prompt holding one masked entry. Enter submits; Escape or closing dismisses."""
+            old = getattr(self, "_sealed_prompt", None)
+            if old is not None:
+                try:
+                    old.destroy()
+                except tk.TclError:
+                    pass
+            c = self.c
+            win = tk.Toplevel(self)
+            win.withdraw()
+            win.title("")
+            win.transient(self)
+            win.configure(bg=c["bg"])
+            win.resizable(False, False)
+            card = tk.Frame(win, bg=c["surface"], highlightthickness=2, highlightbackground=c["line"],
+                            highlightcolor=c["line"])
+            card.pack(fill="both", expand=True, padx=self.space(4), pady=self.space(4))
+            var = tk.StringVar(win)
+            entry = tk.Entry(card, textvariable=var, show="•", width=14, font=self.fonts["body"], relief="flat",
+                             bg=c["surface_alt"], fg=c["ink"], insertbackground=c["ink"], highlightthickness=0)
+            entry.pack(padx=self.space(5), pady=self.space(5))
+
+            def dismiss(_e=None):
+                var.set("")
+                self._sealed_prompt = None
+                try:
+                    win.destroy()
+                except tk.TclError:
+                    pass
+
+            def submit(_e=None):
+                text = var.get()
+                dismiss()
+                ok = hidden.try_open(self.state, text)
+                text = None
+                self._save()                                   # the throttle survives a restart
+                if ok:
+                    self._sealed_window_open()
+                return "break"
+
+            entry.bind("<Return>", submit)
+            win.bind("<Escape>", dismiss)
+            win.protocol("WM_DELETE_WINDOW", dismiss)
+            win.update_idletasks()
+            x = self.winfo_rootx() + max(0, (self.winfo_width() - win.winfo_reqwidth()) // 2)
+            y = self.winfo_rooty() + max(0, (self.winfo_height() - win.winfo_reqheight()) // 3)
+            win.geometry(f"+{x}+{y}")
+            win.deiconify()
+            entry.focus_force()
+            self._sealed_prompt = win
+            self._sealed_entry = entry
+            return win
+
+        def _sealed_window_open(self):
+            """The opened section: pack list, a gallery for the selected pack, and a scene button."""
+            if getattr(self, "_sealed_win", None) is not None:
+                try:
+                    self._sealed_win.lift()
+                    return self._sealed_win
+                except tk.TclError:
+                    self._sealed_win = None
+            self.stage.forget_images()                         # sprite overrides from the packs may apply now
+            self.stage.relayout(redraw=True)
+            c = self.c
+            win = tk.Toplevel(self)
+            win.title("The Hidden World")
+            win.configure(bg=c["bg"])
+            win.minsize(420, 260)
+            self._sealed_win = win
+            self._sealed_ui = ui = {"images": [], "i": 0, "img": None, "packs": hidden.packs()}
+            win.protocol("WM_DELETE_WINDOW", self._close_sealed)
+            win.bind("<Escape>", lambda _e: self._close_sealed())
+            card = tk.Frame(win, bg=c["surface"], highlightthickness=2, highlightbackground=c["line"],
+                            highlightcolor=c["line"])
+            card.pack(fill="both", expand=True, padx=self.space(6), pady=self.space(6))
+            inner = tk.Frame(card, bg=c["surface"])
+            inner.pack(fill="both", expand=True, padx=self.space(6), pady=self.space(5))
+            tk.Label(inner, text="The Hidden World", bg=c["surface"], fg=c["ink"], font=self.fonts["title"],
+                     anchor="w").pack(fill="x")
+            if not ui["packs"]:
+                ui["empty"] = tk.Label(inner, text="Nothing here yet.", bg=c["surface"], fg=c["ink_muted"],
+                                       font=self.fonts["body"], anchor="w")
+                ui["empty"].pack(fill="x", pady=(self.space(4), 0))
+                foot = tk.Frame(inner, bg=c["surface"])
+                foot.pack(fill="x", side="bottom", pady=(self.space(6), 0))
+                self.button(foot, "Close", self._close_sealed, "secondary", on="surface").pack(side="right")
+                return win
+            body = tk.Frame(inner, bg=c["surface"])
+            body.pack(fill="both", expand=True, pady=(self.space(4), 0))
+            lb = tk.Listbox(body, exportselection=False, activestyle="none", width=22, relief="flat",
+                            bg=c["surface_alt"], fg=c["ink"], selectbackground=c["primary_soft"],
+                            selectforeground=c["ink"], highlightthickness=0, font=self.fonts["body"])
+            for p in ui["packs"]:
+                lb.insert("end", p["name"])
+            lb.pack(side="left", fill="y")
+            right = tk.Frame(body, bg=c["surface"])
+            right.pack(side="left", fill="both", expand=True, padx=(self.space(5), 0))
+            ui["view"] = tk.Label(right, text="", bg=c["surface_alt"], fg=c["ink_muted"], font=self.fonts["body"],
+                                  width=48, height=16)
+            ui["view"].pack(fill="both", expand=True)
+            nav = tk.Frame(right, bg=c["surface"])
+            nav.pack(fill="x", pady=(self.space(3), 0))
+            ui["prev"] = self.button(nav, "Previous", lambda: self._sealed_show(-1), "secondary", on="surface", small=True)
+            ui["prev"].pack(side="left")
+            ui["count"] = tk.Label(nav, text="", bg=c["surface"], fg=c["ink_muted"], font=self.fonts["small"])
+            ui["count"].pack(side="left", padx=self.space(3))
+            ui["next"] = self.button(nav, "Next", lambda: self._sealed_show(1), "secondary", on="surface", small=True)
+            ui["next"].pack(side="left")
+            ui["play"] = self.button(nav, "Play a scene", self._sealed_play, "primary", on="surface", small=True)
+            ui["play"].pack(side="right")
+            ui["list"] = lb
+            lb.bind("<<ListboxSelect>>", lambda _e: self._sealed_select())
+            lb.selection_set(0)
+            self._sealed_select()
+            return win
+
+        def _sealed_pack(self):
+            ui = getattr(self, "_sealed_ui", None) or {}
+            lb = ui.get("list")
+            sel = lb.curselection() if lb is not None else ()
+            return ui["packs"][sel[0]] if sel and sel[0] < len(ui.get("packs", [])) else None
+
+        def _sealed_scenes(self, pack):
+            if pack is None or not hidden.is_open():
+                return []
+            src = "pack:" + pack["path"].name
+            return [s for s in cast.all_scenes(self.brain.unlocked()) if s["source"] == src and not s["needs"]]
+
+        def _sealed_select(self):
+            ui, pack = self._sealed_ui, self._sealed_pack()
+            ui["images"], ui["i"] = (hidden.gallery(pack["path"]) if pack else []), 0
+            state = "normal" if self._sealed_scenes(pack) else "disabled"
+            ui["play"].configure(state=state)
+            self._sealed_show(0)
+
+        def _sealed_show(self, step):
+            ui = self._sealed_ui
+            files = ui["images"]
+            if not files:
+                ui["img"] = None
+                ui["view"].configure(image="", text="No pictures.")
+                ui["count"].configure(text="")
+                return
+            ui["i"] = (ui["i"] + step) % len(files)
+            img = None
+            try:
+                img = tk.PhotoImage(master=self._sealed_win, file=str(files[ui["i"]]))
+                w, h = max(1, ui["view"].winfo_width()), max(1, ui["view"].winfo_height())
+                w, h = max(w, 360), max(h, 280)
+                k = max(1, -(-img.width() // w), -(-img.height() // h))
+                if k > 1:
+                    img = img.subsample(k, k)
+            except (tk.TclError, OSError):
+                img = None
+            ui["img"] = img                                    # keep a reference or Tk drops the picture
+            if img is None:
+                ui["view"].configure(image="", text="(could not show " + files[ui["i"]].name + ")")
+            else:
+                ui["view"].configure(image=img, text="")
+            ui["count"].configure(text=f"{ui['i'] + 1} / {len(files)}")
+
+        def _sealed_play(self):
+            scenes = self._sealed_scenes(self._sealed_pack())
+            if not scenes:
+                return
+            scene = self.brain.rng.choice(scenes)
+            self._scene_queue = cast.play(scene)
+            self._cancel("scene")
+            self._scene_next()
+
+        def _close_sealed(self):
+            """Lock section 9 again and drop everything it brought in (content, sprites, queued scene lines)."""
+            was = hidden.is_open() or getattr(self, "_sealed_win", None) is not None
+            hidden.close()
+            win, self._sealed_win, self._sealed_ui = getattr(self, "_sealed_win", None), None, None
+            if win is not None:
+                try:
+                    win.destroy()
+                except tk.TclError:
+                    pass
+            if was and not self._closing:
+                self._scene_queue = []
+                self._cancel("scene")
+                self.stage.forget_images()
+                self.stage.relayout(redraw=True)
 
         # ---------- pet features ----------
         def _save(self):
@@ -1735,6 +1991,11 @@ if HAVE_TK:
         def chat(self, _evt=None):
             t = self.entry.get().strip()
             if not t:
+                return
+            if hidden.check_code(self.state, t):               # swallowed: never logged, never answered
+                self.entry.delete(0, "end")
+                t = None
+                self._sealed_prompt_open()
                 return
             self._touch()
             self.entry.delete(0, "end")
@@ -1798,6 +2059,7 @@ if HAVE_TK:
             for cid, text, *_ in self.COLUMNS:
                 arrow = (" ▲" if not self.sort_rev else " ▼") if cid == self.sort_col else ""
                 self.tree.heading(cid, text=text + arrow)
+            self._fit_columns()
             self._sync_pin_button()
             if not self.roms:
                 lib = self.cfg.get("library_dir")

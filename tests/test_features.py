@@ -1,5 +1,6 @@
 """Tests for the fork features: multi-disc, safe sync, containers, matcher, patching, saves, pets, plugins, CLI.
 Everything runs in temp dirs; nothing here can touch a real config, library or SD card."""
+import shutil
 import contextlib, io, json, os, random, struct, subprocess, sys, tempfile, unittest, zlib
 from pathlib import Path
 
@@ -8,6 +9,13 @@ from pawtation.core import Catalog
 
 ROOT = Path(__file__).resolve().parent.parent
 MAGIC = struct.pack(">I", discimage.GC_MAGIC)
+
+
+def mktmp(case):
+    """A temp folder that is removed when the test finishes."""
+    d = tempfile.mkdtemp()
+    case.addCleanup(shutil.rmtree, d, ignore_errors=True)
+    return Path(d)
 
 
 def disc_bytes(code6: str, title: str, size: int, disc: int = 1, fill: bytes = b"\0") -> bytes:
@@ -23,7 +31,7 @@ def quiet(*_a, **_k):
 
 class Base(unittest.TestCase):
     def setUp(self):
-        self.tmp = Path(tempfile.mkdtemp())
+        self.tmp = mktmp(self)
         self.lib = self.tmp / "lib"; self.lib.mkdir()
         self.sd = self.tmp / "sd"; self.sd.mkdir()
         self.cfg = json.loads(json.dumps(core.DEFAULT_CONFIG))

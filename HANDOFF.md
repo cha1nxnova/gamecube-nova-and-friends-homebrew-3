@@ -35,7 +35,8 @@ Read next: `docs/SPEC_V2.md` (contracts between modules), `docs/CHARACTERS.md` (
 2. Read `docs/SPEC_V2.md` and `docs/CHARACTERS.md`. Before touching Swiss, read `docs/FORK_GUIDE.md` section 1.
 3. Run `python -m unittest discover -s tests` before and after every change; GUI tests need tkinter and a display:
    `xvfb-run -a python3.12 -m unittest discover -s tests`.
-4. `agent_tasks/` holds the version-1 sub-agent prompts and `SUPERVISOR.md` (dispatch + review). They predate v2.
+4. `agent_tasks/README.md`: the version-1 task prompts are done and removed; it keeps the supervisor rules for
+   delegating work (one task per helper with a file list, tests clean up their temp folders, report format).
 
 ## Layout
 | Path | Role |
@@ -43,6 +44,7 @@ Read next: `docs/SPEC_V2.md` (contracts between modules), `docs/CHARACTERS.md` (
 | `pawtation/core.py` | config/state, library scan (multi-disc aware), catalog match, `plan_rotation`, `sync_card` (progress, cancel, verify, manifest safety), card detection, boot card |
 | `pawtation/cast.py` | the cast (`data/cast.json`), presence (who is home, meetups, cameo walk-ons with hours), scenes (`pick_scene`, `play`), content tiers and packs |
 | `pawtation/afterdark.py` | the 18+ gate: `parse_date`, `unlock`, `lock`, `is_unlocked`. Stores only `{"unlocked", "confirmed_on"}` |
+| `pawtation/hidden.py` | see docs/SPEC_V2.md section 9 |
 | `pawtation/pets.py` | `PetBrain`: cast-driven chat intents, lines, scenes, jokes, fortunes, activities, card quips, suggest, rank, rate, save report, wrapped |
 | `pawtation/sprites.py` | read-only loader for `assets/sprites` and `assets/renders` (manifests, frames, pack overrides); never raises |
 | `pawtation/theme.py` | theme tokens from `data/theme.json` (built-in fallback), contrast checks, motion settings |
@@ -97,7 +99,7 @@ Read next: `docs/SPEC_V2.md` (contracts between modules), `docs/CHARACTERS.md` (
 - **Change rotation logic:** `core.game_score` and `plan_rotation`; add a test.
 - **Rebuild art:** `docs/ART_PIPELINE.md` (2D) and `docs/ART_LOWPOLY.md` (3D).
 
-## Status (2026-11-15, version 2 release review)
+## Status (2026-11-15, version 2, end of wave 3)
 **Done and tested (automated, temp dirs):** everything from version 1 (scan incl. multi-disc and CISO/GCZ/RVZ headers,
 651-title catalog matching, planner, safe sync with progress/cancel/verify/wrong-card and hostile-manifest guards,
 card auto-detect, mods overlay, quips export, BPS/IPS patching, `.gci`/`.gcs` reading, plugins, CLI end-to-end); the
@@ -105,18 +107,25 @@ cast engine (13 characters, presence weights, meetups, cameo walk-ons of 5-15 mi
 scene matching); After Dark (gate, lockdown of every chat/scene/quip/CLI path, relock, card quips all-ages); real
 dialogue for every character and scenes for every group; sprite sets for all 13 characters (mains/guest at 96, 192
 and a 512 portrait; cameos at 96 and 192) plus props; low-poly Nova, Iggy, Duskie, the trio and the sync/disc renders;
-the theme tokens with contrast checks; `scripts/doctor.py`. Test matrix on 2026-11-15: 312 tests; Python 3.13 and
-3.11 without a display pass with 25 GUI tests skipped; Python 3.12 under Xvfb passes all of them.
+the theme tokens with contrast checks; `scripts/doctor.py`; tidy `sync --go` output (the percentage line is cleared
+before each "copy ..." line; dry-run output unchanged); game and tag scenes are reached while a cameo visits.
+Test matrix at the end of wave 3: 342 tests; Python 3.13 and 3.11 without a display pass with 32 GUI tests skipped;
+Python 3.12 under Xvfb passes all of them (run twice, no flakes). Test hygiene: every test removes the temp folders
+it creates (`mktmp` helpers with `addCleanup`, `tearDownModule` in `test_gui`) and fake disc images are sparse; a full
+Xvfb run leaves `/tmp` unchanged.
 **Done, but only run under a virtual X display on Linux:** the version-2 desktop app (`gui.py`: stage, animations,
-themes, meetup chips, After Dark gate). See `docs/GUI_CHECKLIST.md`. Not run on Windows or macOS, not seen on a real
-monitor at real DPI.
-**Built, never seen running:** the Swiss theme. The four patches apply and build (`swiss_fork/`, `docs/BUILD_LOG.md`),
+themes, meetup chips, After Dark gate). Stage sizing: up to three non-cameo characters use the 192 px stickers
+whenever the stage is tall enough for the bubble and wide enough that no name tag overlaps or leaves the stage (a
+visiting cameo stays at 96 px beside them); the compact 96 px stage only when they do not fit or four or more are
+home. The Game column takes spare table width. See `docs/GUI_CHECKLIST.md`. The desktop app has only ever run under
+Xvfb on Linux: not run on Windows or macOS, not seen on a real monitor at real DPI.
+**Built, never seen running:** the Swiss theme compiles but has never been seen running. The four patches apply and build (`swiss_fork/`, `docs/BUILD_LOG.md`),
 but the emulator capture in this container is black even for stock Swiss, so there are no screenshots. Our build of
 the unmodified tag is not byte-identical to the official release (build path and toolchain snapshot differ).
-**Not done:** the section 9 addendum in `docs/SPEC_V2.md` (not started; no module exists); per-game progress parsers
+**Not done:** per-game progress parsers
 (TTYD layout documented, unverified against a real save); tags/genres for the 572 imported catalog titles; `.sav` save
 wrapper; OS notifications; printable card labels.
-**Unverified on real hardware:** anything on a real GameCube, GC2SD or SD card; multi-disc file naming
+**Unverified on real hardware (nothing has run on real hardware yet):** anything on a real GameCube, GC2SD or SD card; multi-disc file naming
 (`disc1.iso`/`disc2.iso`); the Swiss cheat file path/format; memory-card emulation with a GC2SD; the Swiss theme.
 
 ## Ideas backlog
