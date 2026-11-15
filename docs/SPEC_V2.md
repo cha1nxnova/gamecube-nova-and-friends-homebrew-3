@@ -180,3 +180,30 @@ assets/
 | 3D art | `art/lowpoly/`, `assets/renders/`, `tests/test_lowpoly.py`, `docs/ART_LOWPOLY.md` |
 | Theme | `data/theme.json`, `pawtation/theme.py`, `tests/test_theme.py`, `docs/DESIGN_SYSTEM.md` |
 | Later (second wave) | `pawtation/gui.py`, `tests/test_gui.py`, Swiss fork, printable labels |
+
+## 8. Wave 3 addenda (2026-11-15)
+
+- **Background cast.** `docs/CHARACTERS.md` "Background cast" defines ten cameo ids: `pickle`, `vesper`, `tuft`,
+  `hazel`, `sprout`, `stilts`, `flurry`, `refills`, `mochi`, `biscuit`. Each gets a `cast.json` entry with
+  `"role": "cameo"`, `name`, `species`, `pronouns`, `aliases`, `color`, `accent`, and optionally
+  `"hours": [start, end]` (local 24-hour clock, end exclusive, may wrap past midnight: Vesper `[20, 6]`, Sprout
+  `[7, 20]`). A cameo outside its hours is never drawn for a walk-on.
+- **Presence weights:** `nova+iggy` 54, `nova` 9, `iggy` 9, `duskie+iggy+nova` 10, `duskie+nova` 5, `duskie+iggy` 5,
+  `cameo` 8. `cameo` = the usual Nova + Iggy pair plus one random eligible cameo; a cameo visit lasts 5 to 15
+  minutes, then the cameo leaves and the others stay.
+- **Scenes and cameos.** A scene whose `who` has no cameo id matches when `who` equals the present *non-cameo*
+  set (so a walk-on never silences the mains). A scene whose `who` includes a cameo matches when every id in
+  `who` is present (subset match), and is preferred while that cameo is visiting. Cameos need per-character
+  lines only for `greeting`, `idle`, `arrive`, `leave` (3 or more each) and may appear in jokes.
+- **Cameo sprites:** sizes 96 and 192 only; required `idle` (2 to 4 frames) and `talk` (2 frames); optional
+  `blink` and one `special`. Heights as listed in the bible, on the common baseline.
+- **Sprite overrides from packs:** `sprites.frames(char, anim, size, pack_dirs=())` prefers
+  `<pack>/sprites/<char>/<size>/<anim>_<nn>.png` from the given pack directories (the caller decides which packs
+  are allowed; After Dark packs only when unlocked).
+- **GUI settings** (in `config.json`, all optional): `gui_theme` (`light` | `dark`), `gui_reduce_motion` (bool; env
+  `PAWTATION_REDUCE_MOTION=1` also works), `gui_sprite_size` (96 | 192 | `auto`).
+- **After Dark stays as specified in section 4:** the repository ships innuendo-level banter only. No explicit
+  text or art is authored here, by anyone, for any tier.
+- **Swiss fork** lives in `swiss_fork/`: `README.md`, `patches/*.patch` (a `git format-patch` series over the
+  pinned upstream tag), `art/` (generator script + its outputs), `apply.sh`. No upstream source files and no
+  built binaries are committed.
