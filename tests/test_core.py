@@ -5,7 +5,7 @@ from pawtation.core import Catalog
 
 
 def fake_iso(path: Path, code6: str, title: str, mb: float):
-    head = code6.encode() + b"\0" * 26 + title.encode().ljust(0x40, b"\0")
+    head = code6.encode() + b"\0" * 22 + bytes.fromhex("c2339f3d") + title.encode().ljust(0x40, b"\0")
     path.write_bytes(head + b"\0" * (int(mb * 1024 * 1024) - len(head)))
 
 

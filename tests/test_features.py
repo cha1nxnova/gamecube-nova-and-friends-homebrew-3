@@ -185,11 +185,220 @@ class SafeSync(Base):
     def test_safe_name(self):
         self.assertEqual(core.safe_name("Mario Kart: Double Dash!!"), "Mario Kart Double Dash!!")
         self.assertEqual(core.safe_name("Super Smash Bros."), "Super Smash Bros")
-        self.assertEqual(core.safe_name("CON"), "CON_")
+        self.assertEqual(core.safe_name("CON"), "_CON")
         self.assertEqual(core.safe_name('<>:"/\\|?*'), "game")
         for rel in ("/abs", "a/../b", "..", "a\\b", "C:/x", "", "a//b"):
             self.assertIsNone(core.card_path(self.sd, rel), rel)
         self.assertEqual(core.card_path(self.sd, "games/A/game.iso"), self.sd / "games" / "A" / "game.iso")
+
+
+class ReviewRegressions(Base):
+    """One test per confirmed finding from the independent review (2026-11-15)."""
+    def setUp(self):
+        super().setUp()
+        self.add("ttyd.iso", "G8ME01"); self.add("chibi.iso", "GGTE01")
+        self.out = self.tmp / "outside"; self.out.mkdir()
+
+    def test_symlinked_games_folder_is_refused(self):
+        (self.out / "Foo").mkdir(); (self.out / "Foo" / "game.iso").write_text("not ours")
+        os.symlink(self.out, self.sd / "games")
+        (self.sd / core.MANIFEST_NAME).write_text(json.dumps({"card_id": "1", "files": {"zzz": "games/Foo/game.iso"}}))
+        rep = self.sync(["chibi-robo"], dry_run=False)
+        self.assertTrue(rep["errors"]); self.assertEqual(rep["copied"], [])
+        self.assertEqual((self.out / "Foo" / "game.iso").read_text(), "not ours")
+        self.assertEqual(sorted(p.name for p in self.out.iterdir()), ["Foo"])
+
+    def test_symlinked_subfolder_and_part_file_cannot_redirect_writes(self):
+        victim = self.out / "victim.txt"; victim.write_text("IMPORTANT")
+        d = self.sd / "games" / "Chibi-Robo!"; d.mkdir(parents=True)
+        os.symlink(victim, d / "game.iso.part"); os.symlink(victim, d / ("game.iso" + core.PART_TAG + "0"))
+        os.symlink(self.out, self.sd / "games" / "Paper Mario The Thousand-Year Door")
+        rep = self.sync(["chibi-robo", "paper-mario-ttyd"], dry_run=False)
+        self.assertEqual(victim.read_text(), "IMPORTANT")
+        self.assertEqual(sorted(p.name for p in self.out.iterdir()), ["victim.txt"])
+        self.assertTrue(any("Paper Mario" in e for e in rep["errors"]))
+        self.assertTrue((d / "game.iso").is_file() and not (d / "game.iso").is_symlink())
+        self.assertTrue((d / "game.iso.part").is_symlink())                  # a user's own *.part name is not ours to touch
+
+    def test_users_part_file_survives(self):
+        d = self.sd / "games" / "Chibi-Robo!"; d.mkdir(parents=True)
+        (d / "game.iso.part").write_text("USER DATA")
+        self.assertEqual(self.sync(["chibi-robo"], dry_run=False)["errors"], [])
+        self.assertEqual((d / "game.iso.part").read_text(), "USER DATA")
+
+    def test_crash_right_after_a_copy_still_converges(self):
+        real, calls = core.save_json, []
+        def flaky(path, obj):
+            calls.append(1)
+            if len(calls) == 3:                                              # 1 removal pass, 2 pending, 3 after the copy
+                raise OSError("card pulled")
+            return real(path, obj)
+        core.save_json = flaky
+        try:
+            rep = self.sync(["chibi-robo"], dry_run=False)
+        finally:
+            core.save_json = real
+        self.assertTrue(rep["errors"])
+        self.assertTrue((self.sd / "games" / "Chibi-Robo!" / "game.iso").exists())
+        rep = self.sync(["chibi-robo"], dry_run=False)                       # the pending record makes the file ours
+        self.assertEqual(rep["errors"], [])
+        self.assertEqual(core.load_manifest(self.sd)["files"], {"chibi-robo": "games/Chibi-Robo!/game.iso"})
+        self.assertEqual(core.load_manifest(self.sd)["pending"], [])
+        rep = self.sync([], dry_run=False)
+        self.assertFalse((self.sd / "games" / "Chibi-Robo!").exists())
+
+    def test_failed_removal_keeps_the_manifest_entry(self):
+        self.sync(["chibi-robo"], dry_run=False)
+        real = core._rm_tracked
+        def locked(*a, **k): raise PermissionError("locked")
+        core._rm_tracked = locked
+        try:
+            rep = self.sync([], dry_run=False)
+        finally:
+            core._rm_tracked = real
+        self.assertEqual(len(rep["errors"]), 1)
+        self.assertIn("chibi-robo", core.load_manifest(self.sd)["files"])
+        self.assertEqual(self.sync(["chibi-robo"], dry_run=False)["errors"], [])
+
+    def test_same_title_games_never_share_a_folder_and_order_does_not_matter(self):
+        games = [{"key": f"abcdefghijklmnop-{i}", "title": "Foo", "code4": f"ZZZ{i}"} for i in (1, 2, 3)]
+        self.cat = Catalog(games)
+        self.lib = self.tmp / "lib2"; self.lib.mkdir(); self.cfg["library_dir"] = str(self.lib)
+        for i in (1, 2, 3):
+            (self.lib / f"f{i}.iso").write_bytes(disc_bytes(f"ZZZ{i}01", "x", 4096 + i))
+        keys = [g["key"] for g in games]
+        rep = self.sync(keys, dry_run=False)
+        self.assertEqual(rep["errors"], [])
+        m = core.load_manifest(self.sd)
+        self.assertEqual(len(set(m["files"].values())), 3)
+        sizes = sorted(p.stat().st_size for p in self.sd.rglob("game.iso"))
+        self.assertEqual(sizes, [4097, 4098, 4099])
+        again = self.sync(list(reversed(keys)), dry_run=False)
+        self.assertEqual((again["copied"], again["removed"]), ([], []))
+
+    def test_dry_run_predicts_the_real_run_when_a_folder_is_reused(self):
+        self.cat = Catalog([{"key": "a", "title": "Foo?", "code4": "ZZZ1"}, {"key": "b", "title": "Foo", "code4": "ZZZ2"}])
+        self.lib = self.tmp / "lib2"; self.lib.mkdir(); self.cfg["library_dir"] = str(self.lib)
+        (self.lib / "a.iso").write_bytes(disc_bytes("ZZZ101", "x", 4096)); (self.lib / "b.iso").write_bytes(disc_bytes("ZZZ201", "x", 5000))
+        self.sync(["a"], dry_run=False)
+        dry = self.sync(["b"]); real = self.sync(["b"], dry_run=False)
+        self.assertEqual((dry["errors"], dry["copied"], dry["removed"]), (real["errors"], real["copied"], real["removed"]))
+        self.assertEqual(real["errors"], [])
+
+    def test_wrongly_typed_manifest_values_do_not_crash(self):
+        for files in ({"k": ["a"]}, {"k": {"x": 1}}, {"k": 5}, [1]):
+            (self.sd / core.MANIFEST_NAME).write_text(json.dumps({"card_id": "1", "files": files, "more_files": {"k": "x"},
+                                                                 "aux": [1], "titles": {"k": 5}, "pending": {"a": 1}}))
+            self.sync([]); core.card_contents(str(self.sd)); core.find_cards([self.sd])
+
+    def test_malformed_gcz_and_wii_and_text_files(self):
+        hdr = struct.pack("<IIQQII", discimage.GCZ_MAGIC, 0, 0, 0x8000, 0x4000, 2)
+        (self.lib / "bad.gcz").write_bytes(hdr + struct.pack("<QQ", (1 << 63) - 1, 5) + b"\0" * 8)
+        wii = bytearray(disc_bytes("RSPE01", "Wii thing", 4096)); wii[0x18:0x1C] = bytes.fromhex("5d1c9ea3"); wii[0x1C:0x20] = b"\0" * 4
+        (self.lib / "wii.iso").write_bytes(bytes(wii))
+        (self.lib / "README.iso").write_bytes(b"README this is text, not a disc image" + b" " * 100)
+        keys = {r.key: r for r in self.scan()}
+        self.assertNotIn("wii-thing", keys); self.assertEqual(keys["readme"].code6, None)
+        self.assertIn("bad", keys)
+
+    def test_launchable_copy_beats_a_compressed_duplicate(self):
+        (self.lib / "Aaa Chibi.ciso").write_bytes(b"CISO" + struct.pack("<I", 0x200000) + b"\x01" + b"\0" * (0x8000 - 9)
+                                                  + disc_bytes("GGTE01", "x", 0x60))
+        roms = {r.key: r for r in self.scan()}
+        self.assertTrue(roms["chibi-robo"].launchable)
+        self.assertTrue(roms["chibi-robo"].path.endswith("chibi.iso"))
+        self.assertEqual(len(core.DUPLICATES), 1)
+
+    def test_mod_with_its_own_catalog_entry_is_a_separate_game(self):
+        self.cat = Catalog(self.cat.games + [{"key": "chibi-night-mod", "title": "Chibi Night Mod"}])
+        self.add("Chibi Night Mod.iso", "GGTE01")
+        self.assertIn("chibi-night-mod", {r.key for r in self.scan()}); self.assertIn("chibi-robo", {r.key for r in self.scan()})
+
+    def test_missing_disc_one_is_not_rotated_and_partial_sets_are_not_copied(self):
+        self.add("RE4 d2.iso", "G4BE08", disc=2)
+        rom = [r for r in self.scan() if r.code6 == "G4BE08"][0]
+        key = rom.key
+        self.assertFalse(rom.launchable)
+        self.assertNotIn(key, [k for ks in core.plan_rotation(self.cfg, self.state, self.scan()).values() for k in ks])
+        self.add("RE4 d1.iso", "G4BE08", disc=1, kb=512)
+        real = core.shutil.disk_usage
+        import collections
+        U = collections.namedtuple("U", "total used free")
+        core.shutil.disk_usage = lambda p: U(10**9, 0, 300 * 1024)           # disc 2 alone would fit; the pair does not
+        try:
+            rep = self.sync([key], dry_run=False)
+        finally:
+            core.shutil.disk_usage = real
+        self.assertEqual(rep["copied"], []); self.assertEqual(len(rep["errors"]), 1)
+        self.assertEqual(list(self.sd.rglob("*.iso")), [])
+
+    def test_config_state_catalog_and_content_damage(self):
+        home = self.tmp / "home"; home.mkdir()
+        old = (core.CONFIG_PATH, core.STATE_PATH)
+        core.CONFIG_PATH, core.STATE_PATH = home / "config.json", home / "state.json"
+        self.addCleanup(lambda: setattr(core, "CONFIG_PATH", old[0]) or setattr(core, "STATE_PATH", old[1]))
+        core.CONFIG_PATH.write_text('{"library_dir": "D:/roms",}')            # trailing comma
+        core.update_config(seed=5)
+        self.assertIn("D:/roms", (home / "config.json.bak").read_text())
+        core.STATE_PATH.write_text(json.dumps({"ratings": {"a": "5", "b": 4}, "pets": 3, "history": [1, {"plan": {}}], "last_on_card": []}))
+        st = core.load_state()
+        self.assertEqual((st["ratings"], len(st["history"]), st["pets"]["mochi"]["energy"]), ({"b": 4}, 1, 5))
+        cat = Catalog([{"key": "a", "title": "A", "aliases": None, "code4": ["x"]}, {"key": ["k"], "title": "B"},
+                       {"key": "c", "title": 5}, "junk", {"key": "d", "title": "D", "aliases": [1, "Dee"]}])
+        self.assertEqual(sorted(cat.by_key), ["a", "d"])
+        self.assertEqual(core.clean_catalog(None), [])
+        self.cfg["cards"]["\u00b2"] = {"label": "x", "capacity_gb": "big"}
+        core.plan_rotation(self.cfg, self.state, self.scan())
+        self.state["history"] = [{"ts": 1, "season": 60 + i, "plan": {}} for i in range(50)]
+        core.commit_plan(self.state, {"1": []}); self.assertEqual(self.state["history"][-1]["season"], 110)
+        keep = json.dumps(pets.PETS)
+        self.addCleanup(lambda: (pets.PETS.clear(), pets.PETS.update(json.loads(keep))))
+        pets.PETS.update({"jokes": ["abc", ["Mochi"], 5], "idle": ["x"], "greeting": {"mochi": ["{game.foo}", "{game[a]}", 5], "biscuit": 7},
+                          "activities": {"fetch": "x", "nap": {"affection": "lots", "mochi": 5}}, "game_quips": {"chibi-robo": "x"},
+                          "tag_quips": [], "fortunes": None, "state_of_collection": 3})
+        b = pets.PetBrain(self.state, self.cat, random.Random(2))
+        for text in ("joke", "fortune", "hi", "hello mochi", "fetch", "nap", "zzz", "suggest", "chibi-robo!"):
+            for _ in range(5):
+                self.assertTrue(b.reply(text, self.scan()))
+        self.assertEqual(b.card_quips(["chibi-robo"]), [])
+        b.collection([]); b.wrapped(self.scan())
+
+    def test_plugin_failures_load_once_and_sys_exit_is_contained(self):
+        d = self.tmp / "plugins"; d.mkdir()
+        (d / "bad.py").write_text("def register(api):\n    api.score(lambda *a: 0)\n    raise RuntimeError('x')\n")
+        (d / "quit.py").write_text("import sys\nsys.exit(3)\n")
+        keep = (list(core.SCORE_HOOKS), list(plugins.ERRORS), set(plugins.FAILED))
+        self.addCleanup(lambda: (core.SCORE_HOOKS.__setitem__(slice(None), keep[0]), plugins.ERRORS.__setitem__(slice(None), keep[1]),
+                                 plugins.FAILED.clear(), plugins.FAILED.update(keep[2])))
+        with contextlib.redirect_stderr(io.StringIO()):
+            for _ in range(3):
+                plugins.load_plugins(d)
+        self.assertEqual(len(core.SCORE_HOOKS) - len(keep[0]), 1)
+        self.assertEqual(len(plugins.ERRORS) - len(keep[1]), 2)
+
+    def test_patch_edge_cases(self):
+        s = self.tmp / "s.bin"; s.write_bytes(b"A" * 10)
+        huge = b"BPS1" + bps_varint(10) + bps_varint(2 ** 70) + bps_varint(0)
+        huge += struct.pack("<II", zlib.crc32(b"A" * 10), 0); huge += struct.pack("<I", zlib.crc32(huge))
+        (self.tmp / "h.bps").write_bytes(huge)
+        with self.assertRaises(patching.PatchError):
+            patching.apply_patch(s, self.tmp / "h.bps", self.tmp / "o.bin")
+        off = 0x454F46                                                       # an offset that spells "EOF"
+        (self.tmp / "e.ips").write_bytes(b"PATCH" + off.to_bytes(3, "big") + (1).to_bytes(2, "big") + b"Z" + b"EOF")
+        patching.apply_patch(s, self.tmp / "e.ips", self.tmp / "e.bin")
+        self.assertEqual((self.tmp / "e.bin").read_bytes()[off:], b"Z")
+        self.assertEqual([p.name for p in self.tmp.glob("*.part")], [])
+
+    def test_cancel_that_flickers_cannot_publish_a_partial_file(self):
+        old = core.COPY_CHUNK; core.COPY_CHUNK = 4096
+        self.addCleanup(setattr, core, "COPY_CHUNK", old)
+        n = [0]
+        def once():
+            n[0] += 1
+            return n[0] == 4
+        rep = self.sync(["chibi-robo"], dry_run=False, cancel=once)
+        self.assertTrue(rep["cancelled"])
+        self.assertEqual([p for p in self.sd.rglob("*") if p.is_file() and p.name != core.MANIFEST_NAME], [])
 
 
 class Planner(Base):

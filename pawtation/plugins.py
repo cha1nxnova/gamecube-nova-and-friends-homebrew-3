@@ -26,6 +26,7 @@ PLUGIN_DIR = core.ROOT / "plugins"
 EVENTS: dict[str, list] = {}
 COMMANDS: dict[str, tuple] = {}       # name -> (fn(list_of_args), help)
 LOADED: list[str] = []
+FAILED: set = set()
 ERRORS: list[str] = []
 
 
@@ -60,7 +61,7 @@ def load_plugins(folder: Path | None = None) -> list[str]:
     api = Api()
     for path in sorted(folder.glob("*.py")):
         name = path.stem
-        if name.startswith("_") or name in LOADED:
+        if name.startswith("_") or name in LOADED or name in FAILED:
             continue
         try:
             spec = importlib.util.spec_from_file_location(f"pawtation_plugin_{name}", path)
@@ -69,7 +70,10 @@ def load_plugins(folder: Path | None = None) -> list[str]:
             if callable(getattr(mod, "register", None)):
                 mod.register(api)
             LOADED.append(name)
-        except Exception as e:
+        except KeyboardInterrupt:
+            raise
+        except BaseException as e:               # includes a plugin calling sys.exit(): report it, carry on
+            FAILED.add(name)
             ERRORS.append(f"{path.name}: {type(e).__name__}: {e}")
             print(f"[pawtation] plugin {path.name} failed to load: {e}", file=sys.stderr)
     return LOADED

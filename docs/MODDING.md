@@ -41,9 +41,11 @@ Writes a patched **copy**; your original dump is never modified and nothing is o
 - `.ips` is built in (offsets below 16 MB, so it suits small files such as an extracted `main.dol`, not whole discs).
 - `.xdelta` / `.vcdiff` need the free `xdelta3` program installed; Pawtation runs it for you.
 
-Put the patched copy in your library folder and rescan. A mod that keeps the original disc ID is treated as the same
-game as the original (one of them wins, first by file name); to carry both, keep them in separate library folders
-or give the mod its own catalog entry (below). Patch a plain `.iso`; compressed images must be converted first.
+Put the patched copy in your library folder and rescan. A mod normally keeps the original's disc ID, so Pawtation
+sees two copies of one game, uses the first, and `scan` tells you which file it ignored. To rotate the mod as its own
+game, give it a catalog entry whose `title` (or an alias) is exactly the file name without the extension, and no
+`code4`; a file name that exactly matches such an entry wins over the disc ID. Patch a plain `.iso`; compressed images
+must be converted first.
 
 ## 3. Catalog and pets (data, no code)
 

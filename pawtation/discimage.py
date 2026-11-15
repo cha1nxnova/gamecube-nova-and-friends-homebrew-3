@@ -15,6 +15,7 @@ import zlib
 from pathlib import Path
 
 HEADER_LEN = 0x60            # ID (6) + disc no + version + ... + magic @0x1C + internal name @0x20 (0x40 bytes)
+WII_MAGIC = 0x5D1C9EA3       # big-endian word at 0x18 on Wii discs (never rotated: wrong console)
 GC_MAGIC = 0xC2339F3D        # big-endian word at 0x1C on every retail GameCube disc
 
 CISO_HEADER_SIZE = 0x8000
@@ -84,7 +85,8 @@ def parse_header(head: bytes | None) -> dict | None:
         return None
     title = head[0x20:0x60].split(b"\0")[0].decode("ascii", "ignore").strip()
     return {"code6": code, "disc": head[6] + 1, "version": head[7], "title": title,
-            "magic_ok": struct.unpack(">I", head[0x1C:0x20])[0] == GC_MAGIC}
+            "magic_ok": struct.unpack(">I", head[0x1C:0x20])[0] == GC_MAGIC,
+            "wii": struct.unpack(">I", head[0x18:0x1C])[0] == WII_MAGIC}
 
 
 def read_header(path) -> dict | None:
@@ -96,7 +98,7 @@ def read_header(path) -> dict | None:
     try:
         with open(path, "rb") as f:
             return parse_header(reader(f))
-    except (OSError, struct.error):
+    except Exception:            # any malformed container is simply "unreadable", never a crash
         return None
 
 

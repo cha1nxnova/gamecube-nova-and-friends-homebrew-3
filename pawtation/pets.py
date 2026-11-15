@@ -17,6 +17,11 @@ NAMES = ("mochi", "biscuit")
 CHAT_HOOKS: list = []      # [(compiled regex, fn(brain, match, ctx) -> str | None)] added by plugins
 
 
+def _char(pet: str) -> dict:
+    c = CHARS.get(pet) if isinstance(CHARS, dict) else None
+    return c if isinstance(c, dict) else {}
+
+
 def other(pet: str) -> str:
     return "biscuit" if pet == "mochi" else "mochi"
 
@@ -24,9 +29,25 @@ def other(pet: str) -> str:
 def _fill(line: str, **fmt) -> str:
     """Format a content line; an unknown {placeholder} or stray brace in pets.json must never crash the app."""
     try:
-        return line.format(**fmt)
-    except (KeyError, IndexError, ValueError):
-        return line
+        return str(line).format(**fmt)
+    except Exception:
+        return str(line)
+
+
+def _strs(x) -> list:
+    return [s for s in x if isinstance(s, str) and s] if isinstance(x, list) else []
+
+
+def _bucket(name: str) -> dict:
+    b = PETS.get(name)
+    return b if isinstance(b, dict) else {}
+
+
+def _pairs(name: str) -> list:
+    """[[who, text], ...] buckets, with malformed rows dropped."""
+    b = PETS.get(name)
+    return [(r[0], r[1]) for r in b if isinstance(r, (list, tuple)) and len(r) == 2
+            and all(isinstance(x, str) for x in r)] if isinstance(b, list) else []
 
 
 class PetBrain:
@@ -40,21 +61,21 @@ class PetBrain:
 
     # ---- helpers
     def say(self, pet: str, bucket: str, **fmt) -> str:
-        lines = PETS.get(bucket, {}).get(pet) or ["..."]
+        lines = _strs(_bucket(bucket).get(pet)) or ["..."]
         return self._line(pet, _fill(self.rng.choice(lines), **fmt))
 
     def _line(self, pet, text):
-        return f"{CHARS.get(pet, {}).get('name', pet.title())}: {text}"
+        return f"{_char(pet).get('name') or pet.title()}: {text}"
 
     def art(self, pet: str, mood: str = "art") -> str:
-        return "\n".join(CHARS.get(pet, {}).get(mood) or CHARS.get(pet, {}).get("art", []))
+        return "\n".join(_strs(_char(pet).get(mood)) or _strs(_char(pet).get("art")))
 
     def duo(self, bucket: str, **fmt) -> list[str]:
         return [self.say("mochi", bucket, **fmt), self.say("biscuit", bucket, **fmt)]
 
     def _pair(self, bucket: str, fallback: str) -> str:
         """Buckets shaped [[who, text], ...] (jokes, fortunes)."""
-        items = PETS.get(bucket) or []
+        items = _pairs(bucket)
         if not items:
             return fallback
         who, text = self.rng.choice(items)
@@ -79,19 +100,20 @@ class PetBrain:
     def collection(self, roms) -> list[str]:
         """Both pets comment on the size of the library (pets.json -> state_of_collection: empty/few/many)."""
         bucket = "empty" if not roms else "few" if len(roms) < 15 else "many"
-        lines = PETS.get("state_of_collection", {}).get(bucket) or ["...", "..."]
+        lines = _strs(_bucket("state_of_collection").get(bucket)) or ["...", "..."]
         return [self._line(p, lines[i % len(lines)]) for i, p in enumerate(NAMES)]
 
     def activity(self, pet: str, name: str) -> str:
-        act = PETS.get("activities", {}).get(name)
-        if not act:
+        act = _bucket("activities").get(name)
+        if not isinstance(act, dict):
             return self._line(pet, "I don't know that trick yet.")
         s = self.state["pets"].setdefault(pet, {"affection": 5, "energy": 5})
         if act.get("needs") == "energy" and s["energy"] < 2:
             return self._line(pet, "Too sleepy for that. Try a nap or a treat?")
-        s["affection"] = max(0, min(20, s["affection"] + act.get("affection", 0)))
-        s["energy"] = max(0, min(10, s["energy"] + act.get("energy", 0)))
-        return self._line(pet, self.rng.choice(act.get(pet) or ["..."]))
+        num = lambda k: act.get(k) if isinstance(act.get(k), (int, float)) else 0
+        s["affection"] = max(0, min(20, s["affection"] + num("affection")))
+        s["energy"] = max(0, min(10, s["energy"] + num("energy")))
+        return self._line(pet, self.rng.choice(_strs(act.get(pet)) or ["..."]))
 
     def mood(self, pet: str) -> str:
         s = self.state["pets"].get(pet, {})
@@ -99,17 +121,26 @@ class PetBrain:
 
     def game_quip(self, pet: str, key: str) -> str | None:
         g = self.catalog.by_key.get(key)
-        q = PETS.get("game_quips", {}).get(key, {}).get(pet)
-        if q:
+        per_game = _bucket("game_quips").get(key)
+        q = per_game.get(pet) if isinstance(per_game, dict) else None
+        if isinstance(q, str) and q:
             return self._line(pet, _fill(q, game=g["title"] if g else key))
         for tag in (g or {}).get("tags", []):
-            t = PETS.get("tag_quips", {}).get(tag, {}).get(pet)
-            if t:
+            per_tag = _bucket("tag_quips").get(tag)
+            t = per_tag.get(pet) if isinstance(per_tag, dict) else None
+            if isinstance(t, str) and t:
                 return self._line(pet, _fill(t, game=g["title"]))
         return None
 
     def card_quips(self, keys, limit: int = 40) -> list[str]:
-        """Plain one-line quips about the games on a card, for /pawtation/quips.txt (a future on-console companion)."""
+        """Plain one-line quips about the games on a card, for /pawtation/quips.txt (a future on-console companion).
+        Never raises: a quip problem must not get in the way of a sync."""
+        try:
+            return self._card_quips(keys, limit)
+        except Exception:
+            return []
+
+    def _card_quips(self, keys, limit):
         out = []
         for key in keys:
             for pet in NAMES:
@@ -117,7 +148,7 @@ class PetBrain:
                 if q:
                     out.append(q)
         for bucket in ("jokes", "fortunes"):
-            items = list(PETS.get(bucket) or [])
+            items = _pairs(bucket)
             self.rng.shuffle(items)
             out += [f"{who}: {text}" for who, text in items[:10]]
         seen, uniq = set(), []
@@ -226,7 +257,7 @@ class PetBrain:
         return "\n".join(out)
 
     def help(self) -> str:
-        acts = ", ".join(PETS.get("activities", {}))
+        acts = ", ".join(_bucket("activities"))
         return ("Things you can say: joke, fortune, suggest, rank, rate <game> <1-5>, where is <game>, saves, wrapped, "
                 f"study break, {acts}. Add 'mochi' or 'biscuit' to pick who answers.")
 
@@ -297,7 +328,7 @@ class PetBrain:
         r = self._mentioned(t, roms)                                # a game by name beats small talk
         if r:
             return self.game_quip(pet, r.key) or self._line(pet, f"Ooh, {r.title}.")
-        acts = [n for n in PETS.get("activities", {}) if re.search(rf"\b{re.escape(n)}(s|ies|ing)?\b", t)]
+        acts = [n for n in _bucket("activities") if re.search(rf"\b{re.escape(n)}(s|ies|ing)?\b", t)]
         if acts:
             return self.activity(pet, acts[-1])                     # "play fetch" -> fetch (later = more specific)
         if re.search(r"\b(hello|hi|hey|heya|howdy|sup|yo|good (morning|evening|night))\b", t):

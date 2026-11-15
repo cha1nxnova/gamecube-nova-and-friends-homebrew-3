@@ -36,6 +36,8 @@ def cmd_scan(a):
             flag += "  (compressed: convert to .iso with Dolphin/NKit before it can go on a card)"
         print(f"{r.code6 or '------'}  {core.fmt_gb(r.size):>8}  {r.title}{discs}{mods}{flag}")
     print(f"\n{len(roms)} games, {core.fmt_gb(sum(r.size for r in roms))} total")
+    for ignored, kept in core.DUPLICATES:
+        print(f"Duplicate ignored: {ignored}\n   (same disc as {kept}; to carry a mod as its own game see docs/MODDING.md)")
     missing = [k for k in cfg["pinned"] if k not in {r.key for r in roms}]
     if missing:
         print("Pinned but not found in library:", ", ".join(cat.by_key[k]["title"] if k in cat.by_key else k for k in missing))
@@ -99,8 +101,8 @@ def _sync_one(cfg, state, cat, roms, cid, a) -> bool:
                              verify=True if a.verify else None, quips=quips, force=a.force)
     except KeyboardInterrupt:
         print("\nStopped. Files already finished stay on the card; re-run to continue."); return False
-    except OSError as e:
-        print(f"Card {cid}: {e}"); return False
+    except Exception as e:
+        print(f"Card {cid}: could not sync ({type(e).__name__}: {e})"); return False
     print(f"\nCard {cid} @ {mount}: {'DONE' if a.go else 'DRY RUN (add --go to copy)'}: "
           f"{len(rep['copied'])} copy, {len(rep['removed'])} remove, {len(rep['kept'])} keep")
     for w in rep["warnings"]: print("WARNING:", w)
@@ -190,7 +192,7 @@ def cmd_mods(a):
 
 
 def cmd_patch(a):
-    out = a.out or str(Path(a.source).with_name(Path(a.source).stem + " [patched]" + Path(a.source).suffix))
+    out = a.out or str(Path(a.source).with_name(Path(a.source).stem + " - patched" + Path(a.source).suffix))
     try:
         rep = patching.apply_patch(a.source, a.patch, out)
     except (patching.PatchError, OSError) as e:
@@ -198,6 +200,8 @@ def cmd_patch(a):
     h = core.discimage.read_header(rep["out"])
     print(f"Wrote {rep['out']} ({core.fmt_gb(rep['size'])}, {rep['format']}). Your original is untouched."
           + (f" Disc ID: {h['code6']}." if h else ""))
+    print("Note: it has the same disc ID as the original, so in one library folder only one of the two is used.\n"
+          "To rotate the mod as its own game, add a catalog entry whose title is the file name (docs/MODDING.md).")
 
 
 def cmd_saves(a):

@@ -20,6 +20,9 @@ class PatchError(Exception):
     pass
 
 
+MAX_OUTPUT = 16 * 1024**3      # far above any GameCube image (1.46 GB); stops a bad patch from filling the disk
+
+
 def crc32_file(path: Path) -> int:
     crc = 0
     with open(path, "rb") as f:
@@ -55,6 +58,8 @@ def apply_bps(src: Path, patch: Path, out: Path) -> dict:
     meta_len, pos = _varint(p, pos)
     pos += meta_len
     end = len(p) - 12
+    if out_size > MAX_OUTPUT:
+        raise PatchError("this patch claims an impossibly large result; refusing")
     if Path(src).stat().st_size != src_size:
         raise PatchError(f"this patch expects a {src_size}-byte source; yours is {Path(src).stat().st_size} bytes "
                          "(wrong region/revision of the game, or a different container format?)")
@@ -127,7 +132,7 @@ def apply_ips(src: Path, patch: Path, out: Path) -> dict:
     data = bytearray(Path(src).read_bytes())
     pos, done = 5, False
     while pos + 3 <= len(p):
-        if p[pos:pos + 3] == b"EOF":
+        if p[pos:pos + 3] == b"EOF" and len(p) - pos - 3 in (0, 3):   # the real end (an offset can also spell "EOF")
             pos += 3; done = True
             break
         off = int.from_bytes(p[pos:pos + 3], "big"); pos += 3
@@ -151,8 +156,12 @@ def apply_ips(src: Path, patch: Path, out: Path) -> dict:
         del data[int.from_bytes(p[pos:pos + 3], "big"):]
     out = Path(out)
     part = out.with_name(out.name + ".part")
-    part.write_bytes(data)
-    os.replace(part, out)
+    try:
+        part.write_bytes(data)
+        os.replace(part, out)
+    finally:
+        if part.exists():
+            part.unlink()
     return {"format": "ips", "out": str(out), "size": len(data)}
 
 
@@ -193,4 +202,9 @@ def apply_patch(src, patch, out) -> dict:
         raise PatchError(f"{out} already exists; choose another name (Pawtation never overwrites here)")
     if out.resolve() == src.resolve():
         raise PatchError("output must be a different file from the source")
-    return fn(src, patch, out)
+    if Path(str(out) + ".part").exists():
+        raise PatchError(f"{out}.part is in the way; remove it or choose another output name")
+    try:
+        return fn(src, patch, out)
+    except (OverflowError, ValueError, MemoryError, IndexError) as e:
+        raise PatchError(f"the patch is malformed ({type(e).__name__}: {e})")

@@ -7,7 +7,6 @@ import unittest
 from pathlib import Path
 
 HOME = tempfile.mkdtemp(prefix="pawtation-gui-")
-os.environ["PAWTATION_HOME"] = HOME            # before importing pawtation: never touch the real config
 
 try:
     import tkinter
@@ -21,8 +20,22 @@ if DISPLAY:
     from pawtation import gui                   # noqa: E402
 
 
+_REAL = {}
+
+
+def setUpModule():
+    """Point config/state at a temp dir for this module only. (An env var is not enough: under `unittest discover`
+    another test module has usually imported pawtation.core already, with the real paths baked in.)"""
+    _REAL["paths"] = (core.CONFIG_PATH, core.STATE_PATH)
+    core.CONFIG_PATH, core.STATE_PATH = Path(HOME) / "config.json", Path(HOME) / "state.json"
+
+
+def tearDownModule():
+    core.CONFIG_PATH, core.STATE_PATH = _REAL["paths"]
+
+
 def fake_iso(path: Path, code6: str, title: str, mb: float):
-    head = code6.encode() + b"\0" * 26 + title.encode().ljust(0x40, b"\0")
+    head = code6.encode() + b"\0" * 22 + bytes.fromhex("c2339f3d") + title.encode().ljust(0x40, b"\0")
     with open(path, "wb") as f:
         f.write(head)
         f.truncate(int(mb * 1024 * 1024))
@@ -32,6 +45,7 @@ def fake_iso(path: Path, code6: str, title: str, mb: float):
 class GuiTests(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp(dir=HOME))
+        assert str(core.CONFIG_PATH).startswith(HOME), "refusing to run GUI tests against the real config"
         for f in (core.CONFIG_PATH, core.STATE_PATH):
             if f.exists():
                 f.unlink()

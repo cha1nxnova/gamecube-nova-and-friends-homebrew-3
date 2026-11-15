@@ -64,7 +64,7 @@ def load_json(path: Path, default):
         data = json.loads(Path(path).read_text(encoding="utf-8-sig"))
     except (OSError, ValueError):
         return default
-    return data if isinstance(data, type(default)) else default
+    return data if default is None or isinstance(data, type(default)) else default
 
 
 def save_json(path: Path, obj):
@@ -91,7 +91,11 @@ def load_config() -> dict:
 
 def update_config(**changes) -> dict:
     """Change a few keys in the user's config.json without rewriting the rest. Returns the fresh merged config."""
-    user = load_json(CONFIG_PATH, {})
+    user = load_json(CONFIG_PATH, None)
+    if not isinstance(user, dict):
+        if CONFIG_PATH.exists():                 # unreadable/corrupt: keep the user's text rather than silently wiping it
+            shutil.copyfile(CONFIG_PATH, CONFIG_PATH.with_name(CONFIG_PATH.name + ".bak"))
+        user = {}
     user.update(changes)
     save_json(CONFIG_PATH, user)
     return load_config()
@@ -109,8 +113,18 @@ def load_state() -> dict:
     st.setdefault("last_on_card", {})     # key -> ts it last got loaded onto any card
     st.setdefault("pets", {"mochi": {"affection": 5, "energy": 5}, "biscuit": {"affection": 5, "energy": 5}})
     st.setdefault("plays", {})            # key -> manual play count (GUI "I played this" button)
+    for k, kind in (("ratings", dict), ("history", list), ("last_on_card", dict), ("pets", dict), ("plays", dict)):
+        if not isinstance(st[k], kind):          # a hand-edited or damaged state.json must not take the app down
+            st[k] = kind()
+    st["ratings"] = {k: int(v) for k, v in st["ratings"].items() if isinstance(v, (int, float)) and 1 <= v <= 5}
+    st["last_on_card"] = {k: v for k, v in st["last_on_card"].items() if isinstance(v, (int, float))}
+    st["history"] = [h for h in st["history"] if isinstance(h, dict) and isinstance(h.get("plan"), dict)]
+    if not isinstance(st["last_rotation_ts"], (int, float)):
+        st["last_rotation_ts"] = 0
     for pet in ("mochi", "biscuit"):
-        st["pets"].setdefault(pet, {"affection": 5, "energy": 5})
+        p = st["pets"].get(pet)
+        if not (isinstance(p, dict) and all(isinstance(p.get(f), (int, float)) for f in ("affection", "energy"))):
+            st["pets"][pet] = {"affection": 5, "energy": 5}
     return st
 
 
@@ -121,7 +135,23 @@ def save_state(st):
 # ---------- catalog ----------
 def load_catalog() -> list[dict]:
     games = load_json(DATA_DIR / "catalog.json", {"games": []}).get("games", [])
-    return [g for g in games if isinstance(g, dict) and g.get("key") and g.get("title")]
+    return clean_catalog(games)
+
+
+def clean_catalog(games) -> list[dict]:
+    """Drop or repair malformed entries so one bad hand edit cannot stop the app from starting."""
+    out = []
+    for g in games if isinstance(games, list) else []:
+        if not (isinstance(g, dict) and isinstance(g.get("key"), str) and isinstance(g.get("title"), str)
+                and g["key"] and g["title"]):
+            continue
+        g = dict(g)
+        for k in ("aliases", "tags", "genres"):
+            g[k] = [x for x in g.get(k) or [] if isinstance(x, str)] if isinstance(g.get(k), list) else []
+        if not (isinstance(g.get("code4"), str) and len(g["code4"]) == 4):
+            g.pop("code4", None)
+        out.append(g)
+    return out
 
 
 def norm(s: str) -> str:
@@ -145,7 +175,7 @@ def slugify(s: str) -> str:
 
 class Catalog:
     def __init__(self, games=None):
-        self.games = games if games is not None else load_catalog()
+        self.games = clean_catalog(games) if games is not None else load_catalog()
         self.by_key = {g["key"]: g for g in self.games}
         self.by_code4 = {g["code4"]: g for g in self.games if g.get("code4")}
         self.by_name = {}
@@ -161,6 +191,9 @@ class Catalog:
         ("Sonic Adventure 2 Battle" beats "Sonic Adventure 2"), and refuses a hit that is directly followed
         by a digit ("Mario Party 4" must not claim "Mario Party 40..."). A file name that is merely a
         prefix of a title is accepted only when exactly one game could be meant."""
+        exact = self.by_name.get(norm(Path(filename).stem))
+        if exact and not exact.get("code4") and code6 and code6[:4] in self.by_code4:
+            return exact                             # a mod with its own catalog entry, still carrying the original ID
         if code6 and code6[:4] in self.by_code4:
             return self.by_code4[code6[:4]]
         stem = norm(Path(filename).stem)
@@ -193,6 +226,7 @@ class Catalog:
 # What stock Swiss will actually start (docs/RESEARCH_NOTES.md A7). Compressed images are still *recognised* in your
 # library so you can see them, but they are kept off the cards until you convert them (Dolphin or NKit -> ISO).
 LAUNCHABLE_EXTS = {".iso", ".gcm"}
+DUPLICATES: list = []     # [(ignored path, kept path)] from the most recent scan_library (shown by `scan`)
 
 
 @dataclass
@@ -209,8 +243,9 @@ class Rom:
 
     @property
     def launchable(self) -> bool:
-        """False for compressed containers (.ciso/.gcz/.rvz): Swiss refuses them, so they never go on a card."""
-        return all(Path(d["path"]).suffix.lower() in LAUNCHABLE_EXTS for d in self.discs)
+        """False for compressed containers (.ciso/.gcz/.rvz: Swiss refuses them) and for a set with a disc missing."""
+        return (all(Path(d["path"]).suffix.lower() in LAUNCHABLE_EXTS for d in self.discs)
+                and [d["disc"] for d in self.discs] == list(range(1, len(self.discs) + 1)))   # no missing disc
 
     def __post_init__(self):
         if not self.discs:
@@ -231,6 +266,7 @@ def scan_library(cfg, catalog: Catalog | None = None) -> list[Rom]:
         return []
     exts = {e.lower() for e in cfg["extensions"]}
     roms: dict[str, Rom] = {}
+    DUPLICATES.clear()
     for p in sorted(Path(lib).rglob("*")):
         try:
             if not (p.is_file() and p.suffix.lower() in exts) or p.name.startswith("."):
@@ -239,6 +275,10 @@ def scan_library(cfg, catalog: Catalog | None = None) -> list[Rom]:
         except OSError:
             continue
         h = discimage.read_header(p)
+        if h and h.get("wii"):                       # a Wii disc in the folder: not ours to rotate
+            continue
+        if h and not h["magic_ok"]:                  # starts like a game ID but is not a GameCube disc: go by file name
+            h = None
         code, internal = (h["code6"], h["title"]) if h else (None, None)
         disc_no = h["disc"] if h else discimage.disc_from_filename(p.name)
         g = catalog.match(code, p.name)
@@ -249,8 +289,14 @@ def scan_library(cfg, catalog: Catalog | None = None) -> list[Rom]:
                             bool(g), list(g.get("tags", [])) if g else [], [disc])
             continue
         rom = roms[key]
-        if any(d["disc"] == disc_no for d in rom.discs):   # duplicate dump of the same disc: keep the first
-            continue
+        same = [d for d in rom.discs if d["disc"] == disc_no]
+        if same:                                     # duplicate dump of the same disc: keep the first...
+            old = same[0]
+            if Path(old["path"]).suffix.lower() in LAUNCHABLE_EXTS or p.suffix.lower() not in LAUNCHABLE_EXTS:
+                DUPLICATES.append((str(p), old["path"]))
+                continue
+            DUPLICATES.append((old["path"], str(p)))  # ...unless the first is compressed and this one Swiss can start
+            rom.discs.remove(old)
         rom.discs.append(disc)
         rom.discs.sort(key=lambda d: d["disc"])
         rom.size = sum(d["size"] for d in rom.discs)
@@ -260,17 +306,23 @@ def scan_library(cfg, catalog: Catalog | None = None) -> list[Rom]:
 
 # ---------- rotation planner ----------
 def card_ids(cfg) -> list[str]:
-    return sorted(cfg["cards"], key=lambda c: (0, int(c), "") if str(c).isdigit() else (1, 0, str(c)))
+    return sorted(cfg["cards"], key=lambda c: (0, int(c), "") if str(c).isascii() and str(c).isdigit() else (1, 0, str(c)))
 
 
 def card_budget(cfg, card: dict) -> int:
-    return max(0, int(float(card.get("capacity_gb", 0)) * 1024**3) - int(cfg["reserve_mb"]) * 1024**2)
+    try:
+        gb = float(card.get("capacity_gb", 0)) if isinstance(card, dict) else 0.0
+    except (TypeError, ValueError):
+        gb = 0.0
+    return max(0, int(gb * 1024**3) - int(cfg["reserve_mb"]) * 1024**2)
 
 
 def game_score(rom: Rom, state: dict, now: float) -> float:
     """Higher = more deserving of a slot. Ratings dominate, staleness breaks ties, a little jitter stays fun."""
     rating = state["ratings"].get(rom.key, 3)
+    rating = rating if isinstance(rating, (int, float)) else 3
     last = state["last_on_card"].get(rom.key, 0)
+    last = last if isinstance(last, (int, float)) else 0
     days_off = min(365, max(0.0, now - last) / 86400) if last else 365
     return rating * 10 + days_off / 7.0
 
@@ -282,7 +334,7 @@ def plan_rotation(cfg, state, roms: list[Rom], now: float | None = None) -> dict
     """Return {card_id: [rom_key,...]}. Pins first (one favorite per card, in order), then
     greedy fill by score. Each game appears on at most one card per season."""
     now = time.time() if now is None else now
-    season = len(state["history"]) + 1
+    season = next_season(state)
     rng = random.Random(cfg["seed"] or (season * 7919))
     by_key = {r.key: r for r in roms}
     cards = cfg["cards"]
@@ -323,6 +375,13 @@ def plan_rotation(cfg, state, roms: list[Rom], now: float | None = None) -> dict
     return plan
 
 
+def next_season(state) -> int:
+    """History is capped, so count from the last entry's season number rather than the list length."""
+    hist = state.get("history") or []
+    last = hist[-1].get("season") if hist else 0
+    return (last if isinstance(last, int) else len(hist)) + 1
+
+
 def unplaced(plan: dict, roms: list[Rom]) -> list[Rom]:
     """Games that did not make it onto any card this season (too big, or simply out of room)."""
     on = {k for keys in plan.values() for k in keys}
@@ -350,7 +409,7 @@ def fmt_remaining(sec: float) -> str:
 
 def commit_plan(state, plan, now=None):
     now = time.time() if now is None else now
-    season = (state["history"][-1].get("season", len(state["history"])) + 1) if state["history"] else 1
+    season = next_season(state)
     state["history"].append({"ts": now, "season": season, "plan": plan})
     state["history"] = state["history"][-50:]
     for keys in plan.values():
@@ -369,8 +428,8 @@ def safe_name(title: str) -> str:
     """A folder name that is legal on FAT32/exFAT (and Windows): no reserved characters, no trailing dot/space."""
     name = re.sub(r'[<>:"/\\|?*\x00-\x1f]+', "", title)
     name = re.sub(r"\s+", " ", name).strip()[:80].rstrip(". ")
-    if name.lower() in _WIN_RESERVED:
-        name += "_"
+    if name.split(".")[0].strip().lower() in _WIN_RESERVED:
+        name = "_" + name
     return name or "game"
 
 
@@ -381,28 +440,41 @@ def disc_filename(disc_no: int, suffix: str, multi: bool = False) -> str:
 
 
 def card_path(mount_p: Path, rel: str) -> Path | None:
-    """Resolve a manifest-relative path, or None if it would escape the card (absolute, drive letter, '..').
+    """Resolve a manifest-relative path, or None if it could escape the card: absolute, drive letter, '..', a name
+    Windows would alias (trailing dot/space, CON, NUL...), or any existing component that is a symlink.
     The manifest lives on removable media, so it is treated as untrusted input."""
-    if not isinstance(rel, str) or not rel or "\\" in rel or ":" in rel or "//" in rel:
+    if not isinstance(rel, str) or not rel or "\\" in rel or ":" in rel or "//" in rel or rel.startswith("/"):
         return None
     parts = PurePosixPath(rel).parts
-    if rel.startswith("/") or any(p in ("..", ".", "") for p in parts):
-        return None
-    return mount_p.joinpath(*parts)
+    for p in parts:
+        if p in ("..", ".", "") or p != p.rstrip(". ") or p.split(".")[0].lower() in _WIN_RESERVED:
+            return None
+    cur = Path(mount_p)
+    for p in parts:
+        cur = cur / p
+        if cur.is_symlink():
+            return None
+    return cur
 
 
 def load_manifest(mount_p: Path) -> dict:
+    """The card's manifest with every field forced into its expected shape (anything else is dropped)."""
     m = load_json(Path(mount_p) / MANIFEST_NAME, {})
-    for k in ("files", "more_files", "aux", "titles"):
-        if not isinstance(m.get(k), dict):
-            m[k] = {}
+    files = m.get("files") if isinstance(m.get("files"), dict) else {}
+    more = m.get("more_files") if isinstance(m.get("more_files"), dict) else {}
+    aux = m.get("aux") if isinstance(m.get("aux"), dict) else {}
+    titles = m.get("titles") if isinstance(m.get("titles"), dict) else {}
+    m["files"] = {str(k): v for k, v in files.items() if isinstance(v, str)}
+    m["more_files"] = {str(k): [r for r in v if isinstance(r, str)] for k, v in more.items() if isinstance(v, list)}
+    m["aux"] = {k: str(v) for k, v in aux.items() if isinstance(k, str)}
+    m["titles"] = {str(k): str(v) for k, v in titles.items()}
+    m["pending"] = [r for r in m.get("pending", []) if isinstance(r, str)] if isinstance(m.get("pending"), list) else []
     return m
 
 
 def _manifest_rels(manifest: dict, key: str) -> list[str]:
     rels = [manifest["files"][key]] if key in manifest["files"] else []
-    more = manifest["more_files"].get(key, [])
-    return rels + [r for r in more if isinstance(r, str)] if isinstance(more, list) else rels
+    return rels + list(manifest["more_files"].get(key, []))
 
 
 def mod_files(cfg, key: str) -> dict[str, Path]:
@@ -417,34 +489,64 @@ def mod_files(cfg, key: str) -> dict[str, Path]:
     return out
 
 
-def _copy_stream(src: Path, dest: Path, tick, cancel) -> int | None:
-    """Copy src -> dest via dest+'.part' then rename, so a pulled card never leaves a half file under the real name.
-    Returns the CRC32 of the bytes written, or None if cancelled."""
-    part = dest.with_name(dest.name + ".part")
-    crc = 0
+PART_TAG = ".pawtation-part"     # temp files are "<name>.pawtation-partN": a name only this tool uses
+
+
+def _open_part(dest: Path):
+    """Create a fresh temp file next to dest, never following a symlink and never reusing someone else's file.
+    Left-over temp files of ours (same naming pattern, from a crash or a pulled card) are cleared first."""
     try:
-        with open(src, "rb") as fi, open(part, "wb") as fo:
-            while True:
+        for stale in dest.parent.glob(dest.name + PART_TAG + "*"):
+            stale.unlink()
+    except OSError:
+        pass
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0)
+    for i in range(100):
+        part = dest.with_name(f"{dest.name}{PART_TAG}{i}")
+        try:
+            return part, os.fdopen(os.open(part, flags, 0o644), "wb")
+        except FileExistsError:
+            continue
+    raise OSError(f"could not create a temporary file next to {dest}")
+
+
+def _write_atomic(dest: Path, chunks, tick=lambda n: None, cancel=lambda: False) -> int | None:
+    """Write chunks to a temp file, fsync, then rename onto dest: a pulled card never leaves a half file under the
+    real name. Returns the CRC32 of what was written, or None if cancelled (nothing is left behind)."""
+    part, fo = _open_part(dest)
+    crc, finished = 0, False
+    try:
+        with fo:
+            for chunk in chunks:
                 if cancel():
-                    break
-                chunk = fi.read(COPY_CHUNK)
-                if not chunk:
-                    fo.flush(); os.fsync(fo.fileno())
                     break
                 fo.write(chunk)
                 crc = zlib.crc32(chunk, crc)
                 tick(len(chunk))
-            else:  # pragma: no cover
-                pass
-        if cancel():
-            part.unlink(missing_ok=True) if sys.version_info >= (3, 8) else part.unlink()
-            return None
-        os.replace(part, dest)
-        return crc
-    except BaseException:
-        try: part.unlink()
-        except OSError: pass
-        raise
+            else:
+                finished = True
+                fo.flush(); os.fsync(fo.fileno())
+        if finished:
+            os.replace(part, dest)
+            return crc
+        return None
+    finally:
+        if not finished or part.exists():
+            try: part.unlink()
+            except OSError: pass
+
+
+def _read_chunks(src: Path):
+    with open(src, "rb") as fi:
+        while True:
+            chunk = fi.read(COPY_CHUNK)
+            if not chunk:
+                return
+            yield chunk
+
+
+def _copy_stream(src: Path, dest: Path, tick, cancel) -> int | None:
+    return _write_atomic(dest, _read_chunks(src), tick, cancel)
 
 
 def file_crc32(path: Path, cancel=lambda: False) -> int | None:
@@ -463,12 +565,16 @@ def _rm_tracked(mount_p: Path, rel: str, stop_at: set) -> None:
     target = card_path(mount_p, rel)
     if target is None:
         return
-    if target.is_file() or target.is_symlink():
+    if target.is_file():
         target.unlink()
     parent = target.parent
     while parent not in stop_at and parent != mount_p and mount_p in parent.parents:   # tidy now-empty folders we made
-        try: parent.rmdir()
-        except OSError: break
+        try:
+            for stale in parent.glob("*" + PART_TAG + "*"):
+                stale.unlink()
+            parent.rmdir()
+        except OSError:
+            break
         parent = parent.parent
 
 
@@ -484,13 +590,24 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
     verify:   re-read each copied file and compare CRC32 (default: cfg["verify_copies"]).
     quips:    optional list of plain lines written to /pawtation/quips.txt (tracked, so it is cleaned up too).
     force:    sync even if the card's manifest says it is a different card.
-    Returns {"removed","copied","kept","errors","warnings","cancelled","bytes_copied"}."""
+    Returns {"removed","copied","kept","errors","warnings","cancelled","bytes_copied"}.
+
+    How it stays safe: every path from the manifest goes through card_path(); a file is "ours" only if the manifest
+    lists it (or lists it as pending, i.e. a copy that was interrupted); the manifest is written BEFORE a copy
+    starts (pending) and after it ends, so a crash at any point leaves something the next run can clean up."""
     card_id = str(card_id)
     mount_p = Path(mount)
     if not mount_p.is_dir():
         raise FileNotFoundError(f"Mount path not found: {mount}")
     progress = progress or (lambda info: None)
-    cancel = cancel or (lambda: False)
+    stop = [False]
+    user_cancel = cancel or (lambda: False)
+
+    def cancel():                                               # latches: once cancelled, always cancelled
+        if not stop[0] and user_cancel():
+            stop[0] = True
+        return stop[0]
+
     verify = cfg.get("verify_copies", False) if verify is None else verify
     sub = safe_name(str(cfg["games_subdir"]).strip("/\\")) or "games"
     games_dir = mount_p / sub
@@ -504,6 +621,9 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
     for k in keys:
         if k not in by_key:
             report["warnings"].append(f"{k}: planned for this card but not found in the library (rescan?)")
+    if games_dir.is_symlink() or manifest_p.is_symlink():
+        report["errors"].append("The games folder or manifest on this card is a link to somewhere else. Nothing was changed.")
+        return report
     other = manifest.get("card_id")
     if other is not None and str(other) != card_id:
         msg = f"This SD card is labelled as card {other}, not card {card_id}."
@@ -513,95 +633,117 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
         report["warnings"].append(msg + " Re-purposing it as requested.")
 
     def save_manifest():
-        label = cfg["cards"].get(card_id, {}).get("label", f"Card {card_id}")
+        if dry_run:
+            return
+        label = cfg["cards"].get(card_id, {}).get("label", f"Card {card_id}") if isinstance(cfg["cards"].get(card_id), dict) else f"Card {card_id}"
         manifest.update({"card_id": card_id, "label": label, "updated": int(time.time()), "schema": 2,
                          "titles": {k: want[k].title for k in manifest["files"] if k in want}})
         save_json(manifest_p, manifest)
 
+    def set_rels(key, rels):
+        order = [r for r, _s, _n in wanted_files.get(key, []) if r in rels] + [r for r in rels if r not in wanted_rels]
+        if order:
+            manifest["files"][key] = order[0]
+            manifest["more_files"][key] = order[1:]
+            if not order[1:]:
+                manifest["more_files"].pop(key, None)
+        else:
+            manifest["files"].pop(key, None); manifest["more_files"].pop(key, None)
+
     # -- what should be on the card
     wanted_files: dict[str, list] = {}                          # key -> [(rel, src Path, size)]
     claimed: dict[str, str] = {}                                # folder (lowercase) -> key, FAT is case-insensitive
-    for key, rom in want.items():
-        folder = safe_name(rom.title)
-        if claimed.setdefault(folder.lower(), key) != key:
-            folder = safe_name(f"{folder[:60]} [{key[:16]}]")
+    for key in sorted(want):                                    # sorted: folder choice never depends on plan order
+        rom = want[key]
         if not rom.launchable:
-            report["errors"].append(f"{rom.title}: compressed image (.ciso/.gcz/.rvz). Swiss cannot start these; "
-                                    "convert to .iso with Dolphin or NKit first. Skipped.")
+            why = ("a disc is missing from the set" if all(Path(d["path"]).suffix.lower() in LAUNCHABLE_EXTS for d in rom.discs)
+                   else "compressed image (.ciso/.gcz/.rvz); Swiss cannot start these, convert to .iso with Dolphin or NKit first")
+            report["errors"].append(f"{rom.title}: {why}. Skipped.")
             wanted_files[key] = []
             continue
+        folder = None
+        m = re.fullmatch(re.escape(sub) + r"/([^/]+)/[^/]+", manifest["files"].get(key, ""))
+        if m and safe_name(m.group(1)) == m.group(1) and m.group(1).lower() not in claimed:
+            folder = m.group(1)                                 # already on the card: keep its folder (no needless recopy)
+        base, n = safe_name(rom.title), 1
+        while folder is None or claimed.get(folder.lower(), key) != key:
+            folder = base if n == 1 else safe_name(f"{base[:70]} ({n})")
+            n += 1
+        claimed[folder.lower()] = key
         multi = len(rom.discs) > 1
         wanted_files[key] = [(f"{sub}/{folder}/{disc_filename(d['disc'], Path(d['path']).suffix, multi)}", Path(d["path"]), d["size"])
                              for d in rom.discs]
+    wanted_rels = {rel for files in wanted_files.values() for rel, _s, _n in files}
     wanted_aux: dict[str, tuple] = {}                           # rel -> (src Path | bytes, owner)
-    for key in want:
-        for rel, src in mod_files(cfg, key).items():
-            wanted_aux.setdefault(rel, (src, key))
+    for key in sorted(want):
+        if wanted_files.get(key):
+            for rel, src in mod_files(cfg, key).items():
+                wanted_aux.setdefault(rel, (src, key))
     if quips and cfg.get("export_quips", True):
-        text = "\n".join(q.encode("ascii", "ignore").decode() for q in quips) + "\n"
+        text = "\n".join(str(q).encode("ascii", "ignore").decode() for q in quips) + "\n"
         wanted_aux[QUIPS_REL] = (text.encode("ascii"), "pawtation")
 
     # -- remove what rotated out (tracked files only)
-    for key in list(manifest["files"]) + [k for k in manifest["more_files"] if k not in manifest["files"]]:
-        old = _manifest_rels(manifest, key)
-        keep = {rel for rel, _s, _n in wanted_files.get(key, [])}
-        for rel in old:
-            if rel in keep:
-                continue
-            if card_path(mount_p, rel) is None:
-                report["warnings"].append(f"ignored unsafe path in card manifest: {rel!r}")
-            else:
-                log(f"{tag}remove {rel}")
-                progress({"phase": "remove", "title": manifest["titles"].get(key, key), "rel": rel})
-                if not dry_run:
-                    try:
-                        _rm_tracked(mount_p, rel, {games_dir})
-                    except OSError as e:
-                        report["errors"].append(f"could not remove {rel}: {e}"); continue
-                report["removed"].append(rel)
+    gone: set = set()                                           # rels removed (or, in a dry run, that would be)
+
+    def remove(rel, title, stop_at):
+        """True if rel is (or would be) gone afterwards."""
+        if card_path(mount_p, rel) is None:
+            report["warnings"].append(f"ignored unsafe path in card manifest: {rel!r}")
+            return True                                         # forget it; we will never touch it
+        log(f"{tag}remove {rel}")
+        progress({"phase": "remove", "title": title, "rel": rel})
         if not dry_run:
-            kept = [r for r in old if r in keep]
-            if kept and key in want:
-                manifest["files"][key] = kept[0]
-                manifest["more_files"][key] = kept[1:]
-                if not kept[1:]:
-                    manifest["more_files"].pop(key, None)
-            else:
-                manifest["files"].pop(key, None); manifest["more_files"].pop(key, None)
-    for rel in list(manifest["aux"]):
-        if rel not in wanted_aux:
-            if card_path(mount_p, rel) is None:
-                report["warnings"].append(f"ignored unsafe path in card manifest: {rel!r}")
-            else:
-                log(f"{tag}remove {rel}")
-                if not dry_run:
-                    try:
-                        _rm_tracked(mount_p, rel, set())
-                    except OSError as e:
-                        report["errors"].append(f"could not remove {rel}: {e}"); continue
-                report["removed"].append(rel)
-            if not dry_run:
+            try:
+                _rm_tracked(mount_p, rel, stop_at)
+            except OSError as e:
+                report["errors"].append(f"could not remove {rel}: {e}")
+                return False                                    # still there: keep it in the manifest
+        report["removed"].append(rel); gone.add(rel)
+        return True
+
+    try:
+        for rel in list(manifest["pending"]):                   # an interrupted copy from last time
+            if rel not in wanted_rels and rel not in wanted_aux:
+                if remove(rel, rel, {games_dir}):
+                    manifest["pending"].remove(rel)
+        for key in list(dict.fromkeys(list(manifest["files"]) + list(manifest["more_files"]))):
+            old = _manifest_rels(manifest, key)
+            keep = {rel for rel, _s, _n in wanted_files.get(key, [])}
+            left = [rel for rel in old if rel in keep or not remove(rel, manifest["titles"].get(key, key), {games_dir})]
+            set_rels(key, left)
+        for rel in list(manifest["aux"]):
+            if rel not in wanted_aux and remove(rel, rel, set()):
                 manifest["aux"].pop(rel, None)
-    if not dry_run:
         save_manifest()
+    except OSError as e:
+        report["errors"].append(f"could not update the card ({e}). Stopped; is it write-protected or failing?")
+        return report
 
     # -- decide what needs copying
     todo = []                                                   # (key, rel, src, size, title)
     for key, files in wanted_files.items():
-        tracked = set(_manifest_rels(manifest, key))
+        ours = set(_manifest_rels(manifest, key)) | set(manifest["pending"])
+        game_todo = []
         for rel, src, size in files:
             dest = card_path(mount_p, rel)
+            if dest is None:
+                report["errors"].append(f"{want[key].title}: cannot use {rel} on this card (a link is in the way). Skipped.")
+                game_todo = None; break
             try:
-                same = rel in tracked and dest.is_file() and dest.stat().st_size == size
+                there = dest.exists() and rel not in gone
+                same = rel in _manifest_rels(manifest, key) and dest.is_file() and dest.stat().st_size == size
             except OSError:
-                same = False
+                there = same = False
             if same:
                 report["kept"].append(rel)
-            elif dest.exists() and rel not in tracked:
+            elif there and rel not in ours:
                 report["errors"].append(f"{rel} already exists on the card and was not put there by Pawtation; "
                                         f"left untouched ({want[key].title} skipped)")
+                game_todo = None; break
             else:
-                todo.append((key, rel, src, size, want[key].title))
+                game_todo.append((key, rel, src, size, want[key].title))
+        todo += game_todo or []
     all_total = sum(t[3] for t in todo)
     try:
         free_now = shutil.disk_usage(mount_p).free
@@ -619,17 +761,28 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
 
     # -- copy what rotated in, one file at a time
     all_done = 0
-    for key, rel, src, size, title in todo:
+    skip_keys: set = set()
+    for i, (key, rel, src, size, title) in enumerate(todo):
         if cancel():
-            report["cancelled"] = True; break
+            break
+        if key in skip_keys:
+            continue
         dest = card_path(mount_p, rel)
         log(f"{tag}copy {title} -> {rel}")
         if dry_run:
             report["copied"].append(rel); continue
         try:
-            if shutil.disk_usage(mount_p).free - size < reserve:
-                report["errors"].append(f"not enough space for {title}"); continue
+            game_bytes = sum(t[3] for t in todo[i:] if t[0] == key)     # all remaining discs must fit, or none go
+            if shutil.disk_usage(mount_p).free - game_bytes < reserve:
+                report["errors"].append(f"not enough space for {title}"); skip_keys.add(key); continue
+            if dest is None:
+                raise OSError("a link is in the way")
             dest.parent.mkdir(parents=True, exist_ok=True)
+            if card_path(mount_p, rel) is None:
+                raise OSError("a link is in the way")
+            if rel not in manifest["pending"]:
+                manifest["pending"].append(rel)
+            save_manifest()                                     # recorded BEFORE writing: a crash leaves a file we own
             done = [0]
 
             def tick(n, _rel=rel, _title=title, _size=size, _base=all_done, _done=done):
@@ -638,57 +791,58 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
                           "all_done": _base + _done[0], "all_total": all_total})
 
             crc = _copy_stream(src, dest, tick, cancel)
-            if crc is None:
-                report["cancelled"] = True; break
-            if verify:
+            ok = crc is not None
+            if ok and verify:
                 progress({"phase": "verify", "title": title, "rel": rel, "file_done": size, "file_total": size,
                           "all_done": all_done + size, "all_total": all_total})
                 back = file_crc32(dest, cancel)
-                if back is None:
-                    report["cancelled"] = True
-                elif back != crc:
+                if back is not None and back != crc:
                     dest.unlink()
-                    report["errors"].append(f"verification FAILED for {title} (card may be failing); copy removed"); continue
+                    report["errors"].append(f"verification FAILED for {title} (card may be failing); copy removed")
+                    ok = False; skip_keys.add(key)
+            manifest["pending"].remove(rel)
+            if ok:
+                set_rels(key, [r for r in _manifest_rels(manifest, key) if r != rel] + [rel])
+            save_manifest()                                     # after every file: a pulled card stays consistent
+            if not ok:
+                continue
         except OSError as e:
-            report["errors"].append(f"could not copy {title}: {e}"); continue
+            report["errors"].append(f"could not copy {title}: {e}"); skip_keys.add(key); continue
         all_done += size
         report["bytes_copied"] += size
-        rels = [r for r in _manifest_rels(manifest, key) if r != rel] + [rel]
-        order = [r for r, _s, _n in wanted_files[key] if r in rels]
-        manifest["files"][key] = order[0]
-        manifest["more_files"][key] = order[1:]
-        if not order[1:]:
-            manifest["more_files"].pop(key, None)
-        save_manifest()                                         # after every file: a pulled card stays consistent
         report["copied"].append(rel)
-        if report["cancelled"]:
-            break
 
     # -- small extras (mods, quips)
     for rel, (src, owner) in wanted_aux.items():
-        if report["cancelled"]:
+        if cancel():
             break
         dest = card_path(mount_p, rel)
-        if dest is None or rel == MANIFEST_NAME or rel.split("/")[0].lower() == sub.lower():
+        if dest is None or rel.lower() == MANIFEST_NAME or rel.split("/")[0].lower() == sub.lower() or PART_TAG in rel:
             report["warnings"].append(f"mod file skipped (not allowed there): {rel}"); continue
         try:
             data = src if isinstance(src, bytes) else src.read_bytes()
-            if dest.exists() and rel not in manifest["aux"]:
+            if dest.exists() and rel not in gone and rel not in manifest["aux"] and rel not in manifest["pending"]:
                 report["warnings"].append(f"{rel} already exists on the card and is not ours; left untouched"); continue
-            if dest.is_file() and dest.read_bytes() == data:
+            if rel in manifest["aux"] and dest.is_file() and dest.read_bytes() == data:
                 report["kept"].append(rel); continue
             log(f"{tag}copy extra ({owner}) -> {rel}")
             if not dry_run:
                 dest.parent.mkdir(parents=True, exist_ok=True)
-                part = dest.with_name(dest.name + ".part")
-                part.write_bytes(data); os.replace(part, dest)
+                if card_path(mount_p, rel) is None:
+                    raise OSError("a link is in the way")
+                manifest["pending"].append(rel); save_manifest()
+                _write_atomic(dest, [data])
+                manifest["pending"].remove(rel)
                 manifest["aux"][rel] = owner
             report["copied"].append(rel)
         except OSError as e:
             report["errors"].append(f"could not copy extra {rel}: {e}")
 
-    if not dry_run:
+    report["cancelled"] = stop[0]
+    try:
         save_manifest()
+    except OSError as e:
+        report["errors"].append(f"could not save the card manifest: {e}")
     progress({"phase": "done", "all_done": all_done, "all_total": all_total})
     return report
 
@@ -745,7 +899,7 @@ def card_contents(mount: str) -> dict:
     """What Pawtation believes is on a card: {"card_id","label","updated","titles":{key:title}} (empty if unmanaged)."""
     m = load_manifest(Path(mount))
     return {"card_id": m.get("card_id"), "label": m.get("label"), "updated": m.get("updated"),
-            "titles": {k: m["titles"].get(k, k) for k in m["files"]}}
+            "titles": {str(k): str(m["titles"].get(k, k)) for k in m["files"]}}
 
 
 # ---------- boot card (Action Replay SD Media Launcher) ----------
