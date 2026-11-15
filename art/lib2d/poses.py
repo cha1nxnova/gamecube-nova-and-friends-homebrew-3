@@ -126,7 +126,11 @@ def validate_rig(mod: Any, cameo: bool = False) -> List[str]:
             problems.append("%s: more than 100 frames" % name)
         if not all(isinstance(f, dict) for f in a["frames"]):
             problems.append("%s: every frame must be a pose dict" % name)
-    need = CAMEO_ANIMS if cameo else REQUIRED_ANIMS
+    override = getattr(mod, "REQUIRED", None)       # optional: a rig may state its own requirements
+    if isinstance(override, dict):
+        need = override                              # e.g. REQUIRED = {} for the props pseudo-character
+    else:
+        need = CAMEO_ANIMS if cameo else REQUIRED_ANIMS
     for name, (lo, hi) in need.items():
         if name not in anims:
             problems.append("required animation %r is missing" % name)

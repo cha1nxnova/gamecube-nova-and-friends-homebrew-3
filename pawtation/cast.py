@@ -32,6 +32,7 @@ RATINGS = ("all", "afterdark")
 EVENT_WHENS = ("arrive", "leave", "rotated", "synced", "due")   # moments that never fall back to an "any" scene
 CAMEO_GROUP = "cameo"                           # presence key: the usual group plus one random cameo
 MAX_HOLD_MINUTES = 24 * 60                      # no group, manual or drawn, lasts longer than a day
+CAMEO_MINUTES = (5, 15)                         # a walk-on visit; then the cameo leaves and the others stay
 
 BUILTIN_CAST = {
     "version": 1,
@@ -124,6 +125,10 @@ def _clean_characters(raw) -> dict:
                     "aliases": aliases,
                     "color": c["color"] if isinstance(c.get("color"), str) and _HEX.match(c["color"]) else "",
                     "accent": c["accent"] if isinstance(c.get("accent"), str) and _HEX.match(c["accent"]) else ""}
+        hours = c.get("hours")
+        if (isinstance(hours, (list, tuple)) and len(hours) == 2
+                and all(isinstance(h, int) and not isinstance(h, bool) and 0 <= h <= 24 for h in hours)):
+            out[cid]["hours"] = [hours[0] % 24, hours[1] % 24]   # only when valid; no key means "any time"
     return out
 
 
@@ -354,14 +359,24 @@ def remaining(state, now=None) -> float:
     return left if 0 < left <= MAX_HOLD_MINUTES * 60 + 60 else 0.0
 
 
-def _draw(rng) -> list:
+def awake(cid, now=None) -> bool:
+    """Is a character within its "hours" [start, end) (local 24-hour clock, may wrap past midnight)? No hours, or
+    start == end, means any time."""
+    hours = character(cid).get("hours")
+    if not hours or hours[0] == hours[1]:
+        return True
+    start, end, hour = hours[0], hours[1], _dt(now).hour
+    return start <= hour < end if start < end else (hour >= start or hour < end)
+
+
+def _draw(rng, now=None) -> list:
     cast = load_cast()
     groups = cast["presence"]["groups"]
     keys = list(groups)
     key = _weighted(rng, keys, [groups[k] for k in keys])
     if key == CAMEO_GROUP:
         who = default_group()
-        walk_ons = cameos()
+        walk_ons = [i for i in cameos() if awake(i, now)]       # a cameo outside its hours never walks on
         if walk_ons:
             who.append(rng.choice(walk_ons))
     else:
@@ -373,16 +388,26 @@ def _draw(rng) -> list:
 
 def step(state, now=None, rng=None) -> dict:
     """Advance presence. While the current group has time left this is a no-op; once it has expired (or nothing
-    is stored) a new group is drawn by the presence weights and stored in state["scene"].
+    is stored) a new group is drawn by the presence weights and stored in state["scene"]. A cameo walk-on (only cameos
+    awake at `now` by their "hours") lasts CAMEO_MINUTES; when it ends the cameo leaves and the others stay.
     Returns {"who": [...], "arrived": [...], "left": [...], "changed": bool}."""
     rng = rng or random
     ts = _ts(now)
     old = present(state)
     if remaining(state, ts) > 0:
         return {"who": old, "arrived": [], "left": [], "changed": False}
-    new = _draw(rng)
     p = load_cast()["presence"]
-    _store(state, new, ts + rng.uniform(p["min_minutes"], p["max_minutes"]) * 60, False)
+    stored = _stored(state)[0]
+    rest = [i for i in old if role(i) != "cameo"]
+    if stored and len(rest) != len(old):                        # a walk-on is over: the cameo leaves, the others stay
+        new = rest
+    else:
+        new = _draw(rng, now if now is not None else ts)
+    if any(role(i) == "cameo" for i in new):
+        hold = rng.uniform(*CAMEO_MINUTES)
+    else:
+        hold = rng.uniform(p["min_minutes"], p["max_minutes"])
+    _store(state, new, ts + hold * 60, False)
     return _change(old, new)
 
 
@@ -548,7 +573,9 @@ def pick_scene(who, when="any", *, unlocked: bool = False, rng=None, context=Non
 
     Scenes whose `when` equals the moment are preferred. If there are none, "any" scenes are the fallback pool,
     except for the event moments (EVENT_WHENS), which return None so the caller can use per-character lines.
-    A walk-on cameo does not silence the others: with no scene for the full set, the non-cameo set is tried.
+    Cameos (SPEC section 8): a scene that includes a cameo matches when every id in its `who` is present (subset)
+    and is tried first while that cameo visits; a scene without a cameo matches when its `who` equals the present
+    non-cameo set, so a walk-on never silences the others.
     `context` supplies placeholder values ({game}, {card}); a scene that needs one the context lacks is skipped.
     For "arrive" / "leave", context["movers"] (who arrived / left) must equal the scene's `about`.
     `avoid` is a scene id to skip while there is another choice (no immediate repeats)."""
@@ -558,13 +585,17 @@ def pick_scene(who, when="any", *, unlocked: bool = False, rng=None, context=Non
     there = order(who)
     if not there:
         return None
-    keys = [group_key(there)]
-    core_set = [i for i in there if role(i) != "cameo"]
-    if core_set and len(core_set) != len(there):
-        keys.append(group_key(core_set))
+    here = set(there)
+    core_key = group_key([i for i in there if role(i) != "cameo"])
+    with_cameo = lambda s: any(role(i) == "cameo" for i in s["who"])
+    tests = []
+    if core_key != group_key(there):                            # a cameo is visiting: its scenes (subset match) first
+        tests.append(lambda s: with_cameo(s) and set(s["who"]) <= here)
+    if core_key:                                                # then the non-cameo set, matched exactly
+        tests.append(lambda s: s["key"] == core_key and not with_cameo(s))
     scenes = all_scenes(unlocked)
-    for key in keys:
-        pool = [s for s in scenes if s["key"] == key and all(n in ctx for n in s["needs"])]
+    for test in tests:
+        pool = [s for s in scenes if test(s) and all(n in ctx for n in s["needs"])]
         hits = [s for s in pool if s["when"] == when and _about_ok(s, when, ctx.get("movers"))]
         if not hits and when not in EVENT_WHENS:
             hits = [s for s in pool if s["when"] == "any"]

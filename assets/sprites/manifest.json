@@ -48,6 +48,19 @@
     "look_right": {"fps": 1, "loop": false, "frames": ["nova/{size}/look_right_00.png"]},
     "special": {"fps": 6, "loop": false, "frames": ["nova/{size}/special_00.png", "nova/{size}/special_01.png", "nova/{size}/special_02.png", "nova/{size}/special_03.png", "nova/{size}/special_04.png", "nova/{size}/special_05.png", "nova/{size}/special_06.png", "nova/{size}/special_07.png"]}
    }
+  },
+  "props": {
+   "height": 0.8,
+   "anims": {
+    "sparkle": {"fps": 1, "loop": false, "frames": ["props/{size}/sparkle_00.png"]},
+    "heart": {"fps": 1, "loop": false, "frames": ["props/{size}/heart_00.png"]},
+    "zzz": {"fps": 1, "loop": false, "frames": ["props/{size}/zzz_00.png"]},
+    "grilled_cheese": {"fps": 1, "loop": false, "frames": ["props/{size}/grilled_cheese_00.png"]},
+    "tea_mug": {"fps": 1, "loop": false, "frames": ["props/{size}/tea_mug_00.png"]},
+    "disc": {"fps": 1, "loop": false, "frames": ["props/{size}/disc_00.png"]},
+    "sd_card": {"fps": 1, "loop": false, "frames": ["props/{size}/sd_card_00.png"]},
+    "memory_card": {"fps": 1, "loop": false, "frames": ["props/{size}/memory_card_00.png"]}
+   }
   }
  }
 }

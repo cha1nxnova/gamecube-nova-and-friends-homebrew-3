@@ -318,7 +318,7 @@ class Presence(Fixture):
                 self.assertEqual(len(who), 3); self.assertTrue({"nova", "iggy"} <= set(who))  # a cameo joins the usual pair
             self.assertEqual(who, sorted(who))
             seen.update(who); groups[cast.group_key(who)] += 1
-            stays.append(state["scene"]["until"] - t)
+            stays.append((bool(set(who) & {"mochi", "biscuit"}), state["scene"]["until"] - t))
             t = state["scene"]["until"] + 1                                                   # jump past the stay: next call redraws
         share = {i: seen[i] / n for i in IDS}
         self.assertGreater(share["nova"], 0.82); self.assertGreater(share["iggy"], 0.82)      # expected 0.86 each
@@ -329,8 +329,47 @@ class Presence(Fixture):
         self.assertTrue(0.55 < groups["iggy+nova"] / n < 0.61, groups)                        # expected 0.58
         self.assertEqual(set(groups) - {"iggy+nova", "nova", "iggy", "duskie+iggy+nova", "duskie+nova", "duskie+iggy",
                                         "iggy+mochi+nova", "biscuit+iggy+nova"}, set())
-        self.assertTrue(20 * 60 <= min(stays) and max(stays) <= 90 * 60)
+        visits = [d for cameo, d in stays if cameo]; others = [d for cameo, d in stays if not cameo]
+        self.assertTrue(20 * 60 <= min(others) and max(others) <= 90 * 60)
+        self.assertTrue(5 * 60 <= min(visits) and max(visits) <= 15 * 60)                    # SPEC section 8: walk-ons are short
         self.assertEqual(state["scene"]["manual"], False)
+
+    def test_a_cameo_visit_ends_with_the_cameo_leaving_and_the_others_staying(self):
+        for seed in range(300):
+            rng, state = random.Random(seed), {}
+            first = cast.step(state, NOON, rng)
+            if "mochi" in first["who"] or "biscuit" in first["who"]:
+                break
+        else:
+            self.fail("no walk-on drawn in 300 seeds")
+        cameo = [i for i in first["who"] if i in ("mochi", "biscuit")]
+        stay = state["scene"]["until"] - NOON.timestamp()
+        self.assertTrue(5 * 60 <= stay <= 15 * 60, stay)
+        self.assertEqual(cast.step(state, NOON + datetime.timedelta(minutes=4), rng)["changed"], False)
+        after = cast.step(state, state["scene"]["until"] + 1, rng)
+        self.assertEqual((after["who"], after["left"], after["arrived"]), (["iggy", "nova"], cameo, []))
+        ended = NOON.timestamp() + stay + 1                                                   # when step() moved them on
+        self.assertTrue(20 * 60 <= state["scene"]["until"] - ended <= 90 * 60)
+
+    def test_cameo_hours_wrap_past_midnight_and_are_respected_by_walk_ons(self):
+        chars = dict(CAST["characters"])
+        chars["mochi"] = dict(chars["mochi"], hours=[20, 6])                                  # nights, wraps past midnight
+        chars["biscuit"] = dict(chars["biscuit"], hours=[7, 20])                              # daytime
+        self.put(cast.CAST_PATH, dict(CAST, characters=chars, presence={"groups": {"cameo": 1, "nova+iggy": 1e-9}}))
+        at = lambda h, m=0: datetime.datetime(2026, 11, 15, h, m)
+        night = [h for h in range(24) if cast.awake("mochi", at(h))]
+        self.assertEqual(night, [0, 1, 2, 3, 4, 5, 20, 21, 22, 23])
+        self.assertEqual([h for h in range(24) if cast.awake("biscuit", at(h))], list(range(7, 20)))
+        self.assertTrue(cast.awake("nova", at(3)))                                            # no hours: any time
+        for hour, cameo in ((23, "mochi"), (2, "mochi"), (5, "mochi"), (12, "biscuit"), (7, "biscuit"), (19, "biscuit")):
+            for seed in range(25):                                                            # deterministic with the injected clock
+                state = {}
+                who = cast.step(state, at(hour, 30), random.Random(seed))["who"]
+                self.assertEqual(who, sorted(["iggy", "nova", cameo]), (hour, seed))
+        for bad in ([20], [25, 3], ["20", 6], [True, 6], "20-6", None):                     # junk hours = any time
+            chars["mochi"] = dict(CAST["characters"]["mochi"], hours=bad)
+            self.put(cast.CAST_PATH, dict(CAST, characters=chars))
+            self.assertNotIn("hours", cast.character("mochi")); self.assertTrue(cast.awake("mochi", at(12)))
 
     def test_gather_every_single_pair_and_trio(self):
         self.assertEqual(len(GROUPS), 7)
@@ -529,6 +568,22 @@ class Scenes(Fixture):
         self.put(cast.SCENES_PATH, {"scenes": ok_scenes() + [mine]})
         self.assertEqual(self.pick(["biscuit", "iggy", "nova"])["id"], "with-biscuit")        # an exact scene wins
         self.assertEqual(cast.play(self.pick(["biscuit", "iggy", "nova"])), ["Biscuit: BORK", "Nova: Hello, neighbour."])
+
+    def test_cameo_scenes_match_by_subset_and_are_preferred_while_the_cameo_visits(self):
+        visit = ["biscuit", "iggy", "nova"]
+        mine = [{"id": "biscuit-nova", "who": ["biscuit", "nova"], "when": "any", "rating": "all", "lines": [["biscuit", "Hi!"]]},
+                {"id": "biscuit-arrive", "who": ["biscuit", "iggy"], "when": "arrive", "rating": "all", "lines": [["biscuit", "Hey!"]]},
+                {"id": "mochi-nova", "who": ["mochi", "nova"], "when": "any", "rating": "all", "lines": [["mochi", "Mrr."]]},
+                {"id": "biscuit-duskie", "who": ["biscuit", "duskie"], "when": "any", "rating": "all", "lines": [["biscuit", "Yo!"]]}]
+        self.put(cast.SCENES_PATH, {"scenes": ok_scenes() + mine})
+        self.assertEqual({self.pick(visit, seed=s)["id"] for s in range(60)}, {"biscuit-nova"})   # subset of who is home
+        self.assertEqual(self.pick(visit, "arrive", context={"movers": ["biscuit"]})["id"], "biscuit-arrive")
+        self.assertIsNone(self.pick(visit, "arrive", context={"movers": ["iggy"]}))           # about the cameo only
+        self.assertEqual(self.pick(visit, "rotated")["id"], "rotated-pair")                   # no cameo scene: the mains' own
+        self.assertEqual(self.pick(visit, "night")["id"], "biscuit-nova")                     # the visiting cameo's "any" first
+        self.assertTrue(self.pick(["iggy", "nova"])["id"].startswith("any-"))                 # cameo scenes need the cameo home
+        self.assertTrue(self.pick(["iggy", "mochi", "nova"], seed=4)["id"] == "mochi-nova")
+        self.assertIsNone(self.pick(["duskie"], "rotated"))
 
     def test_play_and_script(self):
         scene = {"who": ["iggy", "nova"], "lines": [["nova", "Card {card}, {game}."], ["*", "A pause."], ["iggy", "{unknown} {"],

@@ -131,10 +131,11 @@ def frame_jobs(cid: str, mod: Any, sprites: Path = SPRITES) -> List[Dict[str, An
                 jobs.append({"svg": svg, "size": size,
                              "png": sprites / frame_rel(cid, name, i).replace("{size}", str(size))})
     portrait = getattr(mod, "PORTRAIT", None)
-    if portrait is None:
-        first = next(iter(mod.ANIMS.values()))
-        portrait = first["frames"][0]
-    jobs.append({"svg": mod.draw(portrait), "size": PORTRAIT_SIZE, "png": sprites / portrait_rel(cid)})
+    if portrait is not False:                       # PORTRAIT = False: no 512 px still (props)
+        if portrait is None:
+            first = next(iter(mod.ANIMS.values()))
+            portrait = first["frames"][0]
+        jobs.append({"svg": mod.draw(portrait), "size": PORTRAIT_SIZE, "png": sprites / portrait_rel(cid)})
     return jobs
 
 
