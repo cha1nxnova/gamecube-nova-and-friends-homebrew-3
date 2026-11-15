@@ -25,7 +25,7 @@ except Exception:                       # pragma: no cover - depends on the mach
     tk = tkfont = filedialog = messagebox = ttk = None
     HAVE_TK = False
 
-from . import core, pets, saves
+from . import core, pets, plugins, saves
 from .core import Catalog
 
 PAW = "(=^.^=) "                        # title prefix when a rotation is due (ASCII: safe on every Tk build)
@@ -473,7 +473,8 @@ if HAVE_TK:
             stars = self.state["ratings"].get(r.key, 0)
             pinned = r.key in self.cfg["pinned"]
             return dict(game=("♥ " if pinned else "") + r.title, card=where.get(r.key, "-"), size=core.fmt_gb(r.size),
-                        discs=len(r.discs), rating="★" * stars, tags=", ".join(r.tags))
+                        discs=len(r.discs), rating="★" * stars,
+                        tags=", ".join(r.tags) if r.launchable else "convert to .iso first")
 
         def _sort_value(self, r, where, col):
             if col == "game": return r.title.lower()
@@ -611,6 +612,7 @@ if HAVE_TK:
                 text += f"\n\nNot placed this season ({len(left)}): " + ", ".join(r.title for r in left[:8]) + ("..." if len(left) > 8 else "")
             if self.ask_yes_no("New rotation", text + "\n\nCommit this plan and restart the timer?"):
                 core.commit_plan(self.state, plan)
+                plugins.fire("planned", plan=plan, roms=self.roms)
                 self._save()
                 self.refresh()
                 self._tick(reschedule=False)
@@ -710,10 +712,12 @@ if HAVE_TK:
             except Exception as e:
                 self.show_error("Sync", f"Could not check the card: {e}")
                 return
-            if rep["errors"]:
+            if rep["errors"] and not (rep["copied"] or rep["removed"]):
                 self.show_error("Sync", "Cannot sync:\n" + "\n".join(rep["errors"]))
                 return
             text = (f"Card {cid} at {mount}\nCopy {len(rep['copied'])}, remove {len(rep['removed'])}, keep {len(rep['kept'])}.")
+            if rep["errors"]:                                   # per-game problems: those games are skipped, the rest can go
+                text += "\n\nWill be skipped:\n- " + "\n- ".join(rep["errors"])
             if rep["warnings"]:
                 text += "\n\nWarnings:\n- " + "\n- ".join(rep["warnings"])
             if not self.ask_yes_no("Confirm sync", text + "\n\nProceed?"):
@@ -722,6 +726,7 @@ if HAVE_TK:
 
         def start_sync(self, cid, keys, mount, force=False):
             self.cancel_event.clear()
+            self._sync_mount = mount
             self.sync_info = {}
             self._sync_started = time.time()
             self._set_busy(True)
@@ -796,8 +801,10 @@ if HAVE_TK:
             else:
                 self.prog_text.set(f"Done: card {cid} copied {len(rep['copied'])}, removed {len(rep['removed'])}, kept {len(rep['kept'])}.")
                 self.eta_text.set("")
-                self.say(self.brain.say("mochi", "synced", card=cid))
-                self.say(self.brain.say("biscuit", "synced", card=cid))
+                if not rep["errors"]:
+                    self.say(self.brain.say("mochi", "synced", card=cid))
+                    self.say(self.brain.say("biscuit", "synced", card=cid))
+                    plugins.fire("synced", card_id=cid, report=rep, mount=self._sync_mount)
             self.refresh()
 
         def _on_worker_error(self, cid, text):

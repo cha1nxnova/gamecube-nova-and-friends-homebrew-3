@@ -64,8 +64,10 @@ class GuiTests(unittest.TestCase):
         self.assertTrue(cond(), "timed out")
 
     def test_empty_config_launches(self):
-        core.CONFIG_PATH.unlink()
-        a = gui.App(); a.update(); self.assertEqual(a.roms, []); a.plan(); a.destroy()
+        core.update_config(library_dir="")
+        a = gui.App(); a.show_info = lambda t, x: self.msgs.append((t, x)); a.update()
+        self.assertEqual(a.roms, []); a.plan(); a.destroy()
+        self.assertTrue(any("No games" in x for _t, x in self.msgs))
 
     def test_refresh_lists_games(self):
         self.assertEqual(len(self.app.tree.get_children()), 3)
@@ -80,10 +82,12 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(self.app.state["ratings"][unk], 2)
 
     def test_pin_and_sort(self):
-        self.app.toggle_pin("mario-kart-double-dash")
-        self.assertIn("mario-kart-double-dash", core.load_config()["pinned"])
-        self.app.toggle_pin("mario-kart-double-dash")
-        self.assertNotIn("mario-kart-double-dash", core.load_config()["pinned"])
+        k = "mario-kart-double-dash"
+        before = k in core.load_config()["pinned"]
+        self.app.toggle_pin(k)
+        self.assertEqual(k in core.load_config()["pinned"], not before)
+        self.app.toggle_pin(k)
+        self.assertEqual(k in core.load_config()["pinned"], before)
         self.app.sort_by("size"); self.app.sort_by("size")
         self.assertEqual(gui.card_sort_key("2") < gui.card_sort_key("10"), True)
 
@@ -156,12 +160,11 @@ class GuiTests(unittest.TestCase):
         self.assertEqual(core.load_config()["gui_theme"], "dark")
 
     def test_nag_once_and_pet_buttons(self):
-        n0 = len(self.app.log.get("1.0", "end"))
-        self.app._tick(reschedule=False)
+        self.assertTrue(self.app._nagged)          # fresh state is "due": nagged once during construction
         n1 = len(self.app.log.get("1.0", "end"))
-        self.app._tick(reschedule=False)
+        self.app._tick(reschedule=False); self.app._tick(reschedule=False)
         self.assertEqual(n1, len(self.app.log.get("1.0", "end")))
-        self.assertGreater(n1, n0)
+        self.assertTrue(self.app.title().startswith(gui.PAW))
         for fn in (self.app.act_joke, self.app.act_suggest, self.app.act_rankings, self.app.act_fortune,
                    self.app.act_study, self.app.act_wrapped):
             fn()
