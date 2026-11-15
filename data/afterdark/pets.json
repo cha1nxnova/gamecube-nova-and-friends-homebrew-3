@@ -1,21 +1,123 @@
 {
- "_comment": "SEED After Dark lines (engine placeholders, mild flirty banter only); the writer replaces them. Same shape as data/pets.json; lists are appended to it, only while After Dark is unlocked.",
- "_seed": true,
+ "_comment": "After Dark lines: innuendo-level banter between the three adults (docs/SPEC_V2.md section 4). Same shape as data/pets.json; lists are appended to it, only while After Dark is unlocked.",
  "idle": {
   "nova": [
-   "Iggy wears that apron on purpose. I have filed no complaints."
+   "Iggy wears that apron on purpose. I have filed no complaints.",
+   "I've stolen Iggy's hoodie. It proves nothing. It smells like soup and Iggy.",
+   "My bedside manner is excellent. Iggy has reviewed it. Five stars.",
+   "I'd describe our blanket situation as shared custody. Mostly mine.",
+   "Duskie winked at me earlier. Or he had sun in his eye. I'm choosing the wink.",
+   "Iggy calls me a menace while holding my hand, which undermines the point."
   ],
   "iggy": [
-   "Nova calls it bedside manner. It's flirting. It works."
+   "Nova calls it bedside manner. It's flirting. It works.",
+   "I hid the camcorder. Some nights don't need footage.",
+   "Nova's in my hoodie again. It looks better on him. Don't tell him.",
+   "Duskie said he'd take the couch. The couch has been lonely all week.",
+   "\"Kiss the Cook\" is a suggestion. Nova treats it like a prescription.",
+   "Nova gets distracted when I wear my glasses low. I keep wearing them low."
   ],
   "duskie": [
-   "I knock before I come in now. Those two make eyes at each other constantly."
+   "I knock before I come in now. Those two make eyes at each other constantly.",
+   "Golden hour's my best lighting. I've been told. By both of them.",
+   "I said I'd sleep on the couch. The couch said \"unlikely\".",
+   "They gave me a key and a drawer. I've been told the drawer is a statement.",
+   "Nova blushes under all that navy. You can only tell if you're very close.",
+   "Iggy pretends not to flirt. Iggy is very bad at pretending."
+  ]
+ },
+ "greeting": {
+  "nova": [
+   "Evening. Ignore the hoodie. It isn't mine and I'm not giving it back.",
+   "Oh, hi. Excuse the hair. Iggy happened to it.",
+   "Welcome back. We're being very normal. Extremely normal.",
+   "Hello. If you hear giggling from the kitchen, that's the kettle.",
+   "Hi. The blanket fort is occupied. Please knock.",
+   "Evening. I'd get up, but there's a fox asleep on me and I'm not moving."
+  ],
+  "iggy": [
+   "Hey. Don't mind Nova. He's in a mood. A good one.",
+   "Hi. If the camcorder's off, there's a reason. Don't ask.",
+   "Oh. Hi. We were just... rearranging the cushions.",
+   "Hey. Nova's wearing my apron. He can't cook. He just likes the slogan.",
+   "Hi. Late night. Good one so far.",
+   "Hey. The couch is taken. By Nova. By me on Nova. It's complicated."
+  ],
+  "duskie": [
+   "Hey there. Those two are being cute again. Brace yourself.",
+   "Evening. I'm staying over. Again. Nobody's complaining.",
+   "Hey. Sorry, I'm in a borrowed hoodie. Borrowed is a strong word.",
+   "Hi. If anyone asks, I slept on the couch.",
+   "Hey. Golden hour's over. Cozy hour's started.",
+   "Oh, hey. They've lost track of time. I've lost track of my socks."
+  ]
+ },
+ "arrive": {
+  "nova": [
+   "I'm home. Where's my favourite fox? Asking for clinical reasons.",
+   "Back. Somebody kiss me, the shift was long. Iggy. I meant Iggy. Or Duskie. Whoever's closest.",
+   "Home. I come bearing grilled cheese and cuddle intentions.",
+   "I'm back. Did anyone keep my side of the bed warm?",
+   "Home. White coat off, cozy mode on.",
+   "Back. I missed you two. Don't make it weird. Make it a little weird."
+  ],
+  "iggy": [
+   "Back. Who's in my hoodie? ...Fine. Keep it.",
+   "Home. Nova, put the kettle on. And then come here.",
+   "I'm back. Camcorder's staying in the bag tonight.",
+   "Home. I brought dessert. Two kinds. One's for later.",
+   "Back. Missed you. Both of you. Don't gloat.",
+   "I'm home. Shoes off. Glasses off. Defences off."
+  ],
+  "duskie": [
+   "Hey, you two. Am I interrupting? ...I'm staying anyway.",
+   "Hey, you two. Brought snacks and a toothbrush. The toothbrush is a formality.",
+   "I'm back. Is there room on the couch? Make room on the couch.",
+   "Hey, you two. Don't stop on my account.",
+   "Evening. The sunset was gorgeous. It wasn't the only gorgeous thing I came home to.",
+   "Hey, you two. Scoot. I'm the middle spoon tonight."
   ]
  },
  "jokes": [
   [
    "Nova",
    "My prescription for Iggy: one kiss, as needed. Refills: unlimited."
+  ],
+  [
+   "Nova",
+   "What's my bedside manner? Mostly bedside. Occasionally manner."
+  ],
+  [
+   "Nova",
+   "Why do I steal Iggy's hoodies? Extended release of Iggy. That came out wrong. I stand by it."
+  ],
+  [
+   "Nova",
+   "I'm compounding a new formula. It's cuddles. The dose is \"more\"."
+  ],
+  [
+   "Iggy",
+   "The apron says \"Kiss the Cook\". Nova keeps looking for the fine print. There's no fine print."
+  ],
+  [
+   "Iggy",
+   "Why does the camcorder go off at night? Some things are not for the archive."
+  ],
+  [
+   "Iggy",
+   "What's hotter than the stove? Don't answer that, Nova."
+  ],
+  [
+   "Duskie",
+   "Why do I always stay three days? Day one is snacks. Day two is cuddles. Day three I forget to leave."
+  ],
+  [
+   "Duskie",
+   "What's better than golden hour? Golden hour with two people who think I'm cute."
+  ],
+  [
+   "Duskie",
+   "Why is the couch so warm? Ask the three of us. Actually, don't."
   ]
  ]
 }

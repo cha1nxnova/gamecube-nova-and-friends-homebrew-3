@@ -20,6 +20,7 @@ Design notes for future agents
 """
 from __future__ import annotations
 
+import math
 import os
 import queue
 import random
@@ -93,9 +94,12 @@ if HAVE_TK:
     def rounded(cv, x0, y0, x1, y1, r, **kw):
         """A rounded rectangle (smoothed polygon) on a Canvas; r >= half the height gives a pill."""
         r = max(0.0, min(float(r), (x1 - x0) / 2.0, (y1 - y0) / 2.0))
-        pts = [x0 + r, y0, x1 - r, y0, x1, y0, x1, y0 + r, x1, y1 - r, x1, y1, x1 - r, y1, x0 + r, y1,
-               x0, y1, x0, y1 - r, x0, y0 + r, x0, y0]
-        return cv.create_polygon(pts, smooth=True, **kw)
+        pts = []
+        for cx, cy, start in ((x1 - r, y0 + r, -90), (x1 - r, y1 - r, 0), (x0 + r, y1 - r, 90), (x0 + r, y0 + r, 180)):
+            for k in range(7):                                  # a quarter circle in 15 degree steps
+                a = math.radians(start + k * 15)
+                pts += [cx + r * math.cos(a), cy + r * math.sin(a)]
+        return cv.create_polygon(pts, **kw)
 
     class Flow(ttk.Frame):
         """Frame that wraps its children onto extra rows when it is too narrow (buttons never run off-screen)."""
@@ -119,20 +123,22 @@ if HAVE_TK:
         def relayout(self, width, force=False):
             if not self.items:
                 return
-            widths = [w.winfo_reqwidth() + 2 * px for w, px, _ in self.items]
-            rows, used, row, col, place = 0, 0, 0, 0, []
-            for wd in widths:                                   # greedy wrap, each row as full as it can be
-                if col and used + wd > width:
-                    row, col, used = row + 1, 0, 0
-                place.append((row, col))
-                used += wd
-                col += 1
-            key = tuple(place)
+            sizes = [(w.winfo_reqwidth() + 2 * px, w.winfo_reqheight() + 2 * py) for w, px, py in self.items]
+            x = y = row_h = 0
+            place = []
+            for wd, ht in sizes:                                # greedy wrap; every row packs left on its own
+                if x and x + wd > width:
+                    x, y, row_h = 0, y + row_h, 0
+                place.append((x, y, ht))
+                x += wd
+                row_h = max(row_h, ht)
+            key = (tuple(place), y + row_h)
             if key == self._cols and not force:
                 return
             self._cols = key
-            for (w, px, py), (r, c) in zip(self.items, place):
-                w.grid(row=r, column=c, padx=px, pady=py, sticky="w")
+            for (w, px, py), (wx, wy, _ht) in zip(self.items, place):
+                w.place(x=wx + px, y=wy + py)
+            self.configure(height=max(1, y + row_h))
 
     # ------------------------------------------------------------------------------------------ buttons
     VARIANTS = {   # variant -> (fill, hover, active, border, text, hover text)
@@ -518,6 +524,8 @@ if HAVE_TK:
             ph = app.size("control_sm") - 6
             pw = tw + 2 * app.space(4)
             x0 = x - pw / 2.0 if anchor == "center" else x
+            inner = self.dims()[0] - app.tok["elevation"]["card"][0] - 6
+            x0 = max(6, min(inner - pw, x0))                    # keep the whole pill on the stage
             rounded(cv, x0, y - ph / 2.0, x0 + pw, y + ph / 2.0, ph, fill=fill, outline=app.c["keyline"], width=2,
                     tags=tags)
             tx = x0 + app.space(4)
@@ -707,12 +715,13 @@ if HAVE_TK:
             w, h = self.dims()
             sh = app.tok["elevation"]["card"]
             inner = w - sh[0] - 4
-            pad = app.space(5)
-            bw = min(inner - 28, max(240, int(inner * 0.72)))
+            compact = h < app.size("stage")
+            pad = app.space(4 if compact else 5)
+            bw = min(inner - 28, max(240, int(inner * (0.94 if compact else 0.72))))
             sx = self.actors[cid]["tx"]
             bx = max(14, min(inner - 14 - bw, sx - bw / 2.0))
-            by = 22
-            t = cv.create_text(bx + pad, by + pad + 4, text=text, anchor="nw", width=bw - 2 * pad, fill=c["ink"],
+            by = 16 if compact else 22
+            t = cv.create_text(bx + pad, by + pad + (2 if compact else 4), text=text, anchor="nw", width=bw - 2 * pad, fill=c["ink"],
                                font=app.fonts["body"], tags="bubble")
             x0, y0, x1, y1 = cv.bbox(t)
             by1 = y1 + pad - 4
@@ -759,8 +768,8 @@ if HAVE_TK:
 
     # ------------------------------------------------------------------------------------------ the app
     class App(tk.Tk):
-        COLUMNS = [("fav", "♥", 34, "center"), ("game", "Game", 220, "w"), ("card", "Card", 52, "center"),
-                   ("size", "Size", 74, "e"), ("discs", "Discs", 50, "center"), ("rating", "Rating", 92, "w"),
+        COLUMNS = [("fav", "♥", 34, "center"), ("game", "Game", 220, "w"), ("card", "Card", 80, "center"),
+                   ("size", "Size", 74, "e"), ("discs", "Discs", 62, "center"), ("rating", "Rating", 92, "w"),
                    ("tags", "Tags", 150, "w")]
 
         def __init__(self):
@@ -816,8 +825,9 @@ if HAVE_TK:
             self._build()
             self.apply_theme(self.theme_name, save=False)
             self._bind_keys()
+            self.bind("<Configure>", self._on_resize, add="+")
             self.protocol("WM_DELETE_WINDOW", self.on_close)
-            try:                                               # an expired group moves on quietly at start-up
+            try:                                             # an expired group moves on quietly at start-up
                 cast.step(self.state, rng=self.brain.rng)
             except Exception:
                 pass
@@ -1114,16 +1124,6 @@ if HAVE_TK:
             root.pack(fill="both", expand=True)
             self.root_frame = root
             self._build_header(root)
-            self.banner = self.frame(root, "gold_soft", highlightthickness=2)
-            self.paint(self.banner, highlightbackground="warning", highlightcolor="warning")
-            self.label(self.banner, "◆ Rotation due.", "gold_soft", "warning", "body_strong").pack(side="left",
-                                                                                                    padx=(12, 4))
-            self.banner_text = self.label(self.banner, "Plan a new one when you feel like it.", "gold_soft")
-            self.banner_text.pack(side="left")
-            self.button(self.banner, "×", self.hide_banner, "ghost", on="gold_soft", small=True).pack(side="right",
-                                                                                                    padx=4)
-            self.button(self.banner, "Plan new rotation", self.plan, "primary", on="gold_soft",
-                        small=True).pack(side="right", padx=4, pady=2)
             self.status = tk.StringVar(self)
             st = self.label(root, "", "bg", "ink_muted", "small", anchor="w", textvariable=self.status)
             st.pack(side="bottom", fill="x", padx=g, pady=(0, 4))
@@ -1136,12 +1136,38 @@ if HAVE_TK:
             body.add(right, minsize=self.tok["layout"]["side_panel"] - 20, stretch="always")
             self.body = body
             self.left, self.right = left, right
+            self.banner = self.frame(left, "gold_soft", highlightthickness=2)
+            self.paint(self.banner, highlightbackground="warning", highlightcolor="warning")
+            self.label(self.banner, "◆ Rotation due.", "gold_soft", "warning", "body_strong").pack(side="left",
+                                                                                                    padx=(12, 4))
+            self.banner_text = self.label(self.banner, "Plan a new one with the pink button when you feel like it.",
+                                          "gold_soft", justify="left", anchor="w")
+            self.banner_text.pack(side="left", fill="x", expand=True, pady=6)
+            self.button(self.banner, "×", self.hide_banner, "ghost", on="gold_soft", small=True).pack(side="right",
+                                                                                                    padx=4)
+            self.banner_text.bind("<Configure>", lambda e: self.banner_text.configure(wraplength=max(120, e.width - 4)))
             self._build_left(left)
             self._build_right(right)
 
-        def _place_sash(self):
+        def _on_resize(self, e):
+            """Tall stage (192 px sprites) when the window has the height for it, else the compact stage."""
+            if e.widget is not self or self._closing:
+                return
+            want = self.size("stage") if e.height >= 800 else self.size("stage_compact")
+            if int(self.stage.cv.cget("height")) != want:
+                self.stage.cv.configure(height=want)
+            compact = e.height < 760
+            if compact != self.compact:
+                self.compact = compact
+                self._build_actions()
+            w = e.width
+            if getattr(self, "_last_w", None) != w:
+                self._last_w = w
+                self._place_sash(w - 2 * self.tok["layout"]["gutter"])
+
+        def _place_sash(self, w=None):
             try:
-                w = self.body.winfo_width()
+                w = w or self.body.winfo_width()
                 side = max(self.tok["layout"]["side_panel"], int(w * 0.42))
                 self.body.sash_place(0, max(480, w - side), 0)
             except tk.TclError:
@@ -1170,12 +1196,12 @@ if HAVE_TK:
             if self._due_marked:
                 self.timer.configure(bg=c["gold"], fg=c["gold_ink"], highlightbackground=c["header_ink"])
             else:
-                self.timer.configure(bg=c["keyline"], fg=c["ink"], highlightbackground=c["header_ink"])
+                self.timer.configure(bg=c["keyline"], fg=c["primary_ink"], highlightbackground=c["header_ink"])
 
         def _build_left(self, left):
             left.columnconfigure(0, weight=1)
             bar = Flow(left)
-            bar.grid(row=0, column=0, sticky="ew", pady=(0, 4))
+            bar.grid(row=1, column=0, sticky="ew", pady=(0, 4))
             self.buttons = {}
             for key, text, fn, variant in [("plan", "Plan new rotation", self.plan, "primary"),
                                            ("sync", "Sync a card…", self.sync_card, "secondary"),
@@ -1185,7 +1211,7 @@ if HAVE_TK:
                 self.buttons[key] = bar.add(self.button(bar, text, fn, variant, small=True), padx=1, pady=0)
             self.guarded = [self.buttons[k] for k in ("library", "rescan", "plan", "sync", "boot")]
             sf = self.frame(left)
-            sf.grid(row=1, column=0, sticky="ew", pady=2)
+            sf.grid(row=2, column=0, sticky="ew", pady=2)
             self.search_var = tk.StringVar(self)
             self.search_var.trace_add("write", lambda *_: self._populate())
             self.search = ttk.Entry(sf, textvariable=self.search_var, style="Search.TEntry", font=self.fonts["body"])
@@ -1195,11 +1221,11 @@ if HAVE_TK:
             self.search_hint.bind("<Button-1>", lambda _e: self.search.focus_set())
             self.button(sf, "Clear", lambda: self.search_var.set(""), "ghost", small=True).pack(side="left", padx=2)
             self.chips_cards = Flow(left)
-            self.chips_cards.grid(row=2, column=0, sticky="ew", pady=2)
+            self.chips_cards.grid(row=3, column=0, sticky="ew", pady=2)
             tcard = self.frame(left, "line_soft", highlightthickness=2)
             self.paint(tcard, highlightbackground="line", highlightcolor="line")
-            tcard.grid(row=3, column=0, sticky="nsew", pady=(2, 0))
-            left.rowconfigure(3, weight=1)
+            tcard.grid(row=4, column=0, sticky="nsew", pady=(2, 0))
+            left.rowconfigure(4, weight=1)
             self.tree = ttk.Treeview(tcard, columns=[c[0] for c in self.COLUMNS], show="headings", height=6,
                                      selectmode="browse")
             for cid, text, w, anchor in self.COLUMNS:
@@ -1223,8 +1249,8 @@ if HAVE_TK:
             self.empty_btn = self.button(self.empty, "Pick library folder", self.pick_library, "primary", on="surface")
             self.empty_btn.pack(pady=8)
             acts = Flow(left)
-            acts.grid(row=4, column=0, sticky="ew", pady=(4, 0))
-            acts.add(self.label(acts, "Rate selected", "bg", "ink_muted", "small"))
+            acts.grid(row=5, column=0, sticky="ew", pady=(4, 0))
+            acts.add(self.label(acts, "Rate:", "bg", "ink_muted", "small"), pady=6)
             for n in range(1, 6):
                 acts.add(self.button(acts, f"{n}★", lambda n=n: self.rate(n), "ghost", small=True), padx=0, pady=0)
             self.pin_btn = acts.add(self.button(acts, "♥ Pin favourite", self.toggle_pin, "ghost", small=True), padx=4,
@@ -1232,7 +1258,7 @@ if HAVE_TK:
             # sync card
             pf = self.frame(left, "surface", highlightthickness=2)
             self.paint(pf, highlightbackground="line", highlightcolor="line")
-            pf.grid(row=5, column=0, sticky="ew", pady=(6, 0))
+            pf.grid(row=6, column=0, sticky="ew", pady=(6, 0))
             pf.columnconfigure(1, weight=1)
             self.loop = tk.Canvas(pf, width=128, height=96, highlightthickness=0, bd=0)
             self.paint(self.loop, bg="surface")
@@ -1248,12 +1274,14 @@ if HAVE_TK:
             self.prog_label = self.label(pf, "", "surface", "ink", "body_strong", anchor="w", justify="left",
                                          textvariable=self.prog_text)
             self.prog_label.grid(row=1, column=1, sticky="ew", padx=10)
-            self.label(pf, "", "surface", "ink_muted", "small", anchor="w", justify="left",
-                       textvariable=self.eta_text).grid(row=2, column=1, sticky="ew", padx=10, pady=(0, 8))
+            self.eta_label = self.label(pf, "", "surface", "ink_muted", "small", anchor="w", justify="left",
+                                        textvariable=self.eta_text)
+            self.eta_label.grid(row=2, column=1, sticky="ew", padx=10, pady=(0, 8))
             self.cancel_btn = self.button(pf, "Cancel sync", self.cancel_sync, "secondary", on="surface", small=True)
             self.cancel_btn.configure(state="disabled")
             self.cancel_btn.grid(row=0, column=2, rowspan=3, padx=(0, 8))
-            pf.bind("<Configure>", lambda e: self.prog_label.configure(wraplength=max(160, e.width - 280)))
+            pf.bind("<Configure>", lambda e: [w.configure(wraplength=max(160, e.width - 300))
+                                              for w in (self.prog_label, self.eta_label)])
             self.sync_card_frame = pf
 
         def _build_right(self, right):
@@ -1278,17 +1306,10 @@ if HAVE_TK:
             self.log.configure(yscrollcommand=lsb.set)
             self.log.pack(side="left", fill="both", expand=True)
             lsb.pack(side="left", fill="y")
-            acts = Flow(right)
-            acts.grid(row=4, column=0, sticky="ew", pady=(2, 0))
-            self.act_flow = acts
-            for name, act in self.brain.activities().items():
-                verb = act.get("verb", name) if isinstance(act, dict) else name
-                acts.add(self.button(acts, str(verb), lambda n=name: self.do_activity(n), "secondary", small=True),
-                         padx=1, pady=1)
-            for text, fn in [("Joke", self.act_joke), ("Suggest", self.act_suggest), ("Rankings", self.act_rankings),
-                             ("Fortune", self.act_fortune), ("Study break", self.act_study),
-                             ("Wrapped", self.act_wrapped)]:
-                acts.add(self.button(acts, text, fn, "ghost", small=True), padx=0, pady=1)
+            self.act_flow = Flow(right)
+            self.act_flow.grid(row=4, column=0, sticky="ew", pady=(2, 0))
+            self.compact = False
+            self._build_actions()
             er = self.frame(right)
             er.grid(row=5, column=0, sticky="ew", pady=(4, 0))
             self.entry = ttk.Entry(er, style="Search.TEntry", font=self.fonts["body"])
@@ -1315,10 +1336,43 @@ if HAVE_TK:
                     w.bind("<Button-1>", lambda _e, c=cid: self.toggle_presence(c))
                 self.chips[cid] = {"frame": chip, "dot": dot, "name": name, "where": where, "button": btn}
                 self.home_row.add(chip, padx=2, pady=2)
-            for text, fn, variant in [("Everyone", self.everyone, "ghost"), ("Surprise me", self.surprise, "ghost"),
-                                      ("Hang out", self.hang_out, "primary")]:
-                b = self.home_row.add(self.button(self.home_row, text, fn, variant, small=True), padx=1, pady=2)
-                self.chips.setdefault("_buttons", []).append(b)
+
+        def _tools(self):
+            return [("Joke", self.act_joke), ("Suggest", self.act_suggest), ("Rankings", self.act_rankings),
+                    ("Fortune", self.act_fortune), ("Study break", self.act_study), ("Wrapped", self.act_wrapped)]
+
+        def _build_actions(self):
+            """Activities (from pets.json) and tools. Short windows fold them into two menus to keep the log visible."""
+            acts = self.act_flow
+            acts.clear()
+            self._group_buttons = []
+            activities = [(str(a.get("verb", n) if isinstance(a, dict) else n), (lambda n=n: self.do_activity(n)))
+                          for n, a in self.brain.activities().items()]
+            for text, fn, variant in [("Hang out", self.hang_out, "primary"), ("Everyone", self.everyone, "secondary"),
+                                      ("Surprise me", self.surprise, "secondary")]:
+                self._group_buttons.append(acts.add(self.button(acts, text, fn, variant, small=True), padx=1, pady=1))
+            if self.compact:
+                for text, items in (("Activities ▾", activities), ("Ask ▾", self._tools())):
+                    acts.add(self.button(acts, text, None, "ghost", small=True), padx=0, pady=1)
+                    b = acts.items[-1][0]
+                    b.configure(command=lambda b=b, items=items: self._popup(b, items))
+            else:
+                for text, fn in activities:
+                    acts.add(self.button(acts, text, fn, "secondary", small=True), padx=1, pady=1)
+                for text, fn in self._tools():
+                    acts.add(self.button(acts, text, fn, "ghost", small=True), padx=0, pady=1)
+            self._update_chips()
+
+        def _popup(self, anchor, items):
+            c = self.c
+            menu = tk.Menu(self, tearoff=False, bg=c["surface"], fg=c["ink"], activebackground=c["primary_soft"],
+                           activeforeground=c["ink"], font=self.fonts["body"], bd=1, relief="solid")
+            for text, fn in items:
+                menu.add_command(label=text, command=fn)
+            try:
+                menu.tk_popup(anchor.winfo_rootx(), anchor.winfo_rooty() + anchor.winfo_height())
+            finally:
+                menu.grab_release()
 
         def _bind_keys(self):
             for seq, fn in (("<Control-r>", self.refresh), ("<Control-p>", self.plan), ("<Control-s>", self.sync_card),
@@ -1510,7 +1564,7 @@ if HAVE_TK:
                 if isinstance(b, PillButton):
                     b.on, b.variant = ("surface", "secondary") if here else ("bg", "soft")
                 b.configure(text="Send out" if here else "Invite", state="disabled" if self.syncing else "normal")
-            for b in self.chips.get("_buttons", []):
+            for b in getattr(self, "_group_buttons", [])[1:]:     # Hang out stays available during a sync
                 b.configure(state="disabled" if self.syncing else "normal")
 
         # ---------- presence ----------
@@ -1941,7 +1995,7 @@ if HAVE_TK:
             self._timer_colors()
             if not self._nagged:                               # nag ONCE per app session
                 self._nagged = True
-                self.banner.pack(fill="x", padx=self.tok["layout"]["gutter"], pady=(6, 0), after=self.root_frame.winfo_children()[0])
+                self.banner.grid(row=0, column=0, sticky="ew", pady=(0, 6))
                 lines = self._pet_call("due_nag") or self.brain.duo("rotation_due", days=0)
                 for line in lines:
                     self.say(line)
@@ -1952,7 +2006,7 @@ if HAVE_TK:
                 self._flash()
 
         def hide_banner(self):
-            self.banner.pack_forget()
+            self.banner.grid_remove()
 
         def _unmark_due(self):
             if not self._due_marked:
@@ -2152,8 +2206,7 @@ if HAVE_TK:
             if done and total and phase in ("copy", "verify"):
                 speed = done / elapsed
                 self.eta_text.set(f"{fmt_bytes(done)} of {fmt_bytes(total)} · {speed / 1024 ** 2:.1f} MB/s · about "
-                                  f"{fmt_eta((total - done) / speed)} left · nothing is deleted that Pawtation did not "
-                                  "put there")
+                                  f"{fmt_eta((total - done) / speed)} left")
 
         def _on_done(self, cid, rep):
             self.last_report = rep

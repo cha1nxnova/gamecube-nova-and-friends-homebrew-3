@@ -22,7 +22,7 @@ RENDERS = REPO / "assets" / "renders"
 sys.path.insert(0, str(REPO / "art"))       # art/ is dev-time only and not a package: import "lowpoly" from it
 
 from lowpoly import mesh, pipeline, png, render  # noqa: E402
-from lowpoly.models import nova, props  # noqa: E402
+from lowpoly.models import duskie, iggy, nova, props  # noqa: E402
 
 # What the first build wave must ship: name -> (width, height, frame count; 1 = a still).
 REQUIRED = {
@@ -31,6 +31,17 @@ REQUIRED = {
     "nova_spin": (192, 192, 24),
     "disc_spin": (96, 96, 12),
     "sync_loop": (256, 192, 24),
+}
+
+# Added in wave 3: low-poly Iggy and Duskie and the group shot.
+REQUIRED_WAVE3 = {
+    "iggy_bust": (512, 512, 1),
+    "iggy_icon": (256, 256, 1),
+    "iggy_spin": (192, 192, 24),
+    "duskie_bust": (512, 512, 1),
+    "duskie_icon": (256, 256, 1),
+    "duskie_spin": (192, 192, 24),
+    "trio_busts": (1200, 520, 1),
 }
 
 RED, GREEN, BLUE = (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)
@@ -744,6 +755,105 @@ class CommittedRenders(unittest.TestCase):
         self.assertEqual(extra, ["manifest.json"])
         text = (RENDERS / "manifest.json").read_text(encoding="utf-8")
         self.assertIsNone(re.search(r"[A-Za-z]:\\|/home/|/tmp/", text))    # relative names only
+
+
+class FriendsModels(unittest.TestCase):
+    """Iggy and Duskie: budgets, canon colours, relative size, and that each reads from the front and back."""
+
+    def view(self, module, turn=0.0, size=48):
+        cam = render.Camera(target=(0.0, 0.2, 0.0), ortho=6.0)
+        scene = render.Scene(cam, flat_lighting()).add(module.build(), mesh.rot_y(turn))
+        image = render.render(scene, size, size, ss=1)
+        return set(image.pixel(x, y)[:3] for y in range(size) for x in range(size) if image.pixel(x, y)[3] == 255)
+
+    def test_triangle_budget_and_symmetry(self):
+        for module in (iggy, duskie):
+            bust = module.build()
+            self.assertGreaterEqual(len(bust), 300, module.__name__)
+            self.assertLessEqual(len(bust), 2000, module.__name__)
+            (x0, y0, _z0), (x1, _y1, _z1) = bust.bounds()
+            self.assertAlmostEqual(x0, -x1, places=6)
+            self.assertAlmostEqual(y0, module.BASE_Y, places=6)
+            self.assertAlmostEqual(module.BASE_Y, nova.BASE_Y, places=6)       # one ground line for the set
+
+    def test_iggy_is_the_smallest_and_has_the_widest_ears(self):
+        def head_top(module):
+            return module.build().bounds()[1][1]
+        self.assertLess(head_top(iggy), head_top(duskie))
+        self.assertLess(head_top(duskie), head_top(nova))
+        def head_width(module):
+            (x0, _y0, _z0), (x1, _y1, _z1) = module.parts()[0].bounds()
+            return x1 - x0
+        self.assertGreater(head_width(iggy), head_width(duskie))            # fennec ears spread wide
+
+    def test_iggy_reads_as_iggy(self):
+        front = self.view(iggy, 0.0)
+        for needed in (iggy.FUR, iggy.PERI, iggy.IRIS, iggy.FRAME, iggy.TEE, iggy.NOSE):
+            self.assertIn(rgb8(needed), front, needed)
+        back = self.view(iggy, 180.0)
+        self.assertIn(rgb8(iggy.PERI), back)                                # periwinkle ear backs
+        self.assertNotIn(rgb8(iggy.IRIS), back)
+
+    def test_duskie_reads_as_duskie(self):
+        front = self.view(duskie, 0.0)
+        for needed in (duskie.GOLD, duskie.CREAM, duskie.IRIS, duskie.NOSE, duskie.TEE, duskie.BROWN):
+            self.assertIn(rgb8(needed), front, needed)
+        self.assertNotIn(rgb8(duskie.SADDLE_BLACK), front)                  # the saddle is a back marking
+        back = self.view(duskie, 180.0)
+        for needed in (duskie.SADDLE_BLACK, duskie.SADDLE_GREY, duskie.BROWN):
+            self.assertIn(rgb8(needed), back, needed)
+        self.assertNotIn(rgb8(duskie.IRIS), back)
+
+    def test_head_pose_keeps_the_ground_line(self):
+        for module in (iggy, duskie):
+            posed = module.build(turn=12.0, nod=-3.0, tilt=5.0)
+            self.assertEqual(len(posed), len(module.build()))
+            self.assertAlmostEqual(min(v[1] for v in posed.verts), module.BASE_Y, places=6)
+
+    def test_turntable_frames_stay_inside_the_picture(self):
+        for module in (iggy, duskie):
+            for i in (0, 6, 12, 18):
+                image = render.render(module.spin_scene(i, 24), 48, 48, ss=1)
+                self.assertGreater(image.covered(255), 200)
+                edge = [image.pixel(x, 0)[3] for x in range(48)] + [image.pixel(0, y)[3] for y in range(48)]
+                edge += [image.pixel(47, y)[3] for y in range(48)]
+                self.assertEqual(max(edge), 0, "%s frame %d touches the border" % (module.__name__, i))
+
+    def test_scene_takes_a_list_of_shadows(self):
+        cube = mesh.box(1.0, "#ffffff")
+        one = render.render(scene_of(cube, shadow=render.Shadow((0, -0.5, 0), 1.5, 0.5)), 32, 32, ss=1)
+        two = render.render(scene_of(cube, shadow=[render.Shadow((0, -0.5, 0), 1.5, 0.5)]), 32, 32, ss=1)
+        self.assertEqual(one.pixels, two.pixels)
+
+
+class CommittedRendersWave3(unittest.TestCase):
+    """The new manifest entries are valid RGBA PNGs of the stated size, next to the old ones."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.manifest = json.loads((RENDERS / "manifest.json").read_text(encoding="utf-8"))
+
+    def test_new_entries_are_listed_and_the_old_ones_kept(self):
+        for name in list(REQUIRED) + list(REQUIRED_WAVE3):
+            self.assertIn(name, self.manifest["renders"], name)
+
+    def test_new_files_are_rgba_pngs_of_the_stated_size(self):
+        for name, (w, h, frames) in REQUIRED_WAVE3.items():
+            entry = self.manifest["renders"][name]
+            self.assertEqual(entry["size"], [w, h], name)
+            files = [entry["file"]] if frames == 1 else entry["frames"]
+            self.assertEqual(len(files), frames, name)
+            for fname in files:
+                info = png.png_info((RENDERS / fname).read_bytes())
+                self.assertEqual((info["width"], info["height"]), (w, h), fname)
+                self.assertEqual((info["bit_depth"], info["color_type"]), (8, 6), fname)
+
+    def test_new_stills_have_transparent_corners(self):
+        for fname in ("iggy_icon.png", "duskie_icon.png", "trio_busts.png"):
+            w, h, px = independent_decode((RENDERS / fname).read_bytes())
+            alpha = px[3::4]
+            for corner in (0, w - 1, (h - 1) * w, h * w - 1):
+                self.assertEqual(alpha[corner], 0, fname)
 
 
 if __name__ == "__main__":

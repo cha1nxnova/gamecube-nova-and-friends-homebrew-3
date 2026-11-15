@@ -1,121 +1,7 @@
 {
  "version": 1,
- "_comment": "SEED scenes from the v2 cast engine build; the writer replaces them. Schema: docs/SPEC_V2.md section 2. Optional key for arrive/leave scenes: \"about\" = ids of who arrives/leaves (default: the non-main participants, or everyone if all are mains).",
+ "_comment": "Meetup scenes (schema: docs/SPEC_V2.md section 2). Optional \"about\" on arrive/leave scenes = ids of who arrives/leaves (default: the non-main participants, or everyone if all are mains).",
  "scenes": [
-  {
-   "id": "seed-nova-quiet",
-   "who": [
-    "nova"
-   ],
-   "when": "any",
-   "rating": "all",
-   "weight": 1,
-   "lines": [
-    [
-     "nova",
-     "The house is quiet. Suspiciously quiet."
-    ],
-    [
-     "nova",
-     "With nobody filming, nothing I do right now counts."
-    ]
-   ]
-  },
-  {
-   "id": "seed-nova-sandwich",
-   "who": [
-    "nova"
-   ],
-   "when": "any",
-   "rating": "all",
-   "weight": 1,
-   "lines": [
-    [
-     "nova",
-     "Grilled cheese for one."
-    ],
-    [
-     "*",
-     "He makes two anyway."
-    ]
-   ]
-  },
-  {
-   "id": "seed-iggy-clean",
-   "who": [
-    "iggy"
-   ],
-   "when": "any",
-   "rating": "all",
-   "weight": 1,
-   "lines": [
-    [
-     "iggy",
-     "The kitchen is clean and nobody is in it. These facts are related."
-    ],
-    [
-     "iggy",
-     "I'll enjoy it while it lasts."
-    ]
-   ]
-  },
-  {
-   "id": "seed-iggy-camcorder",
-   "who": [
-    "iggy"
-   ],
-   "when": "any",
-   "rating": "all",
-   "weight": 1,
-   "lines": [
-    [
-     "iggy",
-     "Quiet day. I should film something."
-    ],
-    [
-     "iggy",
-     "There is nothing to film. The usual subject is out."
-    ]
-   ]
-  },
-  {
-   "id": "seed-duskie-couch",
-   "who": [
-    "duskie"
-   ],
-   "when": "any",
-   "rating": "all",
-   "weight": 1,
-   "lines": [
-    [
-     "duskie",
-     "Nobody home? I'll hold the couch down."
-    ],
-    [
-     "*",
-     "He takes the whole couch."
-    ]
-   ]
-  },
-  {
-   "id": "seed-duskie-snacks",
-   "who": [
-    "duskie"
-   ],
-   "when": "any",
-   "rating": "all",
-   "weight": 1,
-   "lines": [
-    [
-     "duskie",
-     "Golden hour and a snack bowl all to myself."
-    ],
-    [
-     "*",
-     "He saves half for the others."
-    ]
-   ]
-  },
   {
    "id": "cheese-drawer",
    "who": [
@@ -141,7 +27,7 @@
    ]
   },
   {
-   "id": "seed-duo-take-with-food",
+   "id": "spatchcock",
    "who": [
     "iggy",
     "nova"
@@ -152,42 +38,30 @@
    "lines": [
     [
      "nova",
-     "Take with food. That is my professional advice."
+     "I've been reading your cookbook."
     ],
     [
      "iggy",
-     "You're holding a controller."
+     "Why."
     ],
     [
      "nova",
-     "And a sandwich."
+     "There's a technique in here that sounds like a spa treatment. I'd like to book one."
+    ],
+    [
+     "iggy",
+     "No, I'm not going to 'spatchcock' you, so stop asking."
+    ],
+    [
+     "nova",
+     "You haven't even heard my pitch."
     ]
    ]
   },
   {
-   "id": "seed-nova-duskie-snacks",
+   "id": "beanbag-footage",
    "who": [
-    "duskie",
-    "nova"
-   ],
-   "when": "any",
-   "rating": "all",
-   "weight": 1,
-   "lines": [
-    [
-     "duskie",
-     "I brought snacks."
-    ],
-    [
-     "nova",
-     "Refills: unlimited. I like this arrangement."
-    ]
-   ]
-  },
-  {
-   "id": "seed-nova-duskie-rematch",
-   "who": [
-    "duskie",
+    "iggy",
     "nova"
    ],
    "when": "any",
@@ -196,60 +70,1300 @@
    "lines": [
     [
      "nova",
-     "Best of three?"
+     "Watch this. Couch to beanbag, one jump."
     ],
     [
-     "duskie",
-     "You said that three rounds ago."
+     "*",
+     "Iggy raises the camcorder."
+    ],
+    [
+     "iggy",
+     "Rolling."
+    ],
+    [
+     "*",
+     "Thud."
     ],
     [
      "nova",
-     "PRN rematches."
+     "The beanbag moved."
+    ],
+    [
+     "iggy",
+     "The beanbag did not move."
     ]
    ]
   },
   {
-   "id": "seed-iggy-duskie-taster",
+   "id": "forehead-bonk",
    "who": [
-    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "*",
+     "Nova bonks his forehead gently against Iggy's."
+    ],
+    [
+     "iggy",
+     "What was that for?"
+    ],
+    [
+     "nova",
+     "Routine maintenance."
+    ],
+    [
+     "iggy",
+     "...Do the other side."
+    ]
+   ]
+  },
+  {
+   "id": "count-by-fives",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Five, ten, fifteen, twenty crisps."
+    ],
+    [
+     "iggy",
+     "Are you counting your snack?"
+    ],
+    [
+     "nova",
+     "Professional habit. Twenty-five."
+    ],
+    [
+     "iggy",
+     "There were thirty."
+    ],
+    [
+     "nova",
+     "Professional habit."
+    ]
+   ]
+  },
+  {
+   "id": "milk-crate-custody",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Where's my milk crate?"
+    ],
+    [
+     "nova",
+     "I needed somewhere to put my feet."
+    ],
+    [
+     "iggy",
+     "That's my stove crate."
+    ],
+    [
+     "nova",
+     "It's a multipurpose crate."
+    ],
+    [
+     "iggy",
+     "It's about to be the crate you sleep in."
+    ]
+   ]
+  },
+  {
+   "id": "wavebird-in-the-fridge",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Have you seen the WaveBird?"
+    ],
+    [
+     "iggy",
+     "No wires. It could be anywhere."
+    ],
+    [
+     "nova",
+     "That's the beauty of it."
+    ],
+    [
+     "iggy",
+     "It's in the fridge again, isn't it."
+    ],
+    [
+     "nova",
+     "...It was keeping the cheese company."
+    ]
+   ]
+  },
+  {
+   "id": "snack-sized",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "GameCube discs are snack-sized."
+    ],
+    [
+     "iggy",
+     "Don't eat the discs."
+    ],
+    [
+     "nova",
+     "I said snack-SIZED. I'm describing, not planning."
+    ],
+    [
+     "iggy",
+     "You're holding one like a cracker."
+    ]
+   ]
+  },
+  {
+   "id": "forty-backups",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Memory card's full."
+    ],
+    [
+     "nova",
+     "Impossible. I only have forty saves of the same game."
+    ],
+    [
+     "iggy",
+     "Why forty?"
+    ],
+    [
+     "nova",
+     "Backups. A pharmacist always keeps a backup."
+    ]
+   ]
+  },
+  {
+   "id": "floor-diagnosis",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Why are you lying on the floor?"
+    ],
+    [
+     "nova",
+     "I've diagnosed myself."
+    ],
+    [
+     "iggy",
+     "With what."
+    ],
+    [
+     "nova",
+     "It's toxoplasmosis."
+    ],
+    [
+     "iggy",
+     "You're a cat. You're tired. Get on the couch."
+    ]
+   ]
+  },
+  {
+   "id": "blanket-toll",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "*",
+     "Iggy drops onto the couch. Nova lifts the blanket without looking."
+    ],
+    [
+     "iggy",
+     "Thanks."
+    ],
+    [
+     "nova",
+     "There's a toll."
+    ],
+    [
+     "iggy",
+     "I'm not paying the toll."
+    ],
+    [
+     "nova",
+     "You're already paying it. You're warm."
+    ]
+   ]
+  },
+  {
+   "id": "kiss-the-cook",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Your apron says \"Kiss the Cook\"."
+    ],
+    [
+     "iggy",
+     "It's an apron. It's not a contract."
+    ],
+    [
+     "nova",
+     "I respect the written word."
+    ],
+    [
+     "*",
+     "A quick kiss on the cheek. Iggy keeps stirring."
+    ],
+    [
+     "iggy",
+     "Hand me the salt, menace."
+    ]
+   ]
+  },
+  {
+   "id": "flour-nose",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Pup, you've got flour on your nose."
+    ],
+    [
+     "iggy",
+     "Don't call me pup."
+    ],
+    [
+     "nova",
+     "You've got flour on your nose, Iggy."
+    ],
+    [
+     "iggy",
+     "...Where?"
+    ],
+    [
+     "nova",
+     "Everywhere. It's a good look."
+    ]
+   ]
+  },
+  {
+   "id": "c-stick-believes",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "The C-stick is a tiny yellow nub that believes in itself."
+    ],
+    [
+     "iggy",
+     "Like you."
+    ],
+    [
+     "nova",
+     "Like me. Thank you."
+    ],
+    [
+     "iggy",
+     "It wasn't a compliment."
+    ],
+    [
+     "nova",
+     "I took it as one. That's how compliments work."
+    ]
+   ]
+  },
+  {
+   "id": "same-lunch",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Lunch. Grilled cheese and tomato soup."
+    ],
+    [
+     "nova",
+     "You remembered."
+    ],
+    [
+     "iggy",
+     "You've asked for it every day this week."
+    ],
+    [
+     "nova",
+     "And it's been perfect every day this week. Consistency is a virtue."
+    ]
+   ]
+  },
+  {
+   "id": "lunchbox",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "The GameCube has a handle. It's a lunchbox."
+    ],
+    [
+     "iggy",
+     "It's not a lunchbox."
+    ],
+    [
+     "nova",
+     "Then why does carrying it make me hungry?"
+    ],
+    [
+     "iggy",
+     "Everything makes you hungry."
+    ]
+   ]
+  },
+  {
+   "id": "nova-home-from-shift",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "nova"
+   ],
+   "lines": [
+    [
+     "nova",
+     "I'm home. I counted four thousand tablets and I can't feel my paws."
+    ],
+    [
+     "iggy",
+     "Soup's on the stove."
+    ],
+    [
+     "nova",
+     "You're the best thing that ever happened to this house."
+    ],
+    [
+     "iggy",
+     "I know. Shoes off."
+    ]
+   ]
+  },
+  {
+   "id": "nova-home-was",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "nova"
+   ],
+   "lines": [
+    [
+     "*",
+     "The door opens. Nova sniffs the air."
+    ],
+    [
+     "nova",
+     "Is that grilled cheese?"
+    ],
+    [
+     "iggy",
+     "It was. You're late."
+    ],
+    [
+     "nova",
+     "Was?"
+    ],
+    [
+     "iggy",
+     "Kidding. It's in the oven, keeping warm."
+    ]
+   ]
+  },
+  {
+   "id": "iggy-home-bread",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "about": [
     "iggy"
    ],
-   "when": "any",
-   "rating": "all",
-   "weight": 1,
    "lines": [
     [
-     "duskie",
-     "Need a taste tester?"
+     "iggy",
+     "Back. Help with the bags."
+    ],
+    [
+     "nova",
+     "Did you get the good bread?"
     ],
     [
      "iggy",
-     "I need one who leaves some for dinner."
+     "I got the good bread."
+    ],
+    [
+     "nova",
+     "I'd carry you and the bags. But mostly the bread."
     ]
    ]
   },
   {
-   "id": "seed-iggy-duskie-window",
+   "id": "iggy-home-fort",
    "who": [
-    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "about": [
     "iggy"
    ],
-   "when": "any",
+   "lines": [
+    [
+     "iggy",
+     "I'm back. Why is the couch upside down?"
+    ],
+    [
+     "nova",
+     "Fort."
+    ],
+    [
+     "iggy",
+     "For what?"
+    ],
+    [
+     "nova",
+     "For you. Welcome home."
+    ],
+    [
+     "*",
+     "Iggy films the fort from every angle."
+    ]
+   ]
+  },
+  {
+   "id": "nova-off-to-work",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "nova"
+   ],
+   "lines": [
+    [
+     "nova",
+     "Off to the pharmacy. Somebody's got to count all those tiny things."
+    ],
+    [
+     "iggy",
+     "Packed you lunch."
+    ],
+    [
+     "nova",
+     "Is it grilled cheese?"
+    ],
+    [
+     "iggy",
+     "Take with food."
+    ]
+   ]
+  },
+  {
+   "id": "nova-off-for-snacks",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "nova"
+   ],
+   "lines": [
+    [
+     "nova",
+     "I'm going out for snacks."
+    ],
+    [
+     "iggy",
+     "We have snacks."
+    ],
+    [
+     "nova",
+     "We have sensible snacks. I'm going out for snacks."
+    ],
+    [
+     "iggy",
+     "Bring back milk."
+    ]
+   ]
+  },
+  {
+   "id": "iggy-off-shops",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "iggy"
+   ],
+   "lines": [
+    [
+     "iggy",
+     "Heading to the shops. Don't touch the stove."
+    ],
+    [
+     "nova",
+     "What if it's an emergency?"
+    ],
+    [
+     "iggy",
+     "What emergency needs the stove?"
+    ],
+    [
+     "nova",
+     "Cheese."
+    ],
+    [
+     "iggy",
+     "Not an emergency."
+    ]
+   ]
+  },
+  {
+   "id": "iggy-off-walk",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "iggy"
+   ],
+   "lines": [
+    [
+     "iggy",
+     "Going for a walk."
+    ],
+    [
+     "nova",
+     "Without me?"
+    ],
+    [
+     "iggy",
+     "You're asleep."
+    ],
+    [
+     "nova",
+     "I'm resting my eyes. Very hard."
+    ],
+    [
+     "*",
+     "Iggy tucks the blanket round him on the way out."
+    ]
+   ]
+  },
+  {
+   "id": "rotated-colleagues",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "rotated",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "New rotation. I'd like to formally thank the memory cards for their service."
+    ],
+    [
+     "iggy",
+     "They're memory cards."
+    ],
+    [
+     "nova",
+     "They're colleagues."
+    ]
+   ]
+  },
+  {
+   "id": "rotated-good-half",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "rotated",
    "rating": "all",
    "weight": 1,
    "lines": [
     [
      "iggy",
-     "You're staying three days again, aren't you."
+     "Nice season."
     ],
     [
-     "duskie",
-     "The sunset's better from your window."
+     "nova",
+     "I picked half of it."
+    ],
+    [
+     "iggy",
+     "I picked the good half."
+    ],
+    [
+     "nova",
+     "That's... fair, actually."
     ]
    ]
   },
   {
-   "id": "seed-trio-snacks",
+   "id": "synced-third-check",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "synced",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Card {card}'s ready."
+    ],
+    [
+     "nova",
+     "Let me check it."
+    ],
+    [
+     "iggy",
+     "You checked it twice."
+    ],
+    [
+     "nova",
+     "Third check's the charm. Professional habit."
+    ]
+   ]
+  },
+  {
+   "id": "synced-star-sticker",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "synced",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Card {card} is synced. I'm labelling it."
+    ],
+    [
+     "iggy",
+     "It's already labelled."
+    ],
+    [
+     "nova",
+     "Now it's labelled with a star sticker."
+    ],
+    [
+     "iggy",
+     "...Fine. It does look better."
+    ]
+   ]
+  },
+  {
+   "id": "due-leftovers",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "due",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "The cards have been in rotation a while. Like leftovers."
+    ],
+    [
+     "iggy",
+     "Want to shuffle them tonight?"
+    ],
+    [
+     "nova",
+     "Only if there's tea."
+    ],
+    [
+     "iggy",
+     "There's always tea."
+    ]
+   ]
+  },
+  {
+   "id": "due-after-lunch",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "due",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Rotation's due."
+    ],
+    [
+     "nova",
+     "Already? Time flies when you're napping."
+    ],
+    [
+     "iggy",
+     "Whenever. No rush."
+    ],
+    [
+     "nova",
+     "Whenever, then. After lunch. After the nap after lunch."
+    ]
+   ]
+  },
+  {
+   "id": "night-ceiling-stars",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "night",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Look. Stars."
+    ],
+    [
+     "iggy",
+     "Those are the glow stickers on the ceiling."
+    ],
+    [
+     "nova",
+     "Still counts."
+    ],
+    [
+     "*",
+     "Iggy shuffles closer under the blanket."
+    ],
+    [
+     "iggy",
+     "...Still counts."
+    ]
+   ]
+  },
+  {
+   "id": "night-one-more-race",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "night",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "It's late."
+    ],
+    [
+     "nova",
+     "One more race."
+    ],
+    [
+     "iggy",
+     "You said that four races ago."
+    ],
+    [
+     "nova",
+     "And I meant it every time."
+    ]
+   ]
+  },
+  {
+   "id": "night-fridge-light",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "night",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "*",
+     "The fridge light comes on at two in the morning."
+    ],
+    [
+     "iggy",
+     "I can see you."
+    ],
+    [
+     "nova",
+     "You can't prove anything."
+    ],
+    [
+     "iggy",
+     "The camcorder has night mode."
+    ]
+   ]
+  },
+  {
+   "id": "morning-kettle",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "morning",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Morning. Tea."
+    ],
+    [
+     "nova",
+     "You're a saint."
+    ],
+    [
+     "iggy",
+     "I'm a fox with a kettle."
+    ],
+    [
+     "nova",
+     "Same thing before nine."
+    ]
+   ]
+  },
+  {
+   "id": "morning-flat-ear",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "morning",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Why is my ear flat on one side?"
+    ],
+    [
+     "iggy",
+     "You slept on it."
+    ],
+    [
+     "nova",
+     "I slept on YOU."
+    ],
+    [
+     "iggy",
+     "Then it's my fault. Sorry."
+    ]
+   ]
+  },
+  {
+   "id": "morning-inside-out",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "morning",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Early shift. Where's my name badge?"
+    ],
+    [
+     "iggy",
+     "On your shirt."
+    ],
+    [
+     "nova",
+     "Where's my shirt?"
+    ],
+    [
+     "iggy",
+     "You're wearing it inside out."
+    ]
+   ]
+  },
+  {
+   "id": "ttyd-tears",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "game:paper-mario-ttyd",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "{game}. I'm going to cry at the ending again."
+    ],
+    [
+     "iggy",
+     "You cried at the opening."
+    ],
+    [
+     "nova",
+     "It's a very moving opening."
+    ]
+   ]
+  },
+  {
+   "id": "ac-fishing",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "game:animal-crossing",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "{game}. I'm going fishing."
+    ],
+    [
+     "nova",
+     "You've been fishing for three hours."
+    ],
+    [
+     "iggy",
+     "The loan can wait. The fish can't."
+    ]
+   ]
+  },
+  {
+   "id": "soulcalibur-cape",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "game:soulcalibur-ii",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "{game}. I pick whoever has the biggest cape."
+    ],
+    [
+     "iggy",
+     "I pick whoever beats the cape."
+    ],
+    [
+     "*",
+     "Nova loses in eleven seconds."
+    ],
+    [
+     "nova",
+     "The cape was heavy."
+    ]
+   ]
+  },
+  {
+   "id": "double-dash-shells",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "game:mario-kart-double-dash",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "{game}. I'll drive."
+    ],
+    [
+     "iggy",
+     "I'll throw the shells."
+    ],
+    [
+     "nova",
+     "At the others, Iggy. At the OTHERS."
+    ],
+    [
+     "iggy",
+     "Mostly."
+    ]
+   ]
+  },
+  {
+   "id": "chibi-robo-tidier",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "game:chibi-robo",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "{game}. Tiny robot. Cleans the house."
+    ],
+    [
+     "nova",
+     "He's so helpful."
+    ],
+    [
+     "iggy",
+     "He's on a cord and still tidier than you."
+    ],
+    [
+     "nova",
+     "Low blow. Fair, but low."
+    ]
+   ]
+  },
+  {
+   "id": "cozy-highest-compliment",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "tag:cozy",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "{game}. Blanket on."
+    ],
+    [
+     "iggy",
+     "Tea on."
+    ],
+    [
+     "nova",
+     "Lights low."
+    ],
+    [
+     "iggy",
+     "You'll be asleep in ten minutes."
+    ],
+    [
+     "nova",
+     "That's the highest compliment I give a game."
+    ]
+   ]
+  },
+  {
+   "id": "horror-strategy",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "tag:horror",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "{game}. Want to play?"
+    ],
+    [
+     "nova",
+     "Absolutely. From under the blanket."
+    ],
+    [
+     "iggy",
+     "You can't see the screen from there."
+    ],
+    [
+     "nova",
+     "That's the strategy."
+    ]
+   ]
+  },
+  {
+   "id": "racing-walls",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "tag:racing",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "{game}. I take the corners wide."
+    ],
+    [
+     "iggy",
+     "You take the walls wide."
+    ],
+    [
+     "nova",
+     "The walls are part of the track if you believe in yourself."
+    ]
+   ]
+  },
+  {
+   "id": "party-stars",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "tag:party",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "{game}. Friendship test."
+    ],
+    [
+     "nova",
+     "We've survived worse."
+    ],
+    [
+     "iggy",
+     "Have we survived you stealing my stars?"
+    ],
+    [
+     "nova",
+     "We'll find out."
+    ]
+   ]
+  },
+  {
+   "id": "rpg-big-pot",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "tag:rpg",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "{game} is forty hours long."
+    ],
+    [
+     "iggy",
+     "I'll make soup."
+    ],
+    [
+     "nova",
+     "For forty hours?"
+    ],
+    [
+     "iggy",
+     "It's a big pot."
+    ]
+   ]
+  },
+  {
+   "id": "trio-three-bags",
    "who": [
     "duskie",
     "iggy",
@@ -261,20 +1375,28 @@
    "lines": [
     [
      "duskie",
-     "Hey, you two."
+     "Hey, you two. I brought snacks."
     ],
     [
      "nova",
-     "He brought snacks. He can stay."
+     "How many bags?"
+    ],
+    [
+     "duskie",
+     "Three."
     ],
     [
      "iggy",
-     "He was always going to stay."
+     "How many nights?"
+    ],
+    [
+     "duskie",
+     "Also three."
     ]
    ]
   },
   {
-   "id": "seed-trio-players",
+   "id": "trio-couch-physics",
    "who": [
     "duskie",
     "iggy",
@@ -285,21 +1407,120 @@
    "weight": 1,
    "lines": [
     [
-     "nova",
-     "Four-player game, three players."
+     "*",
+     "Three on a two-seat couch."
     ],
     [
-     "iggy",
-     "I'm filming. Two players."
+     "nova",
+     "Someone's tail is in my ear."
     ],
     [
      "duskie",
-     "I'll take both spare controllers."
+     "Sorry. Mine."
+    ],
+    [
+     "iggy",
+     "It's warm. Leave it."
     ]
    ]
   },
   {
-   "id": "seed-arrive-duskie",
+   "id": "trio-player-three",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Bags player three."
+    ],
+    [
+     "nova",
+     "You're always player three."
+    ],
+    [
+     "duskie",
+     "Player three's the golden controller. I'm golden. It's science."
+    ],
+    [
+     "iggy",
+     "It's the purple controller."
+    ],
+    [
+     "duskie",
+     "It's golden in spirit."
+    ]
+   ]
+  },
+  {
+   "id": "trio-toothbrush-tenure",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "There are three toothbrushes in the bathroom."
+    ],
+    [
+     "duskie",
+     "Huh. How about that."
+    ],
+    [
+     "nova",
+     "He's been here so long his toothbrush has seniority."
+    ],
+    [
+     "duskie",
+     "It's got tenure. I'm very proud of it."
+    ]
+   ]
+  },
+  {
+   "id": "trio-window",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Come look. The sky's doing the thing."
+    ],
+    [
+     "*",
+     "All three crowd at the window."
+    ],
+    [
+     "nova",
+     "It's very orange."
+    ],
+    [
+     "duskie",
+     "Golden. It's golden."
+    ],
+    [
+     "iggy",
+     "It's nice. ...It's really nice."
+    ]
+   ]
+  },
+  {
+   "id": "duskie-arrives-crisps-first",
    "who": [
     "duskie",
     "iggy",
@@ -314,8 +1535,36 @@
    "lines": [
     [
      "*",
-     "The door opens."
+     "The door opens. A bag of crisps comes in first."
     ],
+    [
+     "duskie",
+     "Hey, you two."
+    ],
+    [
+     "nova",
+     "The crisps are talking."
+    ],
+    [
+     "iggy",
+     "Hi, Duskie."
+    ]
+   ]
+  },
+  {
+   "id": "duskie-arrives-an-hour",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "duskie"
+   ],
+   "lines": [
     [
      "duskie",
      "Hey, you two. Miss me?"
@@ -323,11 +1572,111 @@
     [
      "iggy",
      "You left an hour ago."
+    ],
+    [
+     "duskie",
+     "And yet."
+    ],
+    [
+     "nova",
+     "We did miss you a bit."
     ]
    ]
   },
   {
-   "id": "seed-leave-duskie",
+   "id": "duskie-arrives-sunset",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "duskie"
+   ],
+   "lines": [
+    [
+     "duskie",
+     "Hey, you two. I followed the sunset. It led here."
+    ],
+    [
+     "nova",
+     "It always leads here."
+    ],
+    [
+     "duskie",
+     "Smart sunset."
+    ]
+   ]
+  },
+  {
+   "id": "trio-nova-home-mugs",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "nova"
+   ],
+   "lines": [
+    [
+     "nova",
+     "I'm home. Why are there three mugs out?"
+    ],
+    [
+     "duskie",
+     "Hey, you. I made tea."
+    ],
+    [
+     "iggy",
+     "Duskie's been here since lunch."
+    ],
+    [
+     "nova",
+     "Perfect. Mine's the big one."
+    ]
+   ]
+  },
+  {
+   "id": "trio-iggy-home-crate",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "iggy"
+   ],
+   "lines": [
+    [
+     "iggy",
+     "Back. Who moved the milk crate?"
+    ],
+    [
+     "duskie",
+     "Me. I needed a footrest."
+    ],
+    [
+     "nova",
+     "I told him it's sacred."
+    ],
+    [
+     "iggy",
+     "It's a crate. ...It's sacred."
+    ]
+   ]
+  },
+  {
+   "id": "duskie-leaves-golden",
    "who": [
     "duskie",
     "iggy",
@@ -347,12 +1696,149 @@
     [
      "nova",
      "Bring back snacks."
+    ],
+    [
+     "iggy",
+     "Bring back the mug you took last time."
     ]
    ]
   },
   {
-   "id": "seed-rotated-duo",
+   "id": "duskie-leaves-toothbrush",
    "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "duskie"
+   ],
+   "lines": [
+    [
+     "duskie",
+     "Okay, heading home for a bit."
+    ],
+    [
+     "iggy",
+     "Your toothbrush is staying?"
+    ],
+    [
+     "duskie",
+     "My toothbrush lives here now. I'm just visiting it."
+    ]
+   ]
+  },
+  {
+   "id": "duskie-leaves-tail",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "duskie"
+   ],
+   "lines": [
+    [
+     "duskie",
+     "Right, off I go."
+    ],
+    [
+     "*",
+     "Group hug by the door. It lasts a while."
+    ],
+    [
+     "nova",
+     "You can go any time."
+    ],
+    [
+     "duskie",
+     "You're holding my tail."
+    ],
+    [
+     "nova",
+     "Coincidence."
+    ]
+   ]
+  },
+  {
+   "id": "trio-nova-off-medium-fun",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "nova"
+   ],
+   "lines": [
+    [
+     "nova",
+     "Off to work. Don't have fun without me."
+    ],
+    [
+     "duskie",
+     "We'll have a little fun."
+    ],
+    [
+     "iggy",
+     "Medium fun."
+    ],
+    [
+     "nova",
+     "I'll allow medium."
+    ]
+   ]
+  },
+  {
+   "id": "trio-iggy-off-touch-nothing",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "iggy"
+   ],
+   "lines": [
+    [
+     "iggy",
+     "Going to the shops. Nobody touch the stove."
+    ],
+    [
+     "duskie",
+     "What about the toaster?"
+    ],
+    [
+     "iggy",
+     "Nobody touch anything."
+    ],
+    [
+     "nova",
+     "Can we touch each other's snacks?"
+    ],
+    [
+     "iggy",
+     "...Yes. Bye."
+    ]
+   ]
+  },
+  {
+   "id": "trio-rotated-opinions",
+   "who": [
+    "duskie",
     "iggy",
     "nova"
    ],
@@ -362,21 +1848,26 @@
    "lines": [
     [
      "nova",
-     "New rotation. Fresh games, dispensed as written."
+     "New rotation. Three of us, three opinions."
+    ],
+    [
+     "duskie",
+     "Four. I changed mine halfway."
     ],
     [
      "iggy",
-     "You pressed one button."
+     "Final lineup's fine. Nobody's crying."
     ],
     [
      "nova",
-     "With precision."
+     "Yet."
     ]
    ]
   },
   {
-   "id": "seed-synced-duo",
+   "id": "trio-synced-progress-bar",
    "who": [
+    "duskie",
     "iggy",
     "nova"
    ],
@@ -385,18 +1876,27 @@
    "weight": 1,
    "lines": [
     [
-     "iggy",
-     "Card {card} is done copying."
+     "duskie",
+     "Card {card} is ready! I watched the whole bar."
     ],
     [
      "nova",
-     "Label it. Take with food."
+     "Riveting, wasn't it?"
+    ],
+    [
+     "duskie",
+     "Edge of my seat."
+    ],
+    [
+     "iggy",
+     "He's not joking. He clapped."
     ]
    ]
   },
   {
-   "id": "seed-due-duo",
+   "id": "trio-due-shuffle",
    "who": [
+    "duskie",
     "iggy",
     "nova"
    ],
@@ -405,18 +1905,23 @@
    "weight": 1,
    "lines": [
     [
-     "iggy",
-     "The rotation timer ran out."
+     "duskie",
+     "Rotation's due, right? I'm staying for the shuffle."
     ],
     [
-     "nova",
-     "I noticed. I was going to mention it after this sandwich."
+     "iggy",
+     "You'd stay for anything."
+    ],
+    [
+     "duskie",
+     "True. But especially a shuffle."
     ]
    ]
   },
   {
-   "id": "seed-night-duo",
+   "id": "trio-night-thursday",
    "who": [
+    "duskie",
     "iggy",
     "nova"
    ],
@@ -425,12 +1930,2114 @@
    "weight": 1,
    "lines": [
     [
-     "nova",
-     "It's late. One more level."
+     "duskie",
+     "Okay, I'll head home."
     ],
     [
      "iggy",
-     "That's what you said at ten."
+     "It's two in the morning."
+    ],
+    [
+     "nova",
+     "Spare blanket's in the cupboard."
+    ],
+    [
+     "duskie",
+     "...I'll head home tomorrow."
+    ],
+    [
+     "iggy",
+     "You'll head home Thursday."
+    ]
+   ]
+  },
+  {
+   "id": "trio-night-pillow-fort",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "night",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "*",
+     "A pillow fort holds three. Barely."
+    ],
+    [
+     "nova",
+     "This is structurally unsound."
+    ],
+    [
+     "duskie",
+     "It's emotionally sound."
+    ],
+    [
+     "iggy",
+     "Somebody's knee is in my back."
+    ],
+    [
+     "nova",
+     "That's love."
+    ]
+   ]
+  },
+  {
+   "id": "trio-morning-pancakes",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "morning",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Pancakes. Three each."
+    ],
+    [
+     "duskie",
+     "Morning! I counted. Nova's got four."
+    ],
+    [
+     "nova",
+     "I count by fives. Four is just on the way to five."
+    ]
+   ]
+  },
+  {
+   "id": "trio-double-dash",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "game:mario-kart-double-dash",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "{game}! Who's in my kart?"
+    ],
+    [
+     "nova",
+     "Iggy and I are a team. Two per kart."
+    ],
+    [
+     "duskie",
+     "Then I'm racing you both. With bananas."
+    ],
+    [
+     "iggy",
+     "Bring it."
+    ]
+   ]
+  },
+  {
+   "id": "trio-soulcalibur-winner-stays",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "game:soulcalibur-ii",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "{game}. Winner stays on."
+    ],
+    [
+     "duskie",
+     "Then I'm on forever."
+    ],
+    [
+     "*",
+     "Iggy wins nine in a row without changing expression."
+    ],
+    [
+     "duskie",
+     "...I'll make snacks."
+    ]
+   ]
+  },
+  {
+   "id": "trio-party-rules",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "tag:party",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "{game}. Three players. Rule one: no stealing stars."
+    ],
+    [
+     "duskie",
+     "What about coins?"
+    ],
+    [
+     "nova",
+     "What about snacks?"
+    ],
+    [
+     "iggy",
+     "Snacks are communal."
+    ],
+    [
+     "nova",
+     "Best rule I've ever heard."
+    ]
+   ]
+  },
+  {
+   "id": "dn-sunset-bundle",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Stars are better than sunsets."
+    ],
+    [
+     "duskie",
+     "Sunsets come with the stars included. It's a bundle."
+    ],
+    [
+     "nova",
+     "...That's annoyingly good."
+    ]
+   ]
+  },
+  {
+   "id": "dn-which-snacks",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "What's in the bag?"
+    ],
+    [
+     "duskie",
+     "Snacks."
+    ],
+    [
+     "nova",
+     "Which snacks?"
+    ],
+    [
+     "duskie",
+     "Yes."
+    ],
+    [
+     "nova",
+     "You're my favourite guest."
+    ]
+   ]
+  },
+  {
+   "id": "dn-in-charge",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Where's Iggy?"
+    ],
+    [
+     "nova",
+     "Out. I'm in charge."
+    ],
+    [
+     "duskie",
+     "Should I be worried?"
+    ],
+    [
+     "nova",
+     "I've only burnt one thing. It was toast. It was going to happen anyway."
+    ]
+   ]
+  },
+  {
+   "id": "dn-duskie-arrives-warm-side",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "duskie"
+   ],
+   "lines": [
+    [
+     "duskie",
+     "Hey, you. Iggy out?"
+    ],
+    [
+     "nova",
+     "Shops. You can have Iggy's side of the couch."
+    ],
+    [
+     "duskie",
+     "Warm already. Nice."
+    ]
+   ]
+  },
+  {
+   "id": "dn-duskie-arrives-two",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "duskie"
+   ],
+   "lines": [
+    [
+     "*",
+     "Duskie arrives holding two grilled cheese sandwiches."
+    ],
+    [
+     "nova",
+     "I've never been happier to see anyone."
+    ],
+    [
+     "duskie",
+     "I know. That's why I brought two."
+    ]
+   ]
+  },
+  {
+   "id": "dn-nova-arrives-key",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "nova"
+   ],
+   "lines": [
+    [
+     "nova",
+     "I'm home. Oh, hi, Duskie."
+    ],
+    [
+     "duskie",
+     "Hey. I let myself in. Made tea."
+    ],
+    [
+     "nova",
+     "You have a key?"
+    ],
+    [
+     "duskie",
+     "I have a key now."
+    ]
+   ]
+  },
+  {
+   "id": "dn-duskie-leaves-crisps",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "duskie"
+   ],
+   "lines": [
+    [
+     "duskie",
+     "Heading off. Tell Iggy I said hi."
+    ],
+    [
+     "nova",
+     "I'll tell Iggy you ate all the crisps."
+    ],
+    [
+     "duskie",
+     "That's also true."
+    ]
+   ]
+  },
+  {
+   "id": "dn-duskie-leaves-road",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "duskie"
+   ],
+   "lines": [
+    [
+     "duskie",
+     "Got to go. Sunset waits for no jackal."
+    ],
+    [
+     "nova",
+     "Take a sandwich for the road."
+    ],
+    [
+     "duskie",
+     "Took two already."
+    ]
+   ]
+  },
+  {
+   "id": "dn-nova-leaves-guard",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "nova"
+   ],
+   "lines": [
+    [
+     "nova",
+     "I've got a shift. You'll be okay here?"
+    ],
+    [
+     "duskie",
+     "I'll guard the couch."
+    ],
+    [
+     "nova",
+     "From what?"
+    ],
+    [
+     "duskie",
+     "From being empty."
+    ]
+   ]
+  },
+  {
+   "id": "dn-rotated-bespoke",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "rotated",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Nice picks."
+    ],
+    [
+     "nova",
+     "I compounded this season myself. Bespoke."
+    ],
+    [
+     "duskie",
+     "You picked the ones with food in them."
+    ],
+    [
+     "nova",
+     "Bespoke."
+    ]
+   ]
+  },
+  {
+   "id": "dn-synced-quality",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "synced",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Card {card}. Filled, checked, labelled."
+    ],
+    [
+     "duskie",
+     "You put a star sticker on it."
+    ],
+    [
+     "nova",
+     "Quality control."
+    ]
+   ]
+  },
+  {
+   "id": "dn-due-opinions",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "due",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Cards look ready for a change."
+    ],
+    [
+     "nova",
+     "Rotation's due. I'll wait for Iggy. Iggy has opinions."
+    ],
+    [
+     "duskie",
+     "You have opinions."
+    ],
+    [
+     "nova",
+     "Mine are louder. Iggy's are correct."
+    ]
+   ]
+  },
+  {
+   "id": "dn-night-dishes",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "night",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "It's late. Iggy back soon?"
+    ],
+    [
+     "nova",
+     "Probably. Want to surprise Iggy and do the dishes?"
+    ],
+    [
+     "duskie",
+     "Wow. Romantic. For you two."
+    ],
+    [
+     "nova",
+     "I'll dry. You wash."
+    ]
+   ]
+  },
+  {
+   "id": "dn-morning-couch",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "morning",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Morning. Did you sleep on the couch again?"
+    ],
+    [
+     "duskie",
+     "The couch and I have an arrangement."
+    ],
+    [
+     "nova",
+     "It's my couch."
+    ],
+    [
+     "duskie",
+     "It's our couch now. It told me."
+    ]
+   ]
+  },
+  {
+   "id": "dn-animal-crossing-sunset",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "game:animal-crossing",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "{game} at sunset is the best version."
+    ],
+    [
+     "nova",
+     "Everything's the best version at sunset with you around."
+    ],
+    [
+     "duskie",
+     "I know. It's my whole brand."
+    ]
+   ]
+  },
+  {
+   "id": "dn-horror-blanket",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "tag:horror",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "{game}? You first."
+    ],
+    [
+     "duskie",
+     "I'll play. You hold the blanket."
+    ],
+    [
+     "nova",
+     "I'll hold the blanket over my head."
+    ],
+    [
+     "duskie",
+     "That's not how holding works."
+    ]
+   ]
+  },
+  {
+   "id": "di-loud-game",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Where's Nova?"
+    ],
+    [
+     "iggy",
+     "Out. It's peaceful."
+    ],
+    [
+     "duskie",
+     "Want to play something loud to make up for it?"
+    ],
+    [
+     "iggy",
+     "...Yes."
+    ]
+   ]
+  },
+  {
+   "id": "di-film-the-chef",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Hold this."
+    ],
+    [
+     "duskie",
+     "The camcorder?"
+    ],
+    [
+     "iggy",
+     "I want one shot of me cooking. Nova never films me."
+    ],
+    [
+     "duskie",
+     "Rolling. You look great. Very chef."
+    ]
+   ]
+  },
+  {
+   "id": "di-better-crate",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "I brought you something."
+    ],
+    [
+     "iggy",
+     "Is it crisps?"
+    ],
+    [
+     "duskie",
+     "It's a milk crate. A nicer one."
+    ],
+    [
+     "iggy",
+     "...I'm keeping both."
+    ]
+   ]
+  },
+  {
+   "id": "di-duskie-arrives-company",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "duskie"
+   ],
+   "lines": [
+    [
+     "duskie",
+     "Hey. Just you?"
+    ],
+    [
+     "iggy",
+     "Just me. Nova's at work."
+    ],
+    [
+     "duskie",
+     "Then I'll keep you company. And the fridge."
+    ]
+   ]
+  },
+  {
+   "id": "di-duskie-arrives-knock",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "duskie"
+   ],
+   "lines": [
+    [
+     "*",
+     "Duskie knocks. Iggy opens the door before the second knock."
+    ],
+    [
+     "duskie",
+     "How'd you know it was me?"
+    ],
+    [
+     "iggy",
+     "I heard the crisps."
+    ]
+   ]
+  },
+  {
+   "id": "di-iggy-arrives-kettle",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "iggy"
+   ],
+   "lines": [
+    [
+     "iggy",
+     "I'm back. Why's the kettle warm?"
+    ],
+    [
+     "duskie",
+     "Hey. Made you tea. Figured you'd be home soon."
+    ],
+    [
+     "iggy",
+     "...Thanks. That's nice."
+    ]
+   ]
+  },
+  {
+   "id": "di-duskie-leaves-milk",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "duskie"
+   ],
+   "lines": [
+    [
+     "duskie",
+     "Off for a bit. Need anything?"
+    ],
+    [
+     "iggy",
+     "Milk. And come back."
+    ],
+    [
+     "duskie",
+     "Always do."
+    ]
+   ]
+  },
+  {
+   "id": "di-duskie-leaves-leftovers",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "duskie"
+   ],
+   "lines": [
+    [
+     "duskie",
+     "Heading out. Tell Nova I said hi."
+    ],
+    [
+     "iggy",
+     "Take the leftovers. Please. Nova eats them in his sleep."
+    ],
+    [
+     "duskie",
+     "Saving him from himself. On it."
+    ]
+   ]
+  },
+  {
+   "id": "di-iggy-leaves-soup",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "iggy"
+   ],
+   "lines": [
+    [
+     "iggy",
+     "Shops. Watch the soup."
+    ],
+    [
+     "duskie",
+     "Watch it do what?"
+    ],
+    [
+     "iggy",
+     "Anything. Call me if it does."
+    ]
+   ]
+  },
+  {
+   "id": "di-rotated-accounted",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "rotated",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Rotation's done."
+    ],
+    [
+     "duskie",
+     "Nova's going to complain about one of them."
+    ],
+    [
+     "iggy",
+     "Already accounted for."
+    ]
+   ]
+  },
+  {
+   "id": "di-synced-no-sticker",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "synced",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Card {card}'s ready."
+    ],
+    [
+     "duskie",
+     "No star sticker?"
+    ],
+    [
+     "iggy",
+     "That's Nova's thing. I'm leaving it off out of respect."
+    ]
+   ]
+  },
+  {
+   "id": "di-due-ceremony",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "due",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Rotation's due, I think."
+    ],
+    [
+     "iggy",
+     "Wait for Nova. He likes the ceremony."
+    ],
+    [
+     "duskie",
+     "There's a ceremony?"
+    ],
+    [
+     "iggy",
+     "There's a speech. It's short. It's not short."
+    ]
+   ]
+  },
+  {
+   "id": "di-night-late-shift",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "night",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Can't sleep?"
+    ],
+    [
+     "iggy",
+     "Nova's on a late shift. House is weird without him."
+    ],
+    [
+     "duskie",
+     "Want company?"
+    ],
+    [
+     "iggy",
+     "...Yeah."
+    ],
+    [
+     "*",
+     "Duskie sits beside Iggy, shoulder to shoulder."
+    ]
+   ]
+  },
+  {
+   "id": "di-morning-saving-nothing",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "morning",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Breakfast."
+    ],
+    [
+     "duskie",
+     "You made enough for three."
+    ],
+    [
+     "iggy",
+     "Habit. Nova's home at nine."
+    ],
+    [
+     "duskie",
+     "Then I'm saving him nothing."
+    ]
+   ]
+  },
+  {
+   "id": "di-chibi-robo",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "game:chibi-robo",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "{game}! He's so tiny."
+    ],
+    [
+     "iggy",
+     "He does chores. Nova should watch."
+    ],
+    [
+     "duskie",
+     "I'll film Nova watching."
+    ],
+    [
+     "iggy",
+     "Good. You're learning."
+    ]
+   ]
+  },
+  {
+   "id": "di-cozy-sunbeam",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "tag:cozy",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "{game}. Tea?"
+    ],
+    [
+     "duskie",
+     "Tea. Blanket. Sunbeam."
+    ],
+    [
+     "iggy",
+     "It's raining."
+    ],
+    [
+     "duskie",
+     "I'm the sunbeam."
+    ]
+   ]
+  },
+  {
+   "id": "nova-alone-quiet",
+   "who": [
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "The house is quiet. Suspiciously quiet."
+    ],
+    [
+     "nova",
+     "With nobody filming, nothing I do right now counts."
+    ],
+    [
+     "*",
+     "Nova eats a slice of cheese straight from the packet."
+    ]
+   ]
+  },
+  {
+   "id": "nova-alone-crate",
+   "who": [
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Iggy's out. The milk crate is unguarded."
+    ],
+    [
+     "*",
+     "Nova stands on it. Looks around. Gets down again."
+    ],
+    [
+     "nova",
+     "It's not the same without someone telling me to get down."
+    ]
+   ]
+  },
+  {
+   "id": "nova-alone-two-cubes",
+   "who": [
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Alone with the GameCube. Just two cubes, talking."
+    ],
+    [
+     "nova",
+     "...It's not talking back. Tough cube."
+    ]
+   ]
+  },
+  {
+   "id": "nova-alone-count",
+   "who": [
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Note to self: count the snacks."
+    ],
+    [
+     "nova",
+     "Second note to self: eat the snacks first. Fewer to count."
+    ]
+   ]
+  },
+  {
+   "id": "nova-alone-night",
+   "who": [
+    "nova"
+   ],
+   "when": "night",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Midnight. House to myself. The kitchen is mine."
+    ],
+    [
+     "*",
+     "The camcorder on the shelf stares at him. Its light is off."
+    ],
+    [
+     "nova",
+     "...I don't trust it."
+    ]
+   ]
+  },
+  {
+   "id": "nova-alone-morning",
+   "who": [
+    "nova"
+   ],
+   "when": "morning",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Morning. No tea made. That means I have to make tea."
+    ],
+    [
+     "nova",
+     "Step one: kettle. I'll nap after step one."
+    ]
+   ]
+  },
+  {
+   "id": "nova-alone-arrives",
+   "who": [
+    "nova"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Home. Hello? ...Nobody."
+    ],
+    [
+     "nova",
+     "Fine. More grilled cheese for me."
+    ]
+   ]
+  },
+  {
+   "id": "nova-alone-leaves",
+   "who": [
+    "nova"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Off to work. Bye, GameCube. Bye, couch. Bye, sandwich I can't take with me."
+    ],
+    [
+     "*",
+     "He takes the sandwich with him."
+    ]
+   ]
+  },
+  {
+   "id": "nova-alone-rotated",
+   "who": [
+    "nova"
+   ],
+   "when": "rotated",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "New rotation, and nobody here to admire it."
+    ],
+    [
+     "nova",
+     "I'll admire it for both of us. Lovely. Very well compounded."
+    ]
+   ]
+  },
+  {
+   "id": "nova-alone-synced",
+   "who": [
+    "nova"
+   ],
+   "when": "synced",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Card {card} is ready. I checked it three times."
+    ],
+    [
+     "nova",
+     "Nobody's watching, so I'll check it a fourth time. Purely recreational."
+    ]
+   ]
+  },
+  {
+   "id": "iggy-alone-too-nice",
+   "who": [
+    "iggy"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Quiet. Nice."
+    ],
+    [
+     "iggy",
+     "...Too nice. I'll go wake Nova up. Oh. He's out."
+    ]
+   ]
+  },
+  {
+   "id": "iggy-alone-tapes",
+   "who": [
+    "iggy"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "*",
+     "Iggy plays back old camcorder tapes."
+    ],
+    [
+     "iggy",
+     "Nova falling off the beanbag. Nova falling off the couch. Nova falling off the beanbag again."
+    ],
+    [
+     "iggy",
+     "Classic."
+    ]
+   ]
+  },
+  {
+   "id": "iggy-alone-cooking-for-one",
+   "who": [
+    "iggy"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Cooking for one. Weird."
+    ],
+    [
+     "iggy",
+     "Made enough for three anyway. Habit."
+    ]
+   ]
+  },
+  {
+   "id": "iggy-alone-no-requests",
+   "who": [
+    "iggy"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Nobody's asked for a snack in ten minutes."
+    ],
+    [
+     "iggy",
+     "I miss it. Don't tell anyone."
+    ]
+   ]
+  },
+  {
+   "id": "iggy-alone-porch-light",
+   "who": [
+    "iggy"
+   ],
+   "when": "night",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Late. Nova's shift ends soon."
+    ],
+    [
+     "*",
+     "Iggy leaves the porch light on and the soup on low."
+    ]
+   ]
+  },
+  {
+   "id": "iggy-alone-two-mugs",
+   "who": [
+    "iggy"
+   ],
+   "when": "morning",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Morning. One mug."
+    ],
+    [
+     "iggy",
+     "...Two mugs. He'll be home."
+    ]
+   ]
+  },
+  {
+   "id": "iggy-alone-arrives",
+   "who": [
+    "iggy"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Back. Nobody's home."
+    ],
+    [
+     "iggy",
+     "Good. Time to hide the good cheese."
+    ]
+   ]
+  },
+  {
+   "id": "iggy-alone-leaves",
+   "who": [
+    "iggy"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Heading out. Lights off. Stove off. Camcorder on."
+    ],
+    [
+     "iggy",
+     "Just in case something happens."
+    ]
+   ]
+  },
+  {
+   "id": "iggy-alone-rotated",
+   "who": [
+    "iggy"
+   ],
+   "when": "rotated",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Rotated. Nice mix."
+    ],
+    [
+     "iggy",
+     "Nova's going to want a speech. I'll write him notes."
+    ]
+   ]
+  },
+  {
+   "id": "iggy-alone-due",
+   "who": [
+    "iggy"
+   ],
+   "when": "due",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Rotation's due."
+    ],
+    [
+     "iggy",
+     "I'll wait. Nova likes doing it together."
+    ]
+   ]
+  },
+  {
+   "id": "duskie-alone-sitting",
+   "who": [
+    "duskie"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Huh. Just me. House-sitting, I guess."
+    ],
+    [
+     "duskie",
+     "Well, snack-sitting. Same thing."
+    ]
+   ]
+  },
+  {
+   "id": "duskie-alone-in-charge",
+   "who": [
+    "duskie"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "They left me in charge. Big mistake. Huge fun."
+    ],
+    [
+     "*",
+     "Duskie opens a bag of crisps. Then another."
+    ]
+   ]
+  },
+  {
+   "id": "duskie-alone-tidy",
+   "who": [
+    "duskie"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Should I tidy up before they get back?"
+    ],
+    [
+     "duskie",
+     "...I'll tidy the snacks. Into me."
+    ]
+   ]
+  },
+  {
+   "id": "duskie-alone-arrives",
+   "who": [
+    "duskie"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Hey, you two! ...Oh. Nobody's in."
+    ],
+    [
+     "duskie",
+     "I'll wait. I'm very good at waiting. On the couch."
+    ]
+   ]
+  },
+  {
+   "id": "duskie-alone-leaves",
+   "who": [
+    "duskie"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Left a note on the fridge, and a bag of crisps. The note says \"for Nova\". The crisps say \"for Iggy\"."
+    ],
+    [
+     "duskie",
+     "Golden hour, here I come."
+    ]
+   ]
+  },
+  {
+   "id": "duskie-alone-night",
+   "who": [
+    "duskie"
+   ],
+   "when": "night",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Late, quiet, and I'm on the couch again."
+    ],
+    [
+     "duskie",
+     "The couch and I really are in a committed relationship."
+    ]
+   ]
+  },
+  {
+   "id": "pickle-walks-in",
+   "who": [
+    "nova",
+    "pickle"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "pickle",
+     "Hello. I let myself in. The door is a rectangle. I respect that."
+    ],
+    [
+     "nova",
+     "Pickle. Bad day?"
+    ],
+    [
+     "pickle",
+     "They are putting me in a pickle at work tomorrow."
+    ],
+    [
+     "nova",
+     "Have a grilled cheese."
+    ],
+    [
+     "pickle",
+     "Thank you. This is the best part of my week."
+    ]
+   ]
+  },
+  {
+   "id": "pickle-beaming",
+   "who": [
+    "iggy",
+    "nova",
+    "pickle"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Pickle, want tea?"
+    ],
+    [
+     "pickle",
+     "Yes. My face will not show it. But yes."
+    ],
+    [
+     "nova",
+     "He's beaming. I can tell. Look at those facets."
+    ]
+   ]
+  },
+  {
+   "id": "pickle-meeting",
+   "who": [
+    "iggy",
+    "pickle"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "pickle",
+     "I have a meeting about the meeting."
+    ],
+    [
+     "iggy",
+     "Skip it."
+    ],
+    [
+     "pickle",
+     "I cannot. It is mandatory. Like gravity."
+    ],
+    [
+     "iggy",
+     "Then have soup first."
+    ],
+    [
+     "pickle",
+     "That I can do."
+    ]
+   ]
+  },
+  {
+   "id": "vesper-good-evening",
+   "who": [
+    "nova",
+    "vesper"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "vesper",
+     "Good EVENING."
+    ],
+    [
+     "nova",
+     "Evening, Vesper. Nice cape."
+    ],
+    [
+     "vesper",
+     "It is ALWAYS a nice cape. Is there a horror game? I wish to be terrified."
+    ],
+    [
+     "nova",
+     "Blanket's on the couch."
+    ]
+   ]
+  },
+  {
+   "id": "vesper-the-hunt",
+   "who": [
+    "iggy",
+    "nova",
+    "vesper"
+   ],
+   "when": "night",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "vesper",
+     "I have come for the HUNT."
+    ],
+    [
+     "iggy",
+     "Crisps are in the cupboard."
+    ],
+    [
+     "vesper",
+     "Yes. The hunt."
+    ],
+    [
+     "*",
+     "Vesper returns with the crisps, cape swirling."
+    ],
+    [
+     "nova",
+     "Very stealthy. We heard every rustle."
+    ]
+   ]
+  },
+  {
+   "id": "vesper-behind-the-cushion",
+   "who": [
+    "iggy",
+    "vesper"
+   ],
+   "when": "night",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Want to play the horror one?"
+    ],
+    [
+     "vesper",
+     "More than ANYTHING. I will be behind the cushion for all of it."
+    ],
+    [
+     "iggy",
+     "You won't see anything."
+    ],
+    [
+     "vesper",
+     "I will HEAR it. That is terrifying enough."
+    ]
+   ]
+  },
+  {
+   "id": "tuft-sorry-chair",
+   "who": [
+    "iggy",
+    "nova",
+    "tuft"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "tuft",
+     "Um. Hi. The door was open... sort of..."
+    ],
+    [
+     "iggy",
+     "Come in. There's tea."
+    ],
+    [
+     "tuft",
+     "Oh... thank you... sorry, chair..."
+    ],
+    [
+     "nova",
+     "Did you just apologise to the chair?"
+    ],
+    [
+     "tuft",
+     "It looked... startled..."
+    ]
+   ]
+  },
+  {
+   "id": "tuft-second-controller",
+   "who": [
+    "iggy",
+    "tuft"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "tuft",
+     "Is there... a cozy game on...?"
+    ],
+    [
+     "iggy",
+     "Animal Crossing. Second controller's yours."
+    ],
+    [
+     "tuft",
+     "Oh... I'll just watch... for a bit... and then maybe..."
+    ],
+    [
+     "*",
+     "Ten minutes later, Tuft is holding the controller and humming."
+    ]
+   ]
+  },
+  {
+   "id": "hazel-inventory",
+   "who": [
+    "hazel",
+    "nova"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "hazel",
+     "Hi! Inventory! How many free blocks have you got?"
+    ],
+    [
+     "nova",
+     "On which card?"
+    ],
+    [
+     "hazel",
+     "All of them! For winter!"
+    ],
+    [
+     "nova",
+     "It's not winter."
+    ],
+    [
+     "hazel",
+     "It's always nearly winter!"
+    ]
+   ]
+  },
+  {
+   "id": "hazel-two-of-them",
+   "who": [
+    "hazel",
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "hazel",
+     "Fifty-nine blocks per card! I've counted yours twice!"
+    ],
+    [
+     "nova",
+     "So have I. Professional habit."
+    ],
+    [
+     "hazel",
+     "Finally! Someone who understands!"
+    ],
+    [
+     "iggy",
+     "Oh no. There are two of them."
+    ]
+   ]
+  },
+  {
+   "id": "sprout-repotting",
+   "who": [
+    "iggy",
+    "sprout"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "sprout",
+     "Hello! Is it time for repotting?"
+    ],
+    [
+     "iggy",
+     "You mean the rotation?"
+    ],
+    [
+     "sprout",
+     "The games need fresh soil! New cards! More light!"
+    ],
+    [
+     "iggy",
+     "...Sure. Tea first."
+    ]
+   ]
+  },
+  {
+   "id": "sprout-drawer",
+   "who": [
+    "nova",
+    "sprout"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "sprout",
+     "Are your games getting enough light?"
+    ],
+    [
+     "nova",
+     "They live in a drawer."
+    ],
+    [
+     "sprout",
+     "Oh no. Oh no no. Open the drawer a little. Just a little."
+    ],
+    [
+     "*",
+     "Nova opens the drawer a crack. Sprout carefully waters the air above it."
+    ]
+   ]
+  },
+  {
+   "id": "stilts-counting-ears",
+   "who": [
+    "nova",
+    "stilts"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "stilts",
+     "Pardon me. Mind the doorframe. Mostly mine."
+    ],
+    [
+     "nova",
+     "Stilts. Still not taller than me."
+    ],
+    [
+     "stilts",
+     "I'm a full head taller, Nova."
+    ],
+    [
+     "nova",
+     "Counting ears, I'm taller."
+    ],
+    [
+     "stilts",
+     "...Pardon, but ears don't count."
+    ]
+   ]
+  },
+  {
+   "id": "stilts-top-shelf",
+   "who": [
+    "iggy",
+    "nova",
+    "stilts"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Stilts, can you reach the top shelf?"
+    ],
+    [
+     "stilts",
+     "Of course. Pardon me."
+    ],
+    [
+     "nova",
+     "I could reach that."
+    ],
+    [
+     "iggy",
+     "With a chair."
+    ],
+    [
+     "nova",
+     "With dignity."
+    ],
+    [
+     "stilts",
+     "Pardon, but you did ask the tall one."
+    ]
+   ]
+  },
+  {
+   "id": "flurry-radiator",
+   "who": [
+    "flurry",
+    "iggy"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "flurry",
+     "...Hi. Brought the cold in. Sorry."
+    ],
+    [
+     "iggy",
+     "Radiator's free."
+    ],
+    [
+     "flurry",
+     "...Good."
+    ],
+    [
+     "*",
+     "Flurry curls up by the radiator, tail tucked under her chin."
+    ]
+   ]
+  },
+  {
+   "id": "flurry-mm",
+   "who": [
+    "flurry",
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Flurry, want to play something?"
+    ],
+    [
+     "flurry",
+     "...Mm."
+    ],
+    [
+     "nova",
+     "Is that a yes?"
+    ],
+    [
+     "flurry",
+     "...It's a mm."
+    ],
+    [
+     "iggy",
+     "She's holding her tail. Pick something gentle."
+    ]
+   ]
+  },
+  {
+   "id": "refills-early",
+   "who": [
+    "iggy",
+    "nova",
+    "refills"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "refills",
+     "Refill."
+    ],
+    [
+     "nova",
+     "You're early."
+    ],
+    [
+     "refills",
+     "Due."
+    ],
+    [
+     "iggy",
+     "They're not wrong."
+    ],
+    [
+     "refills",
+     "Seeds."
+    ]
+   ]
+  },
+  {
+   "id": "refills-report",
+   "who": [
+    "nova",
+    "refills"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Hello, Refills. Anything to report?"
+    ],
+    [
+     "refills",
+     "Sync."
+    ],
+    [
+     "nova",
+     "Done already."
+    ],
+    [
+     "refills",
+     "Refill."
+    ],
+    [
+     "nova",
+     "Unlimited. Help yourselves."
     ]
    ]
   }

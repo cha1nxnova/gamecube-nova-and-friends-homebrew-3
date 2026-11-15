@@ -571,6 +571,9 @@ def render(scene, width, height, ss=3):
         radius = max(1, int(round(scene.outline.width * ss)))
         _outline_pass(ib, W, H, radius, lut, scene.outline)
     pixels = _resolve(ib, lut, W, H, ss, width, height)
-    if scene.shadow is not None and scene.shadow.opacity > 0:
-        _shadow_pass(pixels, width, height, scene.camera, scene.shadow)
+    # ``scene.shadow`` is one Shadow or (for group shots) a list/tuple of them
+    shadows = scene.shadow if isinstance(scene.shadow, (list, tuple)) else [scene.shadow]
+    for shadow in shadows:
+        if shadow is not None and shadow.opacity > 0:
+            _shadow_pass(pixels, width, height, scene.camera, shadow)
     return Image(width, height, pixels)

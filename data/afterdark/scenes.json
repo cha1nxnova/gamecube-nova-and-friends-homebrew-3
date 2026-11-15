@@ -1,10 +1,9 @@
 {
  "version": 1,
- "_comment": "SEED After Dark scenes (engine placeholders, innuendo-level banter only); the writer replaces them. Loaded only while After Dark is unlocked. Every scene here is treated as rating afterdark.",
+ "_comment": "After Dark scenes: innuendo-level banter between the three adults only, nothing explicit. Loaded only while After Dark is unlocked; every scene here is rated afterdark.",
  "scenes": [
   {
-   "id": "seed-ad-apron",
-   "seed": true,
+   "id": "ad-apron-instructions",
    "who": [
     "iggy",
     "nova"
@@ -19,17 +18,300 @@
     ],
     [
      "iggy",
-     "It's an instruction. Not a suggestion."
+     "It's a suggestion."
     ],
     [
      "nova",
-     "Then I'm following the label directions."
+     "I'm a pharmacist. I follow instructions to the letter."
+    ],
+    [
+     "*",
+     "He does."
+    ],
+    [
+     "iggy",
+     "...The soup's burning."
+    ],
+    [
+     "nova",
+     "Worth it."
     ]
    ]
   },
   {
-   "id": "seed-ad-staring",
-   "seed": true,
+   "id": "ad-hoodie-finders-keepers",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "That's my hoodie."
+    ],
+    [
+     "nova",
+     "It was on the floor. Finders keepers."
+    ],
+    [
+     "iggy",
+     "It was on the floor because you dropped it on your way to steal my other hoodie."
+    ],
+    [
+     "nova",
+     "A collection should be complete."
+    ]
+   ]
+  },
+  {
+   "id": "ad-bed-adjacent",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "How's my bedside manner?"
+    ],
+    [
+     "iggy",
+     "You're in the bed. That's not bedside."
+    ],
+    [
+     "nova",
+     "Bed-adjacent manner, then."
+    ],
+    [
+     "iggy",
+     "Still five stars. Hush and lie down."
+    ]
+   ]
+  },
+  {
+   "id": "ad-glasses-off",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "*",
+     "Iggy takes off their glasses and sets them on the nightstand."
+    ],
+    [
+     "nova",
+     "Oh. It's that kind of evening."
+    ],
+    [
+     "iggy",
+     "It's a \"my eyes are tired\" kind of evening."
+    ],
+    [
+     "nova",
+     "Your eyes look very awake."
+    ],
+    [
+     "iggy",
+     "...Get the light."
+    ]
+   ]
+  },
+  {
+   "id": "ad-prn-kisses",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "I've worked out your dose. One kiss every six hours."
+    ],
+    [
+     "iggy",
+     "That's a terrible schedule."
+    ],
+    [
+     "nova",
+     "You're right. Far too sparse. Let's go PRN."
+    ],
+    [
+     "iggy",
+     "As needed."
+    ],
+    [
+     "nova",
+     "It's needed."
+    ]
+   ]
+  },
+  {
+   "id": "ad-battery-out",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Is the camcorder off?"
+    ],
+    [
+     "iggy",
+     "It's off."
+    ],
+    [
+     "nova",
+     "Is it really off?"
+    ],
+    [
+     "iggy",
+     "I took the battery out. I'm not filming this."
+    ],
+    [
+     "nova",
+     "Filming what? ...Oh. Oh."
+    ]
+   ]
+  },
+  {
+   "id": "ad-milk-crate-eye-level",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Get down here."
+    ],
+    [
+     "nova",
+     "Make me."
+    ],
+    [
+     "*",
+     "Iggy steps up onto the milk crate. Now they're nose to nose."
+    ],
+    [
+     "nova",
+     "...Okay, that's unfair."
+    ]
+   ]
+  },
+  {
+   "id": "ad-very-attached",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Wireless controller. Wireless serval. No strings attached."
+    ],
+    [
+     "iggy",
+     "Plenty of strings. You're very attached."
+    ],
+    [
+     "nova",
+     "Clingy is a strong word."
+    ],
+    [
+     "iggy",
+     "You're literally clinging to me."
+    ]
+   ]
+  },
+  {
+   "id": "ad-hotter-than",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "You know what's hotter than a grilled cheese?"
+    ],
+    [
+     "iggy",
+     "Don't."
+    ],
+    [
+     "nova",
+     "You."
+    ],
+    [
+     "iggy",
+     "That was so bad."
+    ],
+    [
+     "nova",
+     "You're smiling."
+    ],
+    [
+     "iggy",
+     "...I'm smiling."
+    ]
+   ]
+  },
+  {
+   "id": "ad-one-more-game",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "night",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "One more game?"
+    ],
+    [
+     "iggy",
+     "It's one in the morning."
+    ],
+    [
+     "nova",
+     "I wasn't talking about the GameCube."
+    ],
+    [
+     "iggy",
+     "...Bring the blanket."
+    ]
+   ]
+  },
+  {
+   "id": "ad-cold-feet",
    "who": [
     "iggy",
     "nova"
@@ -40,17 +322,244 @@
    "lines": [
     [
      "iggy",
-     "You're staring."
+     "Your feet are freezing."
     ],
     [
      "nova",
-     "I'm admiring. It's different. It has better lighting."
+     "Then you'll have to warm them up."
+    ],
+    [
+     "iggy",
+     "You're a menace."
+    ],
+    [
+     "nova",
+     "I'm your menace."
+    ],
+    [
+     "*",
+     "Iggy pulls him closer anyway."
     ]
    ]
   },
   {
-   "id": "seed-ad-a-minute",
-   "seed": true,
+   "id": "ad-side-effects",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "You only come in the kitchen to bother me."
+    ],
+    [
+     "nova",
+     "I come in to kiss the cook. Bother is a side effect."
+    ],
+    [
+     "iggy",
+     "Other side effects?"
+    ],
+    [
+     "nova",
+     "Swooning. Mild blushing. Burnt toast."
+    ]
+   ]
+  },
+  {
+   "id": "ad-tuesday-entry",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Did you just rate me five stars on the household chart?"
+    ],
+    [
+     "nova",
+     "I rated \"Iggy, Tuesday evening\" five stars. It's a separate entry."
+    ],
+    [
+     "iggy",
+     "There's a Monday entry."
+    ],
+    [
+     "nova",
+     "Also five stars. Monday was excellent."
+    ]
+   ]
+  },
+  {
+   "id": "ad-say-pup",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Come here, pup."
+    ],
+    [
+     "iggy",
+     "Don't call me pup."
+    ],
+    [
+     "nova",
+     "Come here, Iggy."
+    ],
+    [
+     "iggy",
+     "...That's worse. Say pup."
+    ]
+   ]
+  },
+  {
+   "id": "ad-tea-in-bed",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Tea in bed."
+    ],
+    [
+     "nova",
+     "You spoil me."
+    ],
+    [
+     "iggy",
+     "I want something."
+    ],
+    [
+     "nova",
+     "Name it."
+    ],
+    [
+     "iggy",
+     "Your side of the blanket."
+    ],
+    [
+     "nova",
+     "...Fine. Come in under it, then."
+    ]
+   ]
+  },
+  {
+   "id": "ad-compounding-a-mood",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "I'm compounding something special."
+    ],
+    [
+     "iggy",
+     "A potion?"
+    ],
+    [
+     "nova",
+     "A mood. Lights low, soup warm, you here."
+    ],
+    [
+     "iggy",
+     "That's not compounding. That's a date."
+    ],
+    [
+     "nova",
+     "Same skill set."
+    ]
+   ]
+  },
+  {
+   "id": "ad-wandering-hoodie",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "morning",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "You're wearing my hoodie again."
+    ],
+    [
+     "nova",
+     "It wandered over in the night."
+    ],
+    [
+     "iggy",
+     "Hoodies don't wander."
+    ],
+    [
+     "nova",
+     "This one's very affectionate. Like its owner."
+    ]
+   ]
+  },
+  {
+   "id": "ad-like-the-soup",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "It's hot in this kitchen."
+    ],
+    [
+     "iggy",
+     "The stove's on."
+    ],
+    [
+     "nova",
+     "Is that what it is?"
+    ],
+    [
+     "iggy",
+     "Hand me the ladle and stop looking at me like that."
+    ],
+    [
+     "nova",
+     "Like what?"
+    ],
+    [
+     "iggy",
+     "Like I'm the soup."
+    ]
+   ]
+  },
+  {
+   "id": "ad-middle-spoon",
    "who": [
     "duskie",
     "iggy",
@@ -62,15 +571,536 @@
    "lines": [
     [
      "duskie",
-     "Should I give you two a minute?"
-    ],
-    [
-     "iggy",
-     "Give us ten."
+     "Scoot. I'm the middle spoon tonight."
     ],
     [
      "nova",
-     "Five. I'm hungry."
+     "You were the middle spoon last night."
+    ],
+    [
+     "duskie",
+     "And I was excellent at it."
+    ],
+    [
+     "iggy",
+     "He was. Get in."
+    ]
+   ]
+  },
+  {
+   "id": "ad-get-a-room",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "You two could get a room."
+    ],
+    [
+     "iggy",
+     "We have a room."
+    ],
+    [
+     "nova",
+     "You've got a key to it."
+    ],
+    [
+     "duskie",
+     "...Fair point. Scoot over."
+    ]
+   ]
+  },
+  {
+   "id": "ad-whose-hand",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "*",
+     "Three on a two-seat couch, under one blanket."
+    ],
+    [
+     "duskie",
+     "Whose hand is that?"
+    ],
+    [
+     "nova",
+     "Mine."
+    ],
+    [
+     "iggy",
+     "Also mine."
+    ],
+    [
+     "duskie",
+     "Then I'm keeping both."
+    ]
+   ]
+  },
+  {
+   "id": "ad-hoodie-tax",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "night",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Why is everyone wearing my hoodies?"
+    ],
+    [
+     "nova",
+     "They're warm."
+    ],
+    [
+     "duskie",
+     "They smell nice."
+    ],
+    [
+     "iggy",
+     "...Fine. But I'm getting cuddled for it."
+    ]
+   ]
+  },
+  {
+   "id": "ad-toothbrush-metaphor",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Duskie, your toothbrush has moved into our cup."
+    ],
+    [
+     "duskie",
+     "It got lonely in the other cup."
+    ],
+    [
+     "iggy",
+     "Is that a metaphor?"
+    ],
+    [
+     "duskie",
+     "It's a toothbrush. ...Maybe a little bit a metaphor."
+    ]
+   ]
+  },
+  {
+   "id": "ad-golden-from-both-sides",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Golden hour. Best light in the house."
+    ],
+    [
+     "nova",
+     "Very flattering."
+    ],
+    [
+     "iggy",
+     "Come here, both of you, before it's gone."
+    ],
+    [
+     "*",
+     "A kiss on Duskie's cheek from each side. Duskie goes very, very golden."
+    ]
+   ]
+  },
+  {
+   "id": "ad-dn-distracting",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "You're staring."
+    ],
+    [
+     "nova",
+     "You're golden. It's distracting."
+    ],
+    [
+     "duskie",
+     "Iggy said the same thing yesterday."
+    ],
+    [
+     "nova",
+     "Iggy has excellent taste. We both do."
+    ]
+   ]
+  },
+  {
+   "id": "ad-dn-sharing",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Iggy's out. Want to share the blanket?"
+    ],
+    [
+     "duskie",
+     "Is that all you're sharing?"
+    ],
+    [
+     "nova",
+     "And the soup. Iggy made soup."
+    ],
+    [
+     "duskie",
+     "...I meant the soup."
+    ],
+    [
+     "nova",
+     "Sure you did."
+    ]
+   ]
+  },
+  {
+   "id": "ad-dn-holding-my-tail",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "night",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "It's late. I should go."
+    ],
+    [
+     "nova",
+     "You should. Absolutely."
+    ],
+    [
+     "duskie",
+     "You're holding my tail."
+    ],
+    [
+     "nova",
+     "Coincidence. Again."
+    ],
+    [
+     "duskie",
+     "...I'll stay till Iggy's back."
+    ]
+   ]
+  },
+  {
+   "id": "ad-dn-prescribed-nap",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "I prescribe you a nap. Here. On me."
+    ],
+    [
+     "duskie",
+     "Is that clinically indicated?"
+    ],
+    [
+     "nova",
+     "Very. The diagnosis is cozy."
+    ]
+   ]
+  },
+  {
+   "id": "ad-dn-crumbs",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "You've got crumbs on your chin."
+    ],
+    [
+     "nova",
+     "Get them for me?"
+    ],
+    [
+     "duskie",
+     "With a napkin."
+    ],
+    [
+     "nova",
+     "Boring."
+    ],
+    [
+     "duskie",
+     "...Fine. Without a napkin."
+    ]
+   ]
+  },
+  {
+   "id": "ad-dn-influence",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Do you know why they call it golden hour?"
+    ],
+    [
+     "duskie",
+     "Because I'm here?"
+    ],
+    [
+     "nova",
+     "Smug. I love it. That's my influence."
+    ],
+    [
+     "duskie",
+     "You're a terrible influence."
+    ],
+    [
+     "nova",
+     "The best kind."
+    ]
+   ]
+  },
+  {
+   "id": "ad-di-cheesy-film",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Nova's out. It's just us."
+    ],
+    [
+     "iggy",
+     "Don't say it like that."
+    ],
+    [
+     "duskie",
+     "Like what?"
+    ],
+    [
+     "iggy",
+     "Like a cheesy film."
+    ],
+    [
+     "duskie",
+     "You love cheesy films."
+    ],
+    [
+     "iggy",
+     "...Put one on."
+    ]
+   ]
+  },
+  {
+   "id": "ad-di-warm-hoodie",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "You're in my hoodie."
+    ],
+    [
+     "duskie",
+     "It was warm. You were in it a minute ago."
+    ],
+    [
+     "iggy",
+     "That's why it was warm."
+    ],
+    [
+     "duskie",
+     "I know. That's why I took it."
+    ]
+   ]
+  },
+  {
+   "id": "ad-di-tail-blanket",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "night",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Can't sleep."
+    ],
+    [
+     "duskie",
+     "Come here, then."
+    ],
+    [
+     "*",
+     "Iggy curls up against Duskie's side. Duskie's tail settles over both of them."
+    ],
+    [
+     "iggy",
+     "...This is allowed."
+    ],
+    [
+     "duskie",
+     "Very allowed."
+    ]
+   ]
+  },
+  {
+   "id": "ad-di-dare",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Kiss the cook?"
+    ],
+    [
+     "iggy",
+     "It's an apron."
+    ],
+    [
+     "duskie",
+     "It's an invitation."
+    ],
+    [
+     "iggy",
+     "It's a dare."
+    ],
+    [
+     "duskie",
+     "I accept dares."
+    ]
+   ]
+  },
+  {
+   "id": "ad-di-medium-fun",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Nova left a note. It says \"don't have too much fun without me\"."
+    ],
+    [
+     "duskie",
+     "Define too much."
+    ],
+    [
+     "iggy",
+     "Nova would. In detail."
+    ],
+    [
+     "duskie",
+     "Then we'll have medium fun."
+    ],
+    [
+     "iggy",
+     "Medium fun. Pass the popcorn."
+    ]
+   ]
+  },
+  {
+   "id": "ad-di-foggy-glasses",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Your glasses are fogging up."
+    ],
+    [
+     "iggy",
+     "The tea's hot."
+    ],
+    [
+     "duskie",
+     "The tea's over there."
+    ],
+    [
+     "iggy",
+     "...Hush."
     ]
    ]
   }

@@ -22,6 +22,100 @@
         96
       ]
     },
+    "duskie_bust": {
+      "file": "duskie_bust.png",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "duskie_icon": {
+      "file": "duskie_icon.png",
+      "size": [
+        256,
+        256
+      ]
+    },
+    "duskie_spin": {
+      "frames": [
+        "duskie_spin_00.png",
+        "duskie_spin_01.png",
+        "duskie_spin_02.png",
+        "duskie_spin_03.png",
+        "duskie_spin_04.png",
+        "duskie_spin_05.png",
+        "duskie_spin_06.png",
+        "duskie_spin_07.png",
+        "duskie_spin_08.png",
+        "duskie_spin_09.png",
+        "duskie_spin_10.png",
+        "duskie_spin_11.png",
+        "duskie_spin_12.png",
+        "duskie_spin_13.png",
+        "duskie_spin_14.png",
+        "duskie_spin_15.png",
+        "duskie_spin_16.png",
+        "duskie_spin_17.png",
+        "duskie_spin_18.png",
+        "duskie_spin_19.png",
+        "duskie_spin_20.png",
+        "duskie_spin_21.png",
+        "duskie_spin_22.png",
+        "duskie_spin_23.png"
+      ],
+      "fps": 12,
+      "size": [
+        192,
+        192
+      ]
+    },
+    "iggy_bust": {
+      "file": "iggy_bust.png",
+      "size": [
+        512,
+        512
+      ]
+    },
+    "iggy_icon": {
+      "file": "iggy_icon.png",
+      "size": [
+        256,
+        256
+      ]
+    },
+    "iggy_spin": {
+      "frames": [
+        "iggy_spin_00.png",
+        "iggy_spin_01.png",
+        "iggy_spin_02.png",
+        "iggy_spin_03.png",
+        "iggy_spin_04.png",
+        "iggy_spin_05.png",
+        "iggy_spin_06.png",
+        "iggy_spin_07.png",
+        "iggy_spin_08.png",
+        "iggy_spin_09.png",
+        "iggy_spin_10.png",
+        "iggy_spin_11.png",
+        "iggy_spin_12.png",
+        "iggy_spin_13.png",
+        "iggy_spin_14.png",
+        "iggy_spin_15.png",
+        "iggy_spin_16.png",
+        "iggy_spin_17.png",
+        "iggy_spin_18.png",
+        "iggy_spin_19.png",
+        "iggy_spin_20.png",
+        "iggy_spin_21.png",
+        "iggy_spin_22.png",
+        "iggy_spin_23.png"
+      ],
+      "fps": 12,
+      "size": [
+        192,
+        192
+      ]
+    },
     "nova_bust": {
       "file": "nova_bust.png",
       "size": [
@@ -114,6 +208,13 @@
       "size": [
         256,
         192
+      ]
+    },
+    "trio_busts": {
+      "file": "trio_busts.png",
+      "size": [
+        1200,
+        520
       ]
     }
   }

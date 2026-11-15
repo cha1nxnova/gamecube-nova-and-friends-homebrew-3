@@ -16,6 +16,9 @@ cosmetic fork of the Swiss loader kept as a patch queue.
   other artists' reference art is never committed. Iggy uses any/all pronouns (docs write "they").
 - After Dark is an opt-in 18+ tier behind a one-time date-of-birth check. Nothing sexually explicit is authored
   in this repository, and a birth date is never stored. `packs/` is the owner's own space and is git-ignored.
+- The Hidden World (docs/SPEC_V2.md section 9) is a hidden, passcode-locked compartment inside After Dark for
+  the owner's own packs. It ships empty: author nothing for it, and never mention or hint at it in the UI, help
+  text or README.
 - Swiss fork (`swiss_fork/`, see `docs/FORK_GUIDE.md` section 1): private, cosmetic only, Swiss's authors and
   GPL-2.0 licence stay credited, and nothing ever goes upstream (no pull requests, issues or support requests).
 - Never commit `config.json`, `state.json`, disc images, saves, real names or birth dates.

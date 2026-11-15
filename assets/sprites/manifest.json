@@ -2,6 +2,14 @@
  "version": 1,
  "sizes": [96, 192],
  "characters": {
+  "biscuit": {
+   "height": 0.55,
+   "anims": {
+    "idle": {"fps": 6, "loop": true, "frames": ["biscuit/{size}/idle_00.png", "biscuit/{size}/idle_01.png", "biscuit/{size}/idle_02.png", "biscuit/{size}/idle_03.png"]},
+    "talk": {"fps": 8, "loop": true, "frames": ["biscuit/{size}/talk_00.png", "biscuit/{size}/talk_01.png"]},
+    "blink": {"fps": 10, "loop": false, "frames": ["biscuit/{size}/blink_00.png", "biscuit/{size}/blink_01.png"]}
+   }
+  },
   "duskie": {
    "height": 0.88,
    "portrait": "duskie/512/portrait_00.png",
@@ -15,6 +23,24 @@
     "look_left": {"fps": 1, "loop": false, "frames": ["duskie/{size}/look_left_00.png"]},
     "look_right": {"fps": 1, "loop": false, "frames": ["duskie/{size}/look_right_00.png"]},
     "special": {"fps": 10, "loop": false, "frames": ["duskie/{size}/special_00.png", "duskie/{size}/special_01.png", "duskie/{size}/special_02.png", "duskie/{size}/special_03.png", "duskie/{size}/special_04.png", "duskie/{size}/special_05.png", "duskie/{size}/special_06.png", "duskie/{size}/special_07.png"]}
+   }
+  },
+  "flurry": {
+   "height": 0.7,
+   "anims": {
+    "idle": {"fps": 3, "loop": true, "frames": ["flurry/{size}/idle_00.png", "flurry/{size}/idle_01.png", "flurry/{size}/idle_02.png"]},
+    "talk": {"fps": 6, "loop": true, "frames": ["flurry/{size}/talk_00.png", "flurry/{size}/talk_01.png"]},
+    "blink": {"fps": 8, "loop": false, "frames": ["flurry/{size}/blink_00.png"]},
+    "special": {"fps": 6, "loop": false, "frames": ["flurry/{size}/special_00.png", "flurry/{size}/special_01.png", "flurry/{size}/special_02.png"]}
+   }
+  },
+  "hazel": {
+   "height": 0.5,
+   "anims": {
+    "idle": {"fps": 5, "loop": true, "frames": ["hazel/{size}/idle_00.png", "hazel/{size}/idle_01.png", "hazel/{size}/idle_02.png"]},
+    "talk": {"fps": 8, "loop": true, "frames": ["hazel/{size}/talk_00.png", "hazel/{size}/talk_01.png"]},
+    "blink": {"fps": 8, "loop": false, "frames": ["hazel/{size}/blink_00.png"]},
+    "special": {"fps": 6, "loop": false, "frames": ["hazel/{size}/special_00.png", "hazel/{size}/special_01.png", "hazel/{size}/special_02.png"]}
    }
   },
   "iggy": {
@@ -34,6 +60,14 @@
     "cook": {"fps": 6, "loop": true, "frames": ["iggy/{size}/cook_00.png", "iggy/{size}/cook_01.png", "iggy/{size}/cook_02.png", "iggy/{size}/cook_03.png", "iggy/{size}/cook_04.png", "iggy/{size}/cook_05.png"]}
    }
   },
+  "mochi": {
+   "height": 0.55,
+   "anims": {
+    "idle": {"fps": 4, "loop": true, "frames": ["mochi/{size}/idle_00.png", "mochi/{size}/idle_01.png", "mochi/{size}/idle_02.png", "mochi/{size}/idle_03.png"]},
+    "talk": {"fps": 6, "loop": true, "frames": ["mochi/{size}/talk_00.png", "mochi/{size}/talk_01.png"]},
+    "blink": {"fps": 10, "loop": false, "frames": ["mochi/{size}/blink_00.png", "mochi/{size}/blink_01.png"]}
+   }
+  },
   "nova": {
    "height": 1.0,
    "portrait": "nova/512/portrait_00.png",
@@ -49,6 +83,13 @@
     "special": {"fps": 6, "loop": false, "frames": ["nova/{size}/special_00.png", "nova/{size}/special_01.png", "nova/{size}/special_02.png", "nova/{size}/special_03.png", "nova/{size}/special_04.png", "nova/{size}/special_05.png", "nova/{size}/special_06.png", "nova/{size}/special_07.png"]}
    }
   },
+  "pickle": {
+   "height": 0.5,
+   "anims": {
+    "idle": {"fps": 3, "loop": true, "frames": ["pickle/{size}/idle_00.png", "pickle/{size}/idle_01.png"]},
+    "talk": {"fps": 6, "loop": true, "frames": ["pickle/{size}/talk_00.png", "pickle/{size}/talk_01.png"]}
+   }
+  },
   "props": {
    "height": 0.8,
    "anims": {
@@ -60,6 +101,50 @@
     "disc": {"fps": 1, "loop": false, "frames": ["props/{size}/disc_00.png"]},
     "sd_card": {"fps": 1, "loop": false, "frames": ["props/{size}/sd_card_00.png"]},
     "memory_card": {"fps": 1, "loop": false, "frames": ["props/{size}/memory_card_00.png"]}
+   }
+  },
+  "refills": {
+   "height": 0.45,
+   "anims": {
+    "idle": {"fps": 4, "loop": true, "frames": ["refills/{size}/idle_00.png", "refills/{size}/idle_01.png", "refills/{size}/idle_02.png"]},
+    "talk": {"fps": 6, "loop": true, "frames": ["refills/{size}/talk_00.png", "refills/{size}/talk_01.png"]},
+    "blink": {"fps": 8, "loop": false, "frames": ["refills/{size}/blink_00.png"]},
+    "special": {"fps": 8, "loop": false, "frames": ["refills/{size}/special_00.png", "refills/{size}/special_01.png", "refills/{size}/special_02.png", "refills/{size}/special_03.png"]}
+   }
+  },
+  "sprout": {
+   "height": 0.5,
+   "anims": {
+    "idle": {"fps": 4, "loop": true, "frames": ["sprout/{size}/idle_00.png", "sprout/{size}/idle_01.png", "sprout/{size}/idle_02.png"]},
+    "talk": {"fps": 8, "loop": true, "frames": ["sprout/{size}/talk_00.png", "sprout/{size}/talk_01.png"]},
+    "blink": {"fps": 8, "loop": false, "frames": ["sprout/{size}/blink_00.png"]},
+    "special": {"fps": 6, "loop": false, "frames": ["sprout/{size}/special_00.png", "sprout/{size}/special_01.png", "sprout/{size}/special_02.png"]}
+   }
+  },
+  "stilts": {
+   "height": 0.95,
+   "anims": {
+    "idle": {"fps": 4, "loop": true, "frames": ["stilts/{size}/idle_00.png", "stilts/{size}/idle_01.png", "stilts/{size}/idle_02.png"]},
+    "talk": {"fps": 7, "loop": true, "frames": ["stilts/{size}/talk_00.png", "stilts/{size}/talk_01.png"]},
+    "blink": {"fps": 8, "loop": false, "frames": ["stilts/{size}/blink_00.png"]}
+   }
+  },
+  "tuft": {
+   "height": 0.6,
+   "anims": {
+    "idle": {"fps": 4, "loop": true, "frames": ["tuft/{size}/idle_00.png", "tuft/{size}/idle_01.png", "tuft/{size}/idle_02.png"]},
+    "talk": {"fps": 6, "loop": true, "frames": ["tuft/{size}/talk_00.png", "tuft/{size}/talk_01.png"]},
+    "blink": {"fps": 8, "loop": false, "frames": ["tuft/{size}/blink_00.png"]},
+    "special": {"fps": 6, "loop": false, "frames": ["tuft/{size}/special_00.png", "tuft/{size}/special_01.png", "tuft/{size}/special_02.png"]}
+   }
+  },
+  "vesper": {
+   "height": 0.5,
+   "anims": {
+    "idle": {"fps": 4, "loop": true, "frames": ["vesper/{size}/idle_00.png", "vesper/{size}/idle_01.png", "vesper/{size}/idle_02.png"]},
+    "talk": {"fps": 7, "loop": true, "frames": ["vesper/{size}/talk_00.png", "vesper/{size}/talk_01.png"]},
+    "blink": {"fps": 10, "loop": false, "frames": ["vesper/{size}/blink_00.png", "vesper/{size}/blink_01.png"]},
+    "special": {"fps": 6, "loop": false, "frames": ["vesper/{size}/special_00.png", "vesper/{size}/special_01.png", "vesper/{size}/special_02.png"]}
    }
   }
  }

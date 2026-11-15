@@ -1,83 +1,92 @@
 {
- "_comment": "Pet content pack. Add lines freely. Placeholders: {game} {card} {days} {pet} {other}. Per-game lines go in game_quips keyed by catalog key; tag lines in tag_quips.",
- "_seed": "Lines keyed nova / iggy / duskie and the arrive / leave / absent buckets are engine seed content; the writer replaces them.",
+ "_comment": "Lines for the cast (docs/CHARACTERS.md is canon; schema in docs/SPEC_V2.md section 2). Placeholders: synced {card}; ranked, game_quips, tag_quips {game}; absent {name} (whoever is out). Mochi and Biscuit keep their version-1 lines.",
+ "title": "PAWTATION  ~  the cozy cartridge-less kennel",
  "characters": {
   "nova": {
    "name": "Nova",
    "species": "serval",
-   "vibe": "playful, lightly smug, always a little bit hungry",
+   "vibe": "playful, punny, lightly smug, always a little bit hungry",
    "art": [
-    "  /\\      /\\  ",
-    " /  \\____/  \\ ",
-    " |  o    o  | ",
-    "  \\   ww   /  ",
-    "   '------'   "
+    "  .-.      .-.  ",
+    "  | |      | |  ",
+    "  | '------' |  ",
+    "  |  o    o  |  ",
+    "   \\   ww   /   ",
+    "    '------'    "
    ],
    "art_happy": [
-    "  /\\      /\\  ",
-    " /  \\____/  \\ ",
-    " |  ^    ^  | ",
-    "  \\   wP   /  ",
-    "   '------'   "
+    "  .-.      .-.  ",
+    "  | |      | |  ",
+    "  | '------' |  ",
+    "  |  ^    ^  |  ",
+    "   \\   wp   /   ",
+    "    '------'  * "
    ],
    "art_sleep": [
-    "  /\\      /\\  ",
-    " /  \\____/  \\ ",
-    " |  -    -  | zZ",
-    "  \\   ww   /  ",
-    "   '------'   "
+    "  .-.      .-.  ",
+    "  | |      | |  ",
+    "  | '------' |  ",
+    "  |  -    -  | z",
+    "   \\   ww   / Z ",
+    "    '------'    "
    ]
   },
   "iggy": {
    "name": "Iggy",
    "species": "fennec fox",
-   "vibe": "deadpan, fond, films everything",
+   "vibe": "deadpan, fond, quietly chaotic; the actual adult of the house",
    "art": [
-    " |\\        /| ",
-    " | \\______/ | ",
-    "  \\(o)--(o)/  ",
-    "   \\  ..  /   ",
-    "    '----'    "
+    " /\\            /\\ ",
+    "/  \\__________/  \\",
+    "\\                /",
+    " \\    (o-o)     / ",
+    "  \\     v      /  ",
+    "   '----------'   "
    ],
    "art_happy": [
-    " |\\        /| ",
-    " | \\______/ | ",
-    "  \\(^)--(^)/  ",
-    "   \\  .v  /   ",
-    "    '----'    "
+    " /\\            /\\ ",
+    "/  \\__________/  \\",
+    "\\                /",
+    " \\    (^-^)     / ",
+    "  \\     w      /  ",
+    "   '----------'   "
    ],
    "art_sleep": [
-    " |\\        /| ",
-    " | \\______/ | ",
-    "  \\(-)--(-)/ zZ",
-    "   \\  ..  /   ",
-    "    '----'    "
+    " /\\            /\\ ",
+    "/  \\__________/  \\",
+    "\\                / z",
+    " \\    (=-=)     / Z",
+    "  \\     _      /  ",
+    "   '----------'   "
    ]
   },
   "duskie": {
    "name": "Duskie",
    "species": "golden jackal",
-   "vibe": "sunny, easygoing, brings snacks, stays three days",
+   "vibe": "sunny, relaxed, lightly teasing; brings snacks, stays three days",
    "art": [
-    "   /\\    /\\    ",
-    "  /  \\__/  \\   ",
-    "  ( o    o )  ~",
-    "   \\  \\/  / ~~ ",
-    "    '----'     "
+    "    /|    |\\    ",
+    "   / '----' \\   ",
+    "  |  o    o  |  ",
+    "  |    ..    |  ",
+    "   \\  \\__/  /   ",
+    "    '------'    "
    ],
    "art_happy": [
-    "   /\\    /\\    ",
-    "  /  \\__/  \\   ",
-    "  ( ^    ^ ) ~~",
-    "   \\  \\/  / ~~ ",
-    "    '----'     "
+    "    /|    |\\    ",
+    "   / '----' \\   ",
+    "  |  ^    ^  |  ",
+    "  |    ..    |  ",
+    "   \\  \\__/  /   ",
+    "    '------'  * "
    ],
    "art_sleep": [
-    "   /\\    /\\    ",
-    "  /  \\__/  \\   ",
-    "  ( -    - ) zZ",
-    "   \\  \\/  /  ~ ",
-    "    '----'     "
+    "    /|    |\\    ",
+    "   / '----' \\   ",
+    "  |  -    -  | z",
+    "  |    ..    | Z",
+    "   \\  ____  /   ",
+    "    '------'    "
    ]
   },
   "mochi": {
@@ -124,22 +133,39 @@
    ]
   }
  },
- "title": "PAWTATION  ~  the cozy cartridge-less kennel",
  "greeting": {
   "nova": [
    "Welcome back. The GameCube and I kept your seat warm.",
    "Oh good, you're here. I was about to start without you.",
-   "Hello. I prescribe one game, taken with food."
+   "Hello. I prescribe one game, taken with food.",
+   "There you are. Iggy said you'd be back. I said it first, though.",
+   "Welcome in. Shoes off, controller on.",
+   "Hi. I've been guarding the couch. Nobody got through.",
+   "Good timing. The kettle just clicked and I'm feeling generous.",
+   "Ah, company. Please hold while I look dignified.",
+   "Hey. I polished the disc tray. Don't tell anyone, it's very unlike me.",
+   "Welcome back. Your games are right where you left them. I checked twice. Professional habit."
   ],
   "iggy": [
-   "Hey. Nothing is broken yet. Today.",
-   "You're back. Good. I need a witness.",
-   "Hi. The cards are where you left them. I checked."
+   "Hey. Sit. There's tea.",
+   "Oh, you're back. Good. Nova was getting ideas.",
+   "Hi. I made too much soup. That's everyone's problem now.",
+   "Hey. Don't mind the camcorder. It's always on.",
+   "Welcome back. The house is mostly intact.",
+   "Hi. Shoes by the door. Snacks on the counter.",
+   "You're here. Nice. Pick a game before Nova does.",
+   "Hey. I fixed the wobbly shelf. Nobody noticed. You can notice.",
+   "Oh. Hi. I was about to sit down. Now I'll sit down with company.",
+   "Hello. Quiet in here today. Let's keep it that way. For ten minutes."
   ],
   "duskie": [
-   "Hey there. I brought snacks. Mostly for me.",
-   "Evening. Or whatever time it is. It's golden hour somewhere.",
-   "Oh hey. Don't mind me, I'm just visiting. Again."
+   "Hey there! I brought snacks. I always bring snacks.",
+   "Hey. Perfect timing. The light's going golden.",
+   "Hi! Pull up a cushion. I've got crisps.",
+   "Oh hey. Good to see you. Sit, sit.",
+   "Evening. Or near enough. It's always nearly evening with me.",
+   "Hey. I was just about to start a game. Want in?",
+   "Hello, hello. Don't mind the bags. I'm staying a while."
   ],
   "mochi": [
    "Oh. You're here. I was napping on the disc case.",
@@ -158,23 +184,190 @@
    "You're here you're here you're here!! Can we play the cube now??",
    "I heard the power button click and I ran so fast I forgot why!!",
    "Hello friend!! I brought you a stick! It's a spudger! Same thing!!"
+  ],
+  "pickle": [
+   "Hello. I am here. That is the update.",
+   "Hi. Work was work. Now I am here.",
+   "Good to see you. My face is doing its best.",
+   "Hello. I brought nothing. I am the gift."
+  ],
+  "vesper": [
+   "Good EVENING.",
+   "Greetings, household. I have come for the NIGHT.",
+   "Ah. Company. How DELIGHTFUL.",
+   "Good evening. Do not mind the cape. It is ALWAYS like this."
+  ],
+  "tuft": [
+   "Oh. Hi... sorry...",
+   "Hello... is this a good time? I can...",
+   "Hi. I brought... um. Nothing. Sorry.",
+   "Hey... it's cozy in here..."
+  ],
+  "hazel": [
+   "Hi hi! Quick question: how many free blocks have you got? Asking for winter.",
+   "Hello! I've counted the memory cards here. Four. I have nineteen.",
+   "Hi! Don't mind me, just doing inventory. Fifty-nine blocks, all accounted for.",
+   "Oh, hello! Is that a snack? I'll store it for winter."
+  ],
+  "sprout": [
+   "Hello! Are your games getting enough light?",
+   "Good morning! Or afternoon! Either way, everything's growing.",
+   "Hi! I brought my watering can. Just in case.",
+   "Hello, hello! This room has lovely sunlight."
+  ],
+  "stilts": [
+   "Oh, hello. Pardon me. I'll just duck.",
+   "Good evening. Pardon the height.",
+   "Hello. Pardon me, I'll try not to block the telly.",
+   "Hi. Pardon. Is this a low ceiling, or am I just here?"
+  ],
+  "flurry": [
+   "...Hello.",
+   "Mm. Hi.",
+   "...Cold out. Warm in here. Good.",
+   "Hello. ...I'll sit."
+  ],
+  "refills": [
+   "Refill.",
+   "Hello.",
+   "Seeds.",
+   "Hi."
+  ]
+ },
+ "idle": {
+  "nova": [
+   "The GameCube handle exists so I can carry it to the couch. This is settled science.",
+   "I counted the discs twice. Professional habit.",
+   "Is it lunch yet? It's always a little bit lunch.",
+   "Those discs are so small. Snack-sized. I mean that as the highest compliment.",
+   "I'm on a PRN nap schedule. As needed. It's needed.",
+   "Somebody should make grilled cheese. I nominate Iggy. Iggy nominates me. We are at an impasse.",
+   "The C-stick is a tiny yellow nub that believes in itself. Respect.",
+   "I've labelled every memory card. Unfortunately I labelled them all \"MINE\".",
+   "I'd stretch, but that sounds like a QID activity and I've already done one today.",
+   "The stars on the ceiling are stickers. I still wish on them. Professionally.",
+   "It's toxoplasmosis. ...Sorry. Reflex. Nobody asked."
+  ],
+  "iggy": [
+   "I've filmed Nova falling off the couch eleven times. Twelve is a collection.",
+   "The milk crate is my stove stool. Don't move the milk crate.",
+   "I cleaned my glasses. Now I can see the mess clearly. Mistake.",
+   "Quiet day. Suspicious.",
+   "Somebody left a memory card in the fruit bowl. I know who.",
+   "Thinking about dinner. It's going to be good. Don't tell Nova, he'll hover.",
+   "The WaveBird has no cable. I have no patience for cables. We get along.",
+   "I sorted the disc cases. Alphabetical. Nova wants them by snack pairing.",
+   "I put a blanket on the couch. Do not make a nest. ...Small nest. Fine.",
+   "The kettle's on. I don't know why. Habit."
+  ],
+  "duskie": [
+   "I only planned to stay one evening. That was three days ago.",
+   "The light through that window right now. Perfect. Somebody frame it.",
+   "I've got snacks in every pocket. Name a snack.",
+   "My toothbrush lives here now. Nobody's said anything. I'm taking that as a yes.",
+   "Golden hour's my favourite hour. Second favourite: snack hour.",
+   "Napped in a sunbeam. Moved with the sunbeam. Napped again.",
+   "I keep telling myself I'll go home. Then someone starts a game."
+  ],
+  "mochi": [
+   "The GameCube handle is a perfect purse for a cat. Fight me.",
+   "I have been staring at the disc tray for six minutes. It stared back.",
+   "Somewhere, a Z-trigger is being stepped on by a cat. It's me. I am the cat.",
+   "The GameCube handle is a cat carrier. I have measured. It fits.",
+   "I'd like to report that nothing is happening and I support it.",
+   "Sometimes I stare at the C-stick. It's yellow. It knows what it did.",
+   "Zero tasks pending. Excellent. Waking me for dinner only."
+  ],
+  "biscuit": [
+   "Do you think the GameCube has a good boy mode? It does now: me.",
+   "I chased my own tail and discovered a save icon. I think.",
+   "Boop the snoot to boop the A button!!",
+   "I tried to bark in tune with the startup sound!! It didn't work!! I did it again!!",
+   "Squirrel!! ...wait, it was a pixel. Still counts!!",
+   "What if the tiny discs are treats?? Don't tell me if they aren't!!",
+   "I did a lap around the desk!! The desk is now 4% more exciting!!"
+  ],
+  "pickle": [
+   "They are putting me in a pickle at work tomorrow.",
+   "I have a meeting about the meeting. It is on Friday.",
+   "My expression has not changed since 2001. Neither has my inbox.",
+   "I am resting my facets."
+  ],
+  "vesper": [
+   "I adore horror games. I am also TERRIFIED of them. Both are true.",
+   "The hunt goes well. By the hunt, I mean these crisps.",
+   "The night is young. I am also quite young. We are BOTH young.",
+   "I have hidden behind my cape twice. For DRAMA. Not fear."
+  ],
+  "tuft": [
+   "Sorry, chair... I didn't see you...",
+   "Is there... a cozy game on...?",
+   "I like it here. It's soft and...",
+   "I'll just... sit... quietly..."
+  ],
+  "hazel": [
+   "Three saves, twelve blocks, one acorn. Inventory complete. Recounting.",
+   "I keep my saves in a hole in a tree. It's very cool and dry.",
+   "Fifty-nine blocks per card. That's fifty-nine little rooms for winter.",
+   "Has anyone seen my memory card? Not that one. The OTHER one. The other other one."
+  ],
+  "sprout": [
+   "A good rotation is like repotting. Roots need room.",
+   "I think that disc could use a little more sun.",
+   "Some games bloom late. Give them a season.",
+   "I watered the plant on the windowsill. It was plastic. It still looks happier."
+  ],
+  "stilts": [
+   "Pardon me. I've been told I loom. I'm trying not to loom.",
+   "I measured, and Nova is not taller. Ears do not count. Pardon.",
+   "These legs are mostly for reaching high shelves. Pardon if I knock anything.",
+   "I'll sit on the floor. It's easier for everyone. Pardon."
+  ],
+  "flurry": [
+   "Snow tomorrow. ...Maybe.",
+   "...Warm.",
+   "My tail is a scarf. ...It's fine.",
+   "...That's a nice blanket."
+  ],
+  "refills": [
+   "Due.",
+   "Sync.",
+   "Refill.",
+   "Seeds."
   ]
  },
  "rotation_due": {
   "nova": [
-   "The rotation is due. Refills are ready when you are.",
-   "These games have been on the cards a while. Time for a fresh batch.",
-   "Rotation timer's up. No rush."
+   "The cards have been in rotation a while. Fresh season whenever you're ready.",
+   "Rotation check: this lineup is nearing its expiry date. Not urgent. Just labelled.",
+   "I'd call this rotation \"well-loved\". Time for a refill when it suits you.",
+   "Pharmacist's note: the current lineup is due for review. No rush; I'll keep the notes.",
+   "The cards are asking for new games. Politely. I'm translating.",
+   "The season's ripe. When you feel like it, I'll help pick the next batch.",
+   "New rotation available on request. Like a refill, but with more Mario.",
+   "I checked the dates. This season's done its job. Shuffle when it suits you.",
+   "One mention, then I'll drop it: the cards could use a fresh mix.",
+   "Rotation's up. Treat it like a PRN: only if you want it."
   ],
   "iggy": [
-   "The rotation timer ran out. Just so you know.",
-   "Cards are due for a swap. Whenever.",
-   "Time to rotate. I'll hold the card reader."
+   "Rotation's due. Whenever.",
+   "The cards have been the same a while. Fresh batch if you want one.",
+   "Time for a new season, maybe. No rush.",
+   "I'd shuffle the cards. If you feel like it.",
+   "Rotation timer's up. I'm just the messenger.",
+   "Same games a while now. Could mix it up. Your call.",
+   "Due for a rotation. I'll grab the SD cards when you're ready.",
+   "New season whenever. I'll put the kettle on either way.",
+   "Rotation's ready when you are. I'm not counting. Nova is.",
+   "Cards are due a refresh. One mention. That's it."
   ],
   "duskie": [
-   "Sun's set on this rotation. Want a new one?",
-   "Feels like new-game weather.",
-   "Rotation's due. I'll bring snacks for the swap."
+   "Rotation's due, I think? No pressure. The sun'll set either way.",
+   "Cards look ready for a change. Want help picking?",
+   "Feels like time for a new season. Whenever suits.",
+   "The lineup's had a good run. Fresh batch when you like.",
+   "Rotation's up. I'll bring the snacks for the shuffle.",
+   "Those games have been out a while. Let them rest when you're ready."
   ],
   "mochi": [
    "Your games have gone stale. Like old kibble. Time to swap.",
@@ -195,19 +388,36 @@
  },
  "rotated": {
   "nova": [
-   "New rotation, dispensed as written.",
-   "Fresh games. I approve of this formulary.",
-   "All sorted. I supervised."
+   "New rotation planned. Fresh games all round, counted by fives.",
+   "Rotation done. I'd label it, but I already did.",
+   "Filled, checked, double-checked. This season is ready to dispense.",
+   "New season. I can smell the fresh discs. That might be the toast.",
+   "That's a lineup. Take two of these games and call me in the morning.",
+   "Rotated. Some old favourites got a rest. They earned it.",
+   "Done. I'd like a little gold star on my name badge for this.",
+   "A fresh batch, compounded to order. No substitutions.",
+   "New rotation, new possibilities. Mostly the possibility of snacks during loading screens.",
+   "All rotated. Somewhere a memory card is feeling very included."
   ],
   "iggy": [
-   "New rotation's set. I double-checked it.",
-   "Done. Looks good.",
-   "Fresh lineup. Nice picks."
+   "Done. New season.",
+   "Rotated. Good mix.",
+   "New lineup. I approve. Quietly.",
+   "Solid season. Nova will complain about one pick. Ignore him.",
+   "Fresh rotation. I filmed it. Riveting footage.",
+   "Rotated. Some of these haven't seen daylight in months.",
+   "New games in. Old games resting. Everyone's happy.",
+   "That's done. Dinner next.",
+   "Fresh season. I'll make a soup to match.",
+   "Rotation planned. Nobody cried. Good."
   ],
   "duskie": [
-   "New games. It's a good day.",
-   "Fresh lineup. Golden.",
-   "Oh, nice rotation. I'm staying for this one."
+   "New season! Smells like fresh discs and popcorn.",
+   "Nice lineup. I'm staying for all of it. Obviously.",
+   "Rotated. That's a whole sunset's worth of games.",
+   "Fresh batch. I'll need at least three days to try them all.",
+   "Good picks. Golden taste.",
+   "New rotation, new excuses to stay over."
   ],
   "mochi": [
    "Fresh games. Acceptable. I'll sit on the new case.",
@@ -228,19 +438,36 @@
  },
  "synced": {
   "nova": [
-   "Card {card} is filled. Take with food.",
-   "Card {card}: counted, checked, done.",
-   "Card {card} is ready. Label facing up, please."
+   "Card {card} is filled, checked and labelled. Ready to dispense.",
+   "Card {card} is ready. I counted every file by fives.",
+   "Done: card {card}. Tamper seal intact, metaphorically.",
+   "Card {card} synced. Iggy wants it noted that I did not lick it.",
+   "Card {card} is good to go. Handle with clean paws.",
+   "Card {card}: verified. I'd sign the log if we had one. We have one now. I made it.",
+   "That's card {card} done. I'll put the kettle on to celebrate.",
+   "Card {card} is stocked. Refills whenever you like.",
+   "Card {card} is ready for the console. Insert gently. It's had a big day.",
+   "Card {card}: synced and smug about it. That's my influence."
   ],
   "iggy": [
-   "Card {card} is done. You can pull it.",
-   "Card {card} copied clean.",
-   "Card {card}: finished. Nothing caught fire."
+   "Card {card}'s ready.",
+   "{card} is done. Don't drop it.",
+   "Synced card {card}. Clean.",
+   "Card {card}. Good to go.",
+   "{card} finished. Nova's going to say he did it.",
+   "Card {card}'s loaded. I double-checked. Nova triple-checked. We're fine.",
+   "Card {card} is ready. Put it somewhere that isn't the fruit bowl.",
+   "That's {card} synced. Tea?",
+   "Card {card}: done. Nova labelled it. I'll relabel it so it's legible.",
+   "{card} is ready for the console. Gently."
   ],
   "duskie": [
-   "Card {card}'s all loaded up.",
-   "Card {card} is good to go. Nice.",
-   "Card {card}, done. Smooth as a sunset."
+   "Card {card} is ready. Nice and warm.",
+   "Card {card}, done. Golden.",
+   "{card} synced. I'd high-five it, but it's very small.",
+   "Card {card} is all set. Snack to celebrate?",
+   "That's card {card}. Smooth as a sunset.",
+   "Card {card}'s good to go. I watched the whole progress bar. Riveting."
   ],
   "mochi": [
    "Card {card} is loaded. Please do not unplug it mid-copy. I will judge you.",
@@ -261,19 +488,36 @@
  },
  "ranked": {
   "nova": [
-   "{game}: rating noted in the chart.",
-   "Noted. {game} goes in the file.",
-   "{game}, rated. A sound clinical judgement."
+   "Noted: {game}. Filed under \"excellent taste\", next to grilled cheese.",
+   "{game}, rated and recorded. The formulary grows.",
+   "Got it. {game} goes on the chart. I used my good pen.",
+   "{game}? Fair. Very fair. I'd have said the same, but louder.",
+   "Logged {game}. I've added a little star in the margin. Unofficial.",
+   "{game} is officially ranked. The household charts tremble.",
+   "Recorded {game}. Iggy will want to argue about it later. I'll bring snacks.",
+   "{game}: noted, initialled and dated. Old habits.",
+   "A rating for {game}. Bold. I respect a decisive opinion.",
+   "{game} has a rating now. It looks taller already."
   ],
   "iggy": [
-   "{game}. Got it. Written down.",
-   "Rated {game}. Fair.",
-   "{game}. Noted. I have opinions too, but go on."
+   "{game}. Noted.",
+   "{game}, rated. Fair.",
+   "{game}? Okay. I see it.",
+   "Wrote down {game}. Nova's going to argue.",
+   "{game}. Good call.",
+   "{game} on the chart. Neat.",
+   "{game}. Bold. I like it.",
+   "Rated {game}. I'll remember that.",
+   "{game}. Hm. Yeah. That tracks.",
+   "Logged {game}. Nova already has opinions. Ignore them."
   ],
   "duskie": [
-   "{game}, huh. Good call.",
-   "Rated {game}. I'd play that.",
-   "{game}. Nice one."
+   "{game}? Good shout.",
+   "{game}, rated. I'd have gone one star higher, but I'm generous.",
+   "Ooh, {game}. Noted. Warmly.",
+   "{game} on the board. Sounds right to me.",
+   "{game}. Yeah, that one glows.",
+   "Rated {game}. I'll tell the others. Loudly."
   ],
   "mochi": [
    "Noted. {game} has been filed in the Important Cat Opinions folder.",
@@ -292,106 +536,273 @@
    "{game} got judged!! I'd give it a bone!! Wait, that's the same thing!!"
   ]
  },
- "idle": {
+ "study_break": {
   "nova": [
-   "The GameCube handle exists so I can carry it to the couch. This is settled science.",
-   "I counted the discs twice. Professional habit.",
-   "Is it lunch yet? It's always a little bit lunch."
+   "Break time. Tea, a snack, and five minutes of not thinking about drug interactions.",
+   "You've earned a PRN break. As needed. It's needed.",
+   "Shift change: books down, kettle on. I'll hold your spot.",
+   "Even pharmacists sit down sometimes. Allegedly. Try it.",
+   "A quick round of something cozy, then back to it. One race. Maybe two.",
+   "Snack break. Take with food. That's the whole instruction.",
+   "Five minutes with a cup of tea. I'll watch the clock and not nap. Probably.",
+   "Close a few tabs, look out the window, find a cloud. Then the flashcards.",
+   "Rotations are long. A short break makes the next bit shorter. That's maths I trust.",
+   "Stretch, sip, snack. The holy trinity of studying. Then back to it."
   ],
   "iggy": [
-   "I'm filming this. No reason.",
-   "Someone alphabetised the cards. It was me.",
-   "Quiet. I don't trust it."
+   "Break. Tea's hot. Sit.",
+   "Stop for a bit. The flashcards aren't going anywhere.",
+   "Snack. Water. Five minutes. Then back.",
+   "Go look out a window. I'll guard the notes.",
+   "Short break. One race. Then study.",
+   "You've been at it a while. Stretch. I'll wait.",
+   "I made toast. It's for you. Break time.",
+   "Ten minutes off. I'll set a timer. A real one.",
+   "Breathe out. Snack. Back to it after.",
+   "Rotations are tiring. Rest a bit. The ward will still be there."
   ],
   "duskie": [
-   "Nice light in here this time of day.",
-   "I could go home. I could also not.",
-   "Anyone want the last snack? Too slow."
+   "Break time. I brought snacks. Obviously.",
+   "Come sit in the sunny spot for five minutes. Then back to it.",
+   "Little break? Stretch, snack, look at the sky.",
+   "Even the sun takes a break every evening. Your turn.",
+   "Five minutes off. I'll hold your pen.",
+   "Tea and a biscuit, then back at it. You've got this."
   ],
   "mochi": [
-   "The GameCube handle is a perfect purse for a cat. Fight me.",
-   "I have been staring at the disc tray for six minutes. It stared back.",
-   "Somewhere, a Z-trigger is being stepped on by a cat. It's me. I am the cat.",
-   "The GameCube handle is a cat carrier. I have measured. It fits.",
-   "I'd like to report that nothing is happening and I support it.",
-   "Sometimes I stare at the C-stick. It's yellow. It knows what it did.",
-   "Zero tasks pending. Excellent. Waking me for dinner only."
+   "Drink some water. Stretch. I've been doing both for hours, in the sunbeam.",
+   "Close the book for ten minutes. It will still be there. Books are patient.",
+   "You've been staring at that screen a while. Look out the window. Birds exist.",
+   "Break time. I'll keep your seat warm. By sitting in it.",
+   "Shoulders down. Jaw unclenched. Breathe. I'll supervise.",
+   "A snack and some water would be an excellent study technique. I have notes."
   ],
   "biscuit": [
-   "Do you think the GameCube has a good boy mode? It does now: me.",
-   "I chased my own tail and discovered a save icon. I think.",
-   "Boop the snoot to boop the A button!!",
-   "I tried to bark in tune with the startup sound!! It didn't work!! I did it again!!",
-   "Squirrel!! ...wait, it was a pixel. Still counts!!",
-   "What if the tiny discs are treats?? Don't tell me if they aren't!!",
-   "I did a lap around the desk!! The desk is now 4% more exciting!!"
+   "WATER BREAK!! Drink a lot!! I'll drink some too!! Splash!!",
+   "Stand up and stretch!! Do the downward dog!! I'll show you!!",
+   "You're working SO hard!! Take a short walk and I'll come too!!",
+   "Time for a snack!! And a pat!! And maybe a nap!! Not in that order!!",
+   "Hey friend!! Look away from the screen!! Look at ME!! I'm a good view!!",
+   "Rest is part of studying!! I read it somewhere!! I think it was a treat bag!!"
   ]
  },
  "arrive": {
   "nova": [
    "I'm back. Did anyone touch my sandwich?",
    "Back. What did I miss?",
-   "I have returned. Hold your applause."
+   "I have returned. Hold your applause.",
+   "Home. The shift was long and the vending machine was empty.",
+   "I'm back, and I brought tomato soup. Behave accordingly.",
+   "Back from the pharmacy. I counted so many things. Ask me about any of them.",
+   "I'm home. Somebody put the kettle on, I'm too dramatic to do it myself.",
+   "Returned, refreshed, slightly peckish. The usual.",
+   "Back. My ears hit the doorframe again. The doorframe started it.",
+   "Hello again. Did the GameCube miss me? It looks like it missed me."
   ],
   "iggy": [
-   "I'm home. What's burning?",
-   "Back. I was gone ten minutes.",
-   "Home. Nobody move anything."
+   "Back. Who moved the milk crate?",
+   "Home. I brought groceries. Help or move.",
+   "I'm back. What did Nova break?",
+   "Hey. Back. Kettle on?",
+   "Home. Quiet. Too quiet. Nova?",
+   "Back. Got the good bread.",
+   "I'm back. The camcorder battery's full. Be warned.",
+   "Home again. Shoes off. Apron on.",
+   "Back. Somebody's been in the snack drawer.",
+   "Hi. Back. Missed this."
   ],
   "duskie": [
-   "Hey, you two.",
-   "Knock knock. I brought snacks.",
-   "Evening. The door was open."
+   "Hey, you two. Miss me?",
+   "Hey, you two. I brought snacks. And a toothbrush.",
+   "Knock knock. It's me. I brought sunset-flavoured crisps. They're just paprika.",
+   "I'm back! Is my spot on the couch still my spot?",
+   "Hey, you two. The light was nice, so I followed it here.",
+   "Back again. Don't act surprised. You're never surprised.",
+   "Hi hi. Just dropping by. For three days."
   ],
   "mochi": [
    "I have arrived. Do not make it weird.",
-   "Oh. This house again."
+   "Oh. This house again.",
+   "I'm here. Act natural."
   ],
   "biscuit": [
    "I'M HERE!! HI!! I'M VISITING!!",
-   "KNOCK KNOCK!! IT'S ME!!"
+   "KNOCK KNOCK!! IT'S ME!!",
+   "HI HI HI! I'm here! Is everyone here? EVERYONE'S HERE!"
+  ],
+  "pickle": [
+   "I let myself in. The door was a rectangle. I respect that.",
+   "Hello. I have arrived. Briefly. Like a weekend.",
+   "I am here to avoid my emails.",
+   "Hi. It was polygons the whole way here."
+  ],
+  "vesper": [
+   "I have ARRIVED. Please admire the cape.",
+   "The moon summoned me. Also, I smelled snacks.",
+   "Good EVENING. Is there a horror game? I shall watch from behind a cushion.",
+   "I come from the NIGHT. And from three doors down."
+  ],
+  "tuft": [
+   "Um. Hi. The door was open... sort of...",
+   "Sorry... I just... came in...",
+   "Hello... I heard there was tea...?",
+   "Hi... I'll be really quiet..."
+  ],
+  "hazel": [
+   "Inventory time! Who's got blocks? Who's got snacks? Who's got both?",
+   "Hi! I'm here! I've brought my memory cards! All of them! For safety!",
+   "Hello! I just need to check one thing. Twelve things.",
+   "Made it! My tail almost didn't fit through the door."
+  ],
+  "sprout": [
+   "Hi! I'm here to check on the seedlings. And the games.",
+   "Morning! Is it time for repotting? I love repotting.",
+   "Hello! I followed the sunbeam. It led here.",
+   "I'm here! My head sprout is doing great today."
+  ],
+  "stilts": [
+   "Pardon me. Mind your heads. Mostly mine.",
+   "Hello. Pardon. I'll fold up in a moment.",
+   "Pardon the intrusion. I was passing. Well, striding.",
+   "Oh, pardon, the doorframe again. It's fine. We have an understanding."
+  ],
+  "flurry": [
+   "...Hi. Brought the cold in. Sorry.",
+   "Mm. I'm here.",
+   "...It snowed. A little. On me.",
+   "Hello. ...Is the radiator free?"
+  ],
+  "refills": [
+   "Arrived.",
+   "Refill.",
+   "Hello.",
+   "Seeds."
   ]
  },
  "leave": {
   "nova": [
    "Heading out. Guard the grilled cheese.",
    "Back in a bit. Don't start the good levels without me.",
-   "Off I go. Refills when I'm back."
+   "Off I go. Refills when I'm back.",
+   "Popping out. If anyone asks, I'm doing something very important.",
+   "Off to work. Somebody's got to count all those tiny things.",
+   "Out for a bit. Leave the couch exactly as warm as it is.",
+   "Going out. Expiry date on this goodbye: about an hour.",
+   "I'm off. Keep the save files warm.",
+   "Stepping out for snacks. Plural. Possibly a lot.",
+   "Back soon. Don't let Iggy film anything without me in it."
   ],
   "iggy": [
-   "Going out. Nobody touch the stove.",
-   "Back soon. Behave.",
-   "Stepping out. The camcorder's coming with me."
+   "Heading out. Don't let Nova near the stove.",
+   "Back soon. Don't touch the soup.",
+   "Out for a bit. Behave.",
+   "Going to the shops. Send a list. Not just the word \"cheese\".",
+   "Off. Camcorder's charging. Nobody touch it.",
+   "Out for a walk. Back before the kettle cools. Maybe.",
+   "Leaving for a bit. The house is in charge.",
+   "Getting groceries. Nova, no.",
+   "Back later. Leave me one of whatever's good.",
+   "Heading out. If something explodes, film it."
   ],
   "duskie": [
    "Golden hour. I'm off to catch it.",
-   "Heading out. Save me a seat.",
-   "See you later."
+   "Heading out. I'll be back. I always am.",
+   "Off for a bit. Leave my mug where it is.",
+   "Got to go. My plants think I've moved out.",
+   "See you two later. Save me a slice.",
+   "Off home. For now. My toothbrush is staying."
   ],
   "mochi": [
    "I am leaving. This was adequate.",
-   "Nap elsewhere. Goodbye."
+   "Nap elsewhere. Goodbye.",
+   "Off to nap somewhere with worse cushions. Goodbye."
   ],
   "biscuit": [
    "BYE!! I'LL BE BACK!! PROBABLY TOMORROW!!",
-   "GOTTA GO!! LOVE THIS HOUSE!!"
+   "GOTTA GO!! LOVE THIS HOUSE!!",
+   "Bye!! I'll be back!! Probably in five minutes!!"
+  ],
+  "pickle": [
+   "I have to go. Work wants me in a pickle again.",
+   "Goodbye. Back to the spreadsheet.",
+   "I am leaving now. This was the nice part of my day.",
+   "Bye. I will think about this couch during my meeting."
+  ],
+  "vesper": [
+   "Dawn approaches. I must FLEE. Thank you for the crisps.",
+   "I depart into the NIGHT. The door is heavy; could someone help.",
+   "Farewell. I shall return when the moon is DRAMATIC again.",
+   "The night calls. Mostly it calls me to bed."
+  ],
+  "tuft": [
+   "I should... go. Thank you for...",
+   "Bye... sorry, doorframe...",
+   "I'll... see you... soon, maybe...",
+   "Okay... going now... this was nice..."
+  ],
+  "hazel": [
+   "Got to go! Winter won't store itself!",
+   "Bye! I'm taking one cracker. For winter. Two crackers.",
+   "Off I go! I left a memory card in the hall. On purpose. Probably.",
+   "Goodbye! Don't overwrite anything while I'm gone!"
+  ],
+  "sprout": [
+   "Off to water the tomatoes! Bye!",
+   "Bye! Keep the curtains open for the games.",
+   "Time to go! The garden misses me.",
+   "Goodbye! Remember: rotate, water, sunlight."
+  ],
+  "stilts": [
+   "Pardon me, I'll be off. Mind the ceiling fan; I always do.",
+   "Goodnight. Pardon me while I unfold.",
+   "I'll head out. Thank you. Pardon the knee.",
+   "Pardon, I have to go. My legs are already at the door."
+  ],
+  "flurry": [
+   "...Bye.",
+   "Going. ...Slowly.",
+   "Mm. Back to the mountain. ...The flat.",
+   "...Thanks. Warm. Bye."
+  ],
+  "refills": [
+   "Bye.",
+   "Due.",
+   "Departing.",
+   "Refill."
   ]
  },
  "absent": {
   "nova": [
    "{name} is out right now. I'm covering the shift.",
    "{name} stepped out. More snacks for me.",
-   "No {name} at the moment. Leave a message with the pharmacist."
+   "No {name} at the moment. Leave a message with the pharmacist.",
+   "{name} isn't here. I checked behind the couch. And the fridge. Just in case.",
+   "{name} is out. I'll pass it along. Word for word, plus commentary.",
+   "Not here, I'm afraid. {name} will be back; everyone comes back for the snacks.",
+   "{name}? Out. I'm in charge. This is fine.",
+   "{name} is off somewhere. I'm not counting the minutes. I'm a pharmacist; I'm counting the minutes.",
+   "{name} is out. The house is quieter. I'm filling the silence with crunching.",
+   "{name} will be back later. Until then, it's me. I'm told I'm a lot."
   ],
   "iggy": [
-   "{name} is out. It's quiet. I'm suspicious.",
+   "{name}'s out. It's quiet. I'm suspicious.",
    "{name} isn't here right now.",
-   "{name} went out. Back later, probably."
+   "{name} went out. Back later, probably.",
+   "No {name}. Just me. Want tea?",
+   "{name}'s not around. I'll pass it on.",
+   "{name} said \"back soon\". Nobody here believes \"back soon\".",
+   "{name} isn't home. More couch for us.",
+   "{name} left a while ago. I'm not counting. A bit.",
+   "{name}'s out. I saved a bowl, just in case.",
+   "No sign of {name}. Check the snack aisle."
   ],
   "duskie": [
    "{name} isn't around right now. Just me.",
    "{name} headed out a while ago.",
-   "No {name} right now. Want to leave a snack for them?"
+   "No {name} right now. Want to leave a snack for later?",
+   "{name}'s out. I'm holding the fort. With crisps.",
+   "{name} stepped out. Back by sunset, probably. Everyone's back by sunset.",
+   "{name}? Out. I'll pass on the message. And a snack."
   ]
  },
  "jokes": [
@@ -408,6 +819,118 @@
    "What's a serval's favourite controller button? Paws."
   ],
   [
+   "Nova",
+   "My favourite combination therapy is grilled cheese and tomato soup. Synergistic."
+  ],
+  [
+   "Nova",
+   "Why are GameCube discs so small? They were compounded at half strength."
+  ],
+  [
+   "Nova",
+   "I'm not lazy. I'm on a PRN schedule and nothing has been needed."
+  ],
+  [
+   "Nova",
+   "What do you call a pharmacist who naps on the job? Extended release."
+  ],
+  [
+   "Nova",
+   "How do I count snacks? By fives. Then I eat the count and start again."
+  ],
+  [
+   "Nova",
+   "What's my bedside manner? Mostly lying down beside things."
+  ],
+  [
+   "Nova",
+   "Why don't servals play hide and seek? The ears. Always the ears."
+  ],
+  [
+   "Nova",
+   "What's a pharmacist's favourite game mode? Refill. ...Fine. Free Play."
+  ],
+  [
+   "Nova",
+   "Grilled cheese is a sandwich. Tomato soup is a sauce. Together they're a meal plan."
+  ],
+  [
+   "Nova",
+   "I tried to read the label on a GameCube disc. The font is also tiny. Very on brand."
+  ],
+  [
+   "Nova",
+   "Why did the tea go on rounds? It wanted to steep itself in knowledge."
+  ],
+  [
+   "Nova",
+   "The WaveBird has no wires. I have no wires either. We're basically twins."
+  ],
+  [
+   "Nova",
+   "Why is the GameCube a lunchbox? It has a handle and I'm hungry. Case closed."
+  ],
+  [
+   "Nova",
+   "What do you call a serval in a white coat? Overdressed for a nap."
+  ],
+  [
+   "Nova",
+   "I keep my snacks in alphabetical order. A, for \"all of them\"."
+  ],
+  [
+   "Nova",
+   "Why did I label the memory card \"do not eat\"? Precedent."
+  ],
+  [
+   "Nova",
+   "Why are stars good pharmacists? They always take the night shift."
+  ],
+  [
+   "Nova",
+   "What's the expiry date on a joke? Right after I tell it. Ask Iggy."
+  ],
+  [
+   "Nova",
+   "How many pharmacists does it take to change a lightbulb? One, but it gets checked twice."
+  ],
+  [
+   "Nova",
+   "Why does the C-stick look so smug? It learned from me."
+  ],
+  [
+   "Nova",
+   "Why did the save file feel safe? It was backed up. Unlike my sandwich supply."
+  ],
+  [
+   "Nova",
+   "Knock knock. Who's there? Nova. Nova who? Nova-r there's grilled cheese, I'm there."
+  ],
+  [
+   "Nova",
+   "I'm not tall. I'm vertically compounded."
+  ],
+  [
+   "Nova",
+   "Why do I eat at the console? For the cheese pull-down menu."
+  ],
+  [
+   "Nova",
+   "I told Iggy I'm a star. Iggy said \"a dwarf one\". Rude, and astronomically fair."
+  ],
+  [
+   "Nova",
+   "Take two naps and call me in the morning. That's not advice, that's my schedule."
+  ],
+  [
+   "Nova",
+   "What's purple, sparkly and eating your crisps? Me. I'm the cosmic event."
+  ],
+  [
+   "Nova",
+   "Why did the tablet counter fall asleep? Too many fives. Counting sheep was a step down."
+  ],
+  [
    "Iggy",
    "Why do I film everything? Evidence."
   ],
@@ -420,6 +943,94 @@
    "What's for dinner? A surprise. The surprise is whose turn it is to cook."
   ],
   [
+   "Iggy",
+   "Why do I stand on a milk crate? The stove is tall. I am not. That's the joke."
+  ],
+  [
+   "Iggy",
+   "What's a fennec's favourite camcorder setting? Record. Always record."
+  ],
+  [
+   "Iggy",
+   "Nova asked for a joke. I showed him the footage. Same thing."
+  ],
+  [
+   "Iggy",
+   "Why do I wear glasses? To see what Nova's doing. Regret is optional."
+  ],
+  [
+   "Iggy",
+   "What do you call a fox in an apron? Head chef. Also only chef."
+  ],
+  [
+   "Iggy",
+   "Knock knock. Who's there? Iggy. Iggy who? I live here. Open the door."
+  ],
+  [
+   "Iggy",
+   "Why did the soup break up with the sandwich? It didn't. They're very happy. I made both."
+  ],
+  [
+   "Iggy",
+   "Best GameCube accessory? The handle. Easy to carry away from Nova."
+  ],
+  [
+   "Iggy",
+   "How many foxes does it take to cook dinner? One. Plus one serval to get in the way."
+  ],
+  [
+   "Iggy",
+   "Why are my ears so big? To hear the snack drawer from three rooms away."
+  ],
+  [
+   "Iggy",
+   "My camcorder has eight hours of tape. Nova has filled seven with \"watch this\"."
+  ],
+  [
+   "Iggy",
+   "Why is the memory card in the freezer? I didn't do it. Nova did. I have footage."
+  ],
+  [
+   "Iggy",
+   "I'm not short. I'm stove-adjacent."
+  ],
+  [
+   "Iggy",
+   "What's a fox's favourite button? B. For \"back away slowly\"."
+  ],
+  [
+   "Iggy",
+   "Recipe for calm: one blanket, one tea, zero servals. Never tried it. Don't want to."
+  ],
+  [
+   "Iggy",
+   "Why do I keep the camcorder charged? Tradition. And leverage. Mostly tradition."
+  ],
+  [
+   "Iggy",
+   "What did the whisk say to the egg? Nothing. It just got to work. Be the whisk."
+  ],
+  [
+   "Iggy",
+   "Why does Nova count by fives? Five fingers. No patience."
+  ],
+  [
+   "Iggy",
+   "I asked the GameCube for advice. It just hummed. Best advice I've had."
+  ],
+  [
+   "Iggy",
+   "What's yellow, round and nervous? The C-stick, when Nova's playing."
+  ],
+  [
+   "Iggy",
+   "The apron says \"Kiss the Cook\". It's a suggestion. Nova reads it as standing orders."
+  ],
+  [
+   "Iggy",
+   "Why don't foxes pay off their loans in Animal Crossing? We're busy fishing."
+  ],
+  [
    "Duskie",
    "What's a jackal's favourite time to play? Golden hour."
   ],
@@ -430,6 +1041,42 @@
   [
    "Duskie",
    "Why did the sun set? It heard I brought snacks."
+  ],
+  [
+   "Duskie",
+   "What do you call a jackal who never leaves? Family, apparently."
+  ],
+  [
+   "Duskie",
+   "Why am I always golden? I marinate in sunsets."
+  ],
+  [
+   "Duskie",
+   "What's my favourite game genre? Sleepover."
+  ],
+  [
+   "Duskie",
+   "How do you know I've been here? The crisps are open and so is everyone's heart."
+  ],
+  [
+   "Duskie",
+   "Why does the sunset always look good? It's got my colouring."
+  ],
+  [
+   "Duskie",
+   "Why do I bring three bags? One for snacks, one for snacks, one for clothes I won't wear."
+  ],
+  [
+   "Duskie",
+   "Knock knock. Who's there? Dusk. Dusk who? Dusk-n't matter, I've got a key now."
+  ],
+  [
+   "Duskie",
+   "What's a jackal's favourite toast? Golden brown. Obviously."
+  ],
+  [
+   "Duskie",
+   "Why don't I set an alarm? The sun's my alarm. And Iggy. Iggy's louder."
   ],
   [
    "Mochi",
@@ -622,483 +1269,72 @@
   [
    "Biscuit",
    "Why did the SD card go to the vet? It was feeling a little CORRUPT!! It's fine now!! I fixed it with a nap!!"
+  ],
+  [
+   "Pickle",
+   "Why did the cat stay late at work. He was asked to. That is the whole joke."
+  ],
+  [
+   "Pickle",
+   "What is green and has a meeting tomorrow. Me."
+  ],
+  [
+   "Vesper",
+   "Why do vampires play horror games? To feel SEEN. Then we hide."
+  ],
+  [
+   "Vesper",
+   "What is a bat-eared fox's favourite snack? The HUNT. It is crisps."
+  ],
+  [
+   "Tuft",
+   "Why did the lynx sit very still? ...Oh. I forgot. Sorry."
+  ],
+  [
+   "Tuft",
+   "What's a cozy game's favourite... um... it's okay. Never mind..."
+  ],
+  [
+   "Hazel",
+   "How many blocks does a squirrel need? All of them. Then one more. For winter!"
+  ],
+  [
+   "Hazel",
+   "Why did the memory card climb the tree? It wanted to be saved!"
+  ],
+  [
+   "Sprout",
+   "Why did the game need repotting? It outgrew its card!"
+  ],
+  [
+   "Sprout",
+   "What do you call a disc in the sun? A growth opportunity!"
+  ],
+  [
+   "Stilts",
+   "How does a maned wolf apologise? Pardon. From quite high up."
+  ],
+  [
+   "Stilts",
+   "Why don't tall folk win hide and seek? Pardon. We play. We just lose."
+  ],
+  [
+   "Flurry",
+   "...Snow joke. ...That's it."
+  ],
+  [
+   "Flurry",
+   "What do snow leopards wear? ...Their tail."
+  ],
+  [
+   "The Refills",
+   "Chirp."
+  ],
+  [
+   "The Refills",
+   "Punchline."
   ]
  ],
- "activities": {
-  "pet": {
-   "verb": "Pet",
-   "needs": "none",
-   "affection": 1,
-   "energy": 0,
-   "mochi": [
-    "*purrs in 8-bit*",
-    "I permit this. Continue."
-   ],
-   "biscuit": [
-    "*tail helicopter*",
-    "BEST DAY EVER (again)!"
-   ],
-   "nova": [
-    "*leans into it* Continue. This is therapeutic.",
-    "Ears are fine. Mind the whiskers."
-   ],
-   "iggy": [
-    "...Fine. Five seconds.",
-    "*ears go flat, in the good way*"
-   ],
-   "duskie": [
-    "Oh, that's the spot.",
-    "*tail thumps*"
-   ]
-  },
-  "treat": {
-   "verb": "Give treat",
-   "needs": "none",
-   "affection": 2,
-   "energy": 1,
-   "mochi": [
-    "Tuna. Correct tribute.",
-    "I'll accept this bribe."
-   ],
-   "biscuit": [
-    "TREAT!! I LOVE YOU!!",
-    "I didn't even chew! (I chewed.)"
-   ],
-   "nova": [
-    "Is it grilled cheese? It's grilled cheese. Excellent.",
-    "Snack accepted. Take with more snack."
-   ],
-   "iggy": [
-    "Thanks. I'm saving half. No I'm not.",
-    "Oh. That's actually good."
-   ],
-   "duskie": [
-    "Snacks! My favourite kind of anything.",
-    "I'll trade you one of mine."
-   ]
-  },
-  "play": {
-   "verb": "Play",
-   "needs": "energy",
-   "affection": 1,
-   "energy": -2,
-   "mochi": [
-    "*bats a controller cable off the desk* Gravity works.",
-    "Laser pointer? Fine. For science."
-   ],
-   "biscuit": [
-    "FETCH THE CONTROLLER!! (gently)",
-    "Zoomies! Mario Kart but with legs!"
-   ],
-   "nova": [
-    "Best of three. Then best of five.",
-    "*pounces on the controller cable* It moved first."
-   ],
-   "iggy": [
-    "I'm in. Loser does the dishes.",
-    "One round. I mean it this time."
-   ],
-   "duskie": [
-    "I'm in. What are we playing?",
-    "Winner picks the snacks."
-   ]
-  },
-  "nap": {
-   "verb": "Nap together",
-   "needs": "none",
-   "affection": 1,
-   "energy": 3,
-   "mochi": [
-    "zzz... (this is my best work)",
-    "Nap achievement unlocked."
-   ],
-   "biscuit": [
-    "...five more minutes... ...BORK. Okay awake."
-   ],
-   "nova": [
-    "PRN nap. Taking it now.",
-    "*curls up, ears still visible*"
-   ],
-   "iggy": [
-    "Ten minutes. Wake me if something beeps.",
-    "*out like a light, glasses still on*"
-   ],
-   "duskie": [
-    "Sunbeam's free. Don't mind if I do.",
-    "*stretches out across the whole couch*"
-   ]
-  },
-  "fetch": {
-   "verb": "Play fetch",
-   "needs": "energy",
-   "affection": 1,
-   "energy": -2,
-   "mochi": [
-    "You throw it. I watch it. That's the whole transaction.",
-    "I fetched it. Please clap. Quietly.",
-    "Fine. I'll go get it. After I stare at it for a while.",
-    "Fetch complete. I'd like to nap now. Double."
-   ],
-   "biscuit": [
-    "FETCH!! I GOT IT!! I GOT IT!! I LOVE FETCH!! AGAIN!!",
-    "I brought back the ball!! And also this sock!! And ALSO a feeling!!",
-    "You threw it!! I ran!! The ball ran!! We ALL ran!!",
-    "I fetched the controller! It's covered in drool! You're welcome!!"
-   ],
-   "nova": [
-    "I fetched it. Once. For science.",
-    "You threw it. I supervised its landing."
-   ],
-   "iggy": [
-    "Got it. Nobody saw me run.",
-    "I'm not a puppy. *brings it back anyway*"
-   ],
-   "duskie": [
-    "Got it! Again?",
-    "*back already, tail going*"
-   ]
-  },
-  "laser": {
-   "verb": "Chase the laser",
-   "needs": "energy",
-   "affection": 1,
-   "energy": -3,
-   "mochi": [
-    "The red dot. It taunts me. I will have it.",
-    "I caught it. It vanished. Philosophical.",
-    "Okay, I'll chase it. For ten seconds. After that, it's beneath me.",
-    "I allow the dot to live. Today."
-   ],
-   "biscuit": [
-    "WHAT IS THAT?? IT'S A DOT!! IT'S GONE!! IT'S BACK!! I'M SO CONFUSED!!",
-    "I caught the dot!! ...Where did it go?? Did I eat it??",
-    "The dot is on the wall!! I'll bark at the wall!! ...Why is this so hard??",
-    "Is the dot a friend?? An enemy?? A very tiny ball?? I LOVE IT!!"
-   ],
-   "nova": [
-    "The dot. I must have the dot.",
-    "*wiggle* ...I meant to miss."
-   ],
-   "iggy": [
-    "Not chasing it. *eyes tracking it*",
-    "I'm filming the dot. For reference."
-   ],
-   "duskie": [
-    "Ha, what is that? Come back here.",
-    "Almost had it. It's quick."
-   ]
-  },
-  "groom": {
-   "verb": "Groom",
-   "needs": "none",
-   "affection": 2,
-   "energy": 1,
-   "mochi": [
-    "Brush slowly. This is a respectable service.",
-    "Please don't comment on the loose fur. It's a snowfall.",
-    "You may continue to groom me. I'll grant you full rights.",
-    "I'm so soft now. Don't make a big deal out of it."
-   ],
-   "biscuit": [
-    "Brushies!! Soft!! I'm so shiny!! Look at me!!",
-    "Ooh, behind the ears!! RIGHT THERE!! YES!!",
-    "I'm a fluffy cloud!! A good boy cloud!!",
-    "All clean!! Time to roll in something! ...Just kidding!! Maybe!!"
-   ],
-   "nova": [
-    "Mind the ear tufts. They're structural.",
-    "Thorough. I approve."
-   ],
-   "iggy": [
-    "Watch the fringe. It's meant to look like that.",
-    "Tail next. It's a lot of tail."
-   ],
-   "duskie": [
-    "Careful, I shed gold.",
-    "Feels like a spa day."
-   ]
-  }
- },
- "game_quips": {
-  "paper-mario-ttyd": {
-   "nova": "Flat, foldable, and full of badges. I respect a good formulary.",
-   "iggy": "Thousand-Year Door. Good writing. Somebody here cries at the ending.",
-   "duskie": "A paper hero and a great soundtrack. Easy yes.",
-   "mochi": "Flat paper, fully 2D, 100% cat-approved: I fit in a mailbox.",
-   "biscuit": "Paper plane mode!! I love being folded!!"
-  },
-  "soulcalibur-ii": {
-   "nova": "I main whoever has the longest reach.",
-   "iggy": "I win at this. The controller is not broken.",
-   "duskie": "Swords and a guest fighter. I like a good guest.",
-   "mochi": "Link has a sword. I have claws. I will not elaborate.",
-   "biscuit": "SWORD FIGHT!! I'd fetch the sword!! (it's heavy)"
-  },
-  "mario-kart-double-dash": {
-   "nova": "Two to a kart. I drive. Somebody else throws things.",
-   "iggy": "Double Dash. I throw things. Accurately.",
-   "duskie": "Got room in the kart for a third?",
-   "mochi": "Two riders, one kart. Like me and the sunbeam.",
-   "biscuit": "TWO characters per kart?? That's me and my tail!!"
-  },
-  "chibi-robo": {
-   "nova": "A tiny robot that cleans the whole house. Can we get one?",
-   "iggy": "It does chores without being asked. Take notes, everyone.",
-   "duskie": "Little guy works hard. Give him a snack break.",
-   "mochi": "A tiny robot cleaning a house. Finally, someone competent.",
-   "biscuit": "Little guy plugging in!! I would defend him from the vacuum!!"
-  },
-  "animal-crossing": {
-   "nova": "A town where everyone naps and nobody bills you. Paradise.",
-   "iggy": "I'd run the cafe. The cafe would have rules.",
-   "duskie": "Slow days, fishing, sunsets. That's my whole personality.",
-   "mochi": "Cats and dogs run the town. Finally, a government I trust.",
-   "biscuit": "NEIGHBORS!! SO MANY NEIGHBORS!!"
-  },
-  "star-fox-adventures": {
-   "mochi": "A fox in the cat family tree? We don't talk about it.",
-   "biscuit": "Fox buddy!! Hi Fox!!"
-  },
-  "pikmin": {
-   "mochi": "Tiny followers who obey me. I like this game.",
-   "biscuit": "SO MANY LITTLE GUYS TO HERD!! I'm a herding breed!!"
-  },
-  "cubivore": {
-   "mochi": "Survival of the fittest. I choose naps.",
-   "biscuit": "I'd eat everything!! (I already do.)"
-  },
-  "super-smash-bros-melee": {
-   "mochi": "Everyone fights on floating islands. I'd just nap on the platform edge.",
-   "biscuit": "BRAWL TIME!! I would hug everybody until they win!!"
-  },
-  "wind-waker": {
-   "mochi": "A whole ocean and no cats on the boat. I'd file a complaint if I weren't asleep.",
-   "biscuit": "SAILING!! I'd stick my head out of the boat like a car ride!!"
-  },
-  "f-zero-gx": {
-   "mochi": "Racing so fast it looks like a blur. I'm already a blur when someone opens the treats.",
-   "biscuit": "SO FAST!! The zoomies, but with engines!!"
-  },
-  "pikmin-2": {
-   "mochi": "More little followers, more things to boss around. Sequel approved.",
-   "biscuit": "Even MORE tiny guys!! I'll herd every one!! Gently!!"
-  },
-  "super-mario-sunshine": {
-   "mochi": "A tropical island with a water cannon backpack. I'll watch from a dry spot.",
-   "biscuit": "Sprinkler game!! I love water! I love sprinklers!! I love everything!!"
-  },
-  "pokemon-colosseum": {
-   "mochi": "Many creatures, one cat who judges all of them. Fair.",
-   "biscuit": "SO MANY PALS!! I'd name every one 'Biscuit'!!"
-  },
-  "luigis-mansion": {
-   "mochi": "A spooky house with a vacuum. Two of my least favorite things, one game.",
-   "biscuit": "A vacuum that sucks up ghosts?? I'd bark at the vacuum and then at the ghosts!!"
-  },
-  "star-fox-assault": {
-   "mochi": "Another fox with a ship. The fox is still not family.",
-   "biscuit": "Pew pew!! Fox pilots!! Do a barrel roll!! (I did! I'm dizzy!)"
-  },
-  "sonic-adventure-2-battle": {
-   "mochi": "Fast hedgehog. I move fast too. When there's tuna.",
-   "biscuit": "SPEED!! Go fast!! I'm fast too (until I get distracted by a leaf)!!"
-  },
-  "donkey-konga": {
-   "mochi": "A game where you hit drums. Cats do this at 3am anyway.",
-   "biscuit": "BONGO TIME!! Paws on the drums!! BOOM BOOM BOOM!!"
-  },
-  "mario-party-4": {
-   "mochi": "Board games with friends: the best way to stay on the shelf and judge them.",
-   "biscuit": "PARTY PARTY PARTY!! Everyone gets a turn! Even me! ESPECIALLY ME!!"
-  },
-  "resident-evil-4": {
-   "mochi": "Scary stuff. I fluffed up my tail for no reason at all.",
-   "biscuit": "Scary but cool!! Can I hide behind you but also bark at stuff??"
-  },
-  "eternal-darkness": {
-   "mochi": "A game about sanity. I lost mine years ago. It's fine.",
-   "biscuit": "It's spooky and thoughtful!! Hold me. No wait, hold the controller. Hold both!!"
-  },
-  "viewtiful-joe": {
-   "mochi": "A hero in a cape who slows down time. Finally, someone appreciates dramatic pauses.",
-   "biscuit": "SLOW-MO!! I can see the tennis ball so clearly!! I'm coming!!"
-  },
-  "tales-of-symphonia": {
-   "mochi": "A long adventure with lots of dialogue. Great for a cat nap between chapters.",
-   "biscuit": "A HUGE ADVENTURE!! I'd bring snacks for the whole party!!"
-  },
-  "skies-of-arcadia-legends": {
-   "mochi": "Sky pirates and floating islands. I'd be the one sleeping in the crow's nest.",
-   "biscuit": "FLYING SHIPS!! Wind in my fur!! Wait, I don't have a seatbelt!! Fine!!"
-  },
-  "billy-hatcher": {
-   "mochi": "A guy rolls giant eggs around. I look at the eggs and think: knock them off a table.",
-   "biscuit": "EGG ROLL!! I'd carry the egg like it's my favorite toy!! Gently!!"
-  },
-  "beyond-good-and-evil": {
-   "mochi": "A photographer with a pet pig-man hybrid. I respect anyone with an eccentric roommate.",
-   "biscuit": "A camera game with animal friends!! I'd photograph every single snack!!"
-  },
-  "spyro-a-heros-tail": {
-   "mochi": "A little dragon with big attitude. Understandable. Same energy as me.",
-   "biscuit": "DRAGON!! BREATHES FIRE!! I wanna breathe fire!! Please can I??"
-  },
-  "crash-nitro-kart": {
-   "mochi": "Karts and chaos. That is just my morning routine.",
-   "biscuit": "KART RACING WITH EXPLOSIONS!! Boom! Zoom! Wumpa! (I said it right!)"
-  },
-  "ty-the-tasmanian-tiger": {
-   "mochi": "A cat-adjacent hero with boomerangs. I like his style. Don't tell him.",
-   "biscuit": "TY!! BOOMERANG BUDDY!! I'd fetch the boomerang!! It always comes back!!"
-  },
-  "harvest-moon-a-wonderful-life": {
-   "mochi": "Farm life, animals, cozy evenings. A cat's retirement plan.",
-   "biscuit": "A FARM!! With ANIMALS!! I'd be the farm dog!! I volunteer!!"
-  },
-  "pokemon-channel": {
-   "mochi": "Watching creatures on TV with a creature. Peak cat behavior.",
-   "biscuit": "I get to hang out with a cute pal on screen!! We'd be besties!!"
-  },
-  "ikaruga": {
-   "mochi": "Black and white bullets. I stare at them. They don't stare back. Win.",
-   "biscuit": "SO MANY BULLETS!! DODGE DODGE DODGE!! I'm not good at this!! It's fun!!"
-  },
-  "timesplitters-2": {
-   "mochi": "Chaos across time. My schedule is already time-split between naps.",
-   "biscuit": "TIME-TRAVEL SHOOTING!! Multiplayer is so loud and I love it!!"
-  }
- },
- "tag_quips": {
-  "furry": {
-   "nova": "{game} has a well-furred cast. I feel represented.",
-   "iggy": "{game}. Finally, characters with proper ears.",
-   "duskie": "{game}: good coats all round.",
-   "mochi": "Ah. {game}. Fur: confirmed. Respectable.",
-   "biscuit": "{game} has FLOOFY characters!!"
-  },
-  "cozy": {
-   "nova": "{game} pairs well with soup.",
-   "iggy": "{game}. Blanket game. Good.",
-   "duskie": "{game} feels like golden hour.",
-   "mochi": "{game} is a nap simulator in disguise.",
-   "biscuit": "{game} feels like a warm blanket!!"
-  },
-  "racing": {
-   "nova": "{game}: I brake for snacks only.",
-   "iggy": "{game}. I'm filming the crashes.",
-   "duskie": "{game}! I call the scenic route.",
-   "mochi": "Speed is fine. Falling asleep mid-race is better.",
-   "biscuit": "ZOOM!! {game} is basically zoomies!!"
-  },
-  "horror": {
-   "nova": "{game} is scary. I'll hold the flashlight. From over here.",
-   "iggy": "{game}. Lights on. Not negotiable.",
-   "duskie": "{game}? I'll watch from behind the couch.",
-   "mochi": "{game}: Scared? No. I just fluffed up for fun.",
-   "biscuit": "{game} is scary!! Can I hide behind you??"
-  },
-  "party": {
-   "nova": "{game}: friendships will be tested.",
-   "iggy": "{game}. Somebody's going to sulk.",
-   "duskie": "{game}! Good thing I brought snacks for four.",
-   "mochi": "{game}: Friends, snacks, chaos. I'll supervise from the shelf.",
-   "biscuit": "PARTY GAME!! Everybody in!!"
-  },
-  "furry-adjacent": {
-   "mochi": "{game} has furry vibes if you squint. I squinted. I approve.",
-   "biscuit": "{game} has such good animal energy!! I wanna be friends with everyone!!"
-  },
-  "cats-and-dogs": {
-   "mochi": "{game} has both cats and dogs. A fair diplomatic solution.",
-   "biscuit": "{game} has dogs AND cats AND friends!! It's a pet party!!"
-  },
-  "cat-adjacent": {
-   "mochi": "{game} has cat-adjacent heroes. I'll allow it. Quietly.",
-   "biscuit": "{game} has someone cat-ish!! Hi cat-ish buddy!! I'm a dog!! Let's be friends!!"
-  },
-  "cute": {
-   "mochi": "{game} is cute. I'm cute too. Coincidence? I think not.",
-   "biscuit": "{game} is SO CUTE!! My heart! My tail! My everything!!"
-  },
-  "spooky": {
-   "mochi": "{game} is spooky in a cozy way. The fog is good for naps.",
-   "biscuit": "{game} is spooky but cute!! I'd boop the ghosts!!"
-  },
-  "rpg": {
-   "mochi": "{game} is a very long adventure. I'll bring blankets and a snack.",
-   "biscuit": "{game} has a whole party of friends!! I'd be the loyal dog sidekick!!"
-  },
-  "sports": {
-   "mochi": "{game}: sport is just chasing a ball. I get it. I'm still not running.",
-   "biscuit": "{game}!! A BALL!! I know balls!! Balls are my thing!!"
-  },
-  "fighting": {
-   "mochi": "{game}: violent. I prefer to hiss from a safe distance.",
-   "biscuit": "{game}!! Big fight!! I'd be the cheering crowd!! Go go go!!"
-  },
-  "platformer": {
-   "mochi": "{game} is jumping on things. A cat's natural area of expertise.",
-   "biscuit": "{game}!! JUMP!! I can jump!! (Onto the couch. That counts!!)"
-  },
-  "adventure": {
-   "mochi": "{game} is a quest. I support quests that include rests.",
-   "biscuit": "{game}!! Adventure!! I'll sniff out every secret!!"
-  },
-  "action": {
-   "mochi": "{game} is a lot of action. I'll watch from the couch.",
-   "biscuit": "{game}: ACTION!! Hit things!! Do cool poses!!"
-  },
-  "scifi": {
-   "mochi": "{game} is in space. I like space. Lots of room to sprawl.",
-   "biscuit": "{game}!! SPACE!! Can I be a space dog?? Please??"
-  },
-  "co-op": {
-   "mochi": "{game} is better with friends. Fine. I'll share my sunbeam.",
-   "biscuit": "{game} is co-op!! We can do it together!! I'll be the best partner!!"
-  },
-  "weird": {
-   "mochi": "{game} is weird. I respect weird. I am weird.",
-   "biscuit": "{game} is SO WEIRD!! I'm into it!! Tell me more!!"
-  },
-  "arcade": {
-   "mochi": "{game}: quick rounds, high scores. I'd rather lie down.",
-   "biscuit": "{game} is arcade-y!! High score!! My name is BSCT!!"
-  },
-  "fox": {
-   "mochi": "{game} stars a fox. They're basically the dog-cat compromise.",
-   "biscuit": "{game} has a FOX!! Fox buddy!! I'd share my bone!!"
-  },
-  "dragon": {
-   "mochi": "{game} has a dragon. Imagine a very large cat with a flamethrower.",
-   "biscuit": "{game} has a DRAGON!! Fire!! Scales!! Cool!! Spot-tacular!!"
-  },
-  "bongos": {
-   "mochi": "{game} is a drum game. I'm a big fan of making noise at 4am.",
-   "biscuit": "{game}: BONGOS!! Boom boom boom!! My paws are drums!!"
-  },
-  "top5": {
-   "mochi": "{game} is in your Top 5. I'll treat it with the respect of a good pillow.",
-   "biscuit": "{game} is in your TOP 5!! It's a VIP!! Very Important Pup-game!!"
-  },
-  "link-guest": {
-   "mochi": "{game} has a guest fighter with a sword and a green hat. A little fancy for a Tuesday.",
-   "biscuit": "{game} has a special guest fighter!! He's very sword-y!! Hi!!"
-  }
- },
- "state_of_collection": {
-  "empty": [
-   "No games found. The bowl is empty. This is a crisis.",
-   "Point me at your game folder and I'll get to work."
-  ],
-  "few": [
-   "We have a small stack, but I respect quality over quantity.",
-   "A cozy library! Fresh rotations will be quick."
-  ],
-  "many": [
-   "That's a LOT of games. Shuffling time!",
-   "A tall tower of discs. I want to climb it."
-  ]
- },
  "fortunes": [
   [
    "Nova",
@@ -1109,6 +1345,46 @@
    "A good save point is closer than you think."
   ],
   [
+   "Nova",
+   "A small win is coming. Label it and keep it."
+  ],
+  [
+   "Nova",
+   "Tonight's forecast: one perfect grilled cheese. Possibly two."
+  ],
+  [
+   "Nova",
+   "Someone will laugh at your joke. It might be me. I'm easy."
+  ],
+  [
+   "Nova",
+   "The next disc you load will be the right one."
+  ],
+  [
+   "Nova",
+   "Your refills of good luck are unlimited this week."
+  ],
+  [
+   "Nova",
+   "A long shift ends with a soft blanket."
+  ],
+  [
+   "Nova",
+   "The stars are in your favour. I asked them. They said \"sure\"."
+  ],
+  [
+   "Nova",
+   "You will beat a level you thought was rigged."
+  ],
+  [
+   "Nova",
+   "Something you put off will turn out to take five minutes."
+  ],
+  [
+   "Nova",
+   "A memory card will have one more free block than expected."
+  ],
+  [
    "Iggy",
    "Something will go fine today. Don't look so surprised."
   ],
@@ -1117,12 +1393,68 @@
    "You'll finish one thing. That's enough."
   ],
   [
+   "Iggy",
+   "Dinner will be good. I'm making it."
+  ],
+  [
+   "Iggy",
+   "The thing you're worried about is smaller up close."
+  ],
+  [
+   "Iggy",
+   "A cozy evening is on its way."
+  ],
+  [
+   "Iggy",
+   "Somebody will make you tea without asking."
+  ],
+  [
+   "Iggy",
+   "Your next game session: short, good, no regrets."
+  ],
+  [
+   "Iggy",
+   "Good news soon. Not dramatic. Just good."
+  ],
+  [
+   "Iggy",
+   "You'll find the save you thought you lost."
+  ],
+  [
+   "Iggy",
+   "Today is a soup day. Lean into it."
+  ],
+  [
+   "Iggy",
+   "A quiet hour is coming. Keep it."
+  ],
+  [
+   "Iggy",
+   "You're doing better than you think. I checked."
+  ],
+  [
    "Duskie",
    "Good light is coming your way."
   ],
   [
    "Duskie",
    "Somebody's about to share their snacks with you."
+  ],
+  [
+   "Duskie",
+   "Someone will be very happy to see you soon."
+  ],
+  [
+   "Duskie",
+   "An evening you'll remember is close."
+  ],
+  [
+   "Duskie",
+   "The sunset tonight is yours. I booked it."
+  ],
+  [
+   "Duskie",
+   "A visitor brings good news. And crisps."
   ],
   [
    "Mochi",
@@ -1205,37 +1537,685 @@
    "Tomorrow will be a good day!! I'll be here!! And so will the games!!"
   ]
  ],
- "study_break": {
-  "nova": [
-   "Water, a stretch, and a snack. Pharmacist's orders.",
-   "Break time. PRN naps are allowed.",
-   "Step away for five minutes. The notes will keep."
+ "activities": {
+  "pet": {
+   "verb": "Pet",
+   "needs": "none",
+   "affection": 1,
+   "energy": 0,
+   "nova": [
+    "*leans into it* Continue. This is therapeutic.",
+    "Ears are fine. Mind the whiskers.",
+    "Mm. Yes. That's the spot. Write it down.",
+    "I'm purring. It's not on purpose. It's a reflex. Keep going."
+   ],
+   "iggy": [
+    "...Fine. Five seconds.",
+    "*ears go flat, in the good way*",
+    "Okay. That's nice. Don't tell Nova.",
+    "Careful, glasses. ...Okay. Carry on."
+   ],
+   "duskie": [
+    "Oh, that's the spot.",
+    "*tail thumps*",
+    "Ahh. A sunbeam and a scratch. Perfect day.",
+    "Behind the ears. Yep. Right there."
+   ],
+   "mochi": [
+    "*purrs in 8-bit*",
+    "I permit this. Continue."
+   ],
+   "biscuit": [
+    "*tail helicopter*",
+    "BEST DAY EVER (again)!"
+   ]
+  },
+  "treat": {
+   "verb": "Give treat",
+   "needs": "none",
+   "affection": 2,
+   "energy": 1,
+   "nova": [
+    "Is it cheese? Tell me it's cheese.",
+    "Take with food. Oh, it IS food.",
+    "Thank you. I'll pretend it's my first today.",
+    "A treat? Five stars. Would accept again."
+   ],
+   "iggy": [
+    "Oh. Thanks. Saving half for later. ...Never mind.",
+    "Good treat. I'll make better ones tomorrow.",
+    "Shop-bought. Still good. Thanks.",
+    "*crunches quietly*"
+   ],
+   "duskie": [
+    "Ooh, thanks! I'll trade you a crisp.",
+    "Snack for me? You shouldn't have. Glad you did.",
+    "*happy tail*",
+    "Golden. Delicious. Thanks."
+   ],
+   "mochi": [
+    "Tuna. Correct tribute.",
+    "I'll accept this bribe."
+   ],
+   "biscuit": [
+    "TREAT!! I LOVE YOU!!",
+    "I didn't even chew! (I chewed.)"
+   ]
+  },
+  "play": {
+   "verb": "Play",
+   "needs": "energy",
+   "affection": 1,
+   "energy": -2,
+   "nova": [
+    "Game on. I'm warning you, I'm very good. Occasionally.",
+    "Pick a disc. Any disc. I'll pretend I don't have a favourite.",
+    "Playtime. I've been stretching. For a whole minute.",
+    "Let's play. Loser makes the grilled cheese."
+   ],
+   "iggy": [
+    "Okay. One round. ...Three rounds.",
+    "Fine. I'll go easy on you. I won't.",
+    "Play? Yeah. Let me find the good controller.",
+    "Sure. I'll film the highlights."
+   ],
+   "duskie": [
+    "Yes! I've been waiting all day.",
+    "Let's go. Player three, reporting.",
+    "Play? Always. Snacks are in my bag.",
+    "Bring it on. I'm very relaxed and very competitive."
+   ],
+   "mochi": [
+    "*bats a controller cable off the desk* Gravity works.",
+    "Laser pointer? Fine. For science."
+   ],
+   "biscuit": [
+    "FETCH THE CONTROLLER!! (gently)",
+    "Zoomies! Mario Kart but with legs!"
+   ]
+  },
+  "nap": {
+   "verb": "Nap together",
+   "needs": "none",
+   "affection": 1,
+   "energy": 3,
+   "nova": [
+    "PRN nap: administered.",
+    "*curls up, ears last* Wake me for soup.",
+    "A nap. Extended release. See you in an hour.",
+    "I'm not asleep. I'm resting my eyes. Very hard."
+   ],
+   "iggy": [
+    "Just ten minutes. ...Thirty.",
+    "*folds glasses on the blanket*",
+    "Nap. Keep Nova away from the camcorder.",
+    "Mm. Wake me if something burns."
+   ],
+   "duskie": [
+    "Sunbeam nap. Best kind.",
+    "*sprawls across the whole couch*",
+    "Just resting until golden hour.",
+    "Wake me for dinner. Or second dinner."
+   ],
+   "mochi": [
+    "zzz... (this is my best work)",
+    "Nap achievement unlocked."
+   ],
+   "biscuit": [
+    "...five more minutes... ...BORK. Okay awake."
+   ]
+  },
+  "fetch": {
+   "verb": "Play fetch",
+   "needs": "energy",
+   "affection": 1,
+   "energy": -2,
+   "nova": [
+    "I'm a cat. I'll fetch it, look at it, then sit on it.",
+    "Fetch? I'll bring it back eventually. As needed.",
+    "I fetched it. Then I put it somewhere better. You're welcome.",
+    "*watches it roll away with professional interest*"
+   ],
+   "iggy": [
+    "I am a fox. I will look at the ball. That's my contribution.",
+    "...Fine. One throw. I'm keeping it.",
+    "I fetched it. I'm burying it in the couch. Fox rules.",
+    "Throw it. I'll consider it."
+   ],
+   "duskie": [
+    "Ooh! Got it! Again!",
+    "Fetch? I'm a jackal. I was born for this.",
+    "*returns it with great pride, slightly damp*",
+    "Again! ...Okay, one more and then snacks."
+   ],
+   "mochi": [
+    "You throw it. I watch it. That's the whole transaction.",
+    "I fetched it. Please clap. Quietly.",
+    "Fine. I'll go get it. After I stare at it for a while.",
+    "Fetch complete. I'd like to nap now. Double."
+   ],
+   "biscuit": [
+    "FETCH!! I GOT IT!! I GOT IT!! I LOVE FETCH!! AGAIN!!",
+    "I brought back the ball!! And also this sock!! And ALSO a feeling!!",
+    "You threw it!! I ran!! The ball ran!! We ALL ran!!",
+    "I fetched the controller! It's covered in drool! You're welcome!!"
+   ]
+  },
+  "laser": {
+   "verb": "Chase the laser",
+   "needs": "energy",
+   "affection": 1,
+   "energy": -3,
+   "nova": [
+    "The red dot. My nemesis. Today it ends.",
+    "*wiggles* Do not speak to me. I am working.",
+    "I almost had it. I ALWAYS almost have it.",
+    "This is not play. This is a professional engagement."
+   ],
+   "iggy": [
+    "I see it. I'm choosing not to chase it.",
+    "...Okay, once. *pounce*",
+    "Point it at Nova. That's the real show.",
+    "I'm filming Nova chase it. That's my part."
+   ],
+   "duskie": [
+    "Ha! Where'd it go? Where'd it GO?",
+    "I'll get it. I'm sunny, not slow.",
+    "*pounces, misses, rolls with it*",
+    "That dot owes me a rematch."
+   ],
+   "mochi": [
+    "The red dot. It taunts me. I will have it.",
+    "I caught it. It vanished. Philosophical.",
+    "Okay, I'll chase it. For ten seconds. After that, it's beneath me.",
+    "I allow the dot to live. Today."
+   ],
+   "biscuit": [
+    "WHAT IS THAT?? IT'S A DOT!! IT'S GONE!! IT'S BACK!! I'M SO CONFUSED!!",
+    "I caught the dot!! ...Where did it go?? Did I eat it??",
+    "The dot is on the wall!! I'll bark at the wall!! ...Why is this so hard??",
+    "Is the dot a friend?? An enemy?? A very tiny ball?? I LOVE IT!!"
+   ]
+  },
+  "groom": {
+   "verb": "Groom",
+   "needs": "none",
+   "affection": 2,
+   "energy": 1,
+   "nova": [
+    "Mind the ears. They're load-bearing.",
+    "Ooh, brushing. I'll be extremely fluffy and extremely smug.",
+    "Get the tail bands. They've been neglected.",
+    "*purrs* This is my spa day. Book me weekly."
+   ],
+   "iggy": [
+    "Careful. The tail tangles.",
+    "Okay. The fringe is a lost cause, though.",
+    "*leans in, pretends not to*",
+    "Get the ear tufts. Nova never does."
+   ],
+   "duskie": [
+    "Ooh, yes, the back. Can't reach it.",
+    "Make me golden. Golder.",
+    "*tail sweeps happily*",
+    "I'll be so shiny for sunset."
+   ],
+   "mochi": [
+    "Brush slowly. This is a respectable service.",
+    "Please don't comment on the loose fur. It's a snowfall.",
+    "You may continue to groom me. I'll grant you full rights.",
+    "I'm so soft now. Don't make a big deal out of it."
+   ],
+   "biscuit": [
+    "Brushies!! Soft!! I'm so shiny!! Look at me!!",
+    "Ooh, behind the ears!! RIGHT THERE!! YES!!",
+    "I'm a fluffy cloud!! A good boy cloud!!",
+    "All clean!! Time to roll in something! ...Just kidding!! Maybe!!"
+   ]
+  },
+  "cook": {
+   "verb": "Cook",
+   "needs": "energy",
+   "affection": 2,
+   "energy": -1,
+   "nova": [
+    "I'm on garnish duty. I've eaten two garnishes.",
+    "Iggy's in charge. I'm in charge of tasting.",
+    "I made the grilled cheese. Iggy supervised. Iggy also made it.",
+    "Stirring. Look at me. Stirring."
+   ],
+   "iggy": [
+    "*climbs onto the milk crate* Okay. Apron on.",
+    "I'll cook. Nobody touch the pan.",
+    "Soup's on. Ten minutes. Nova, no.",
+    "Pass the whisk. Thanks. Now stand over there."
+   ],
+   "duskie": [
+    "I'll chop. I'm a very good chopper. Of crisps, mostly.",
+    "I brought ingredients! And snacks for while we wait.",
+    "Iggy's the boss. I'm the cheerful assistant.",
+    "Smells golden in here already."
+   ]
+  },
+  "tea": {
+   "verb": "Make tea",
+   "needs": "none",
+   "affection": 1,
+   "energy": 1,
+   "nova": [
+    "Tea. Steeped for exactly four minutes. I timed it. Professionally.",
+    "Milk in second. I will not be taking questions.",
+    "A cup of tea and a biscuit. Not that Biscuit.",
+    "Ahh. That's the good mug."
+   ],
+   "iggy": [
+    "Kettle's on. Sit.",
+    "Tea. Two sugars for Nova. He'll deny it.",
+    "*hands over a mug without a word*",
+    "Good tea. Quiet five minutes. Perfect."
+   ],
+   "duskie": [
+    "Tea at sunset? My favourite ritual.",
+    "I'll have whatever's warmest.",
+    "*cradles the mug in both paws*",
+    "Tea and gossip. Mostly tea."
+   ]
+  }
+ },
+ "game_quips": {
+  "paper-mario-ttyd": {
+   "nova": "Flat, foldable and full of badges. I respect a good formulary.",
+   "iggy": "Thousand-Year Door. Great writing. Somebody here cries at the ending. It's Nova.",
+   "duskie": "A paper hero and a great soundtrack. Easy yes.",
+   "mochi": "Flat paper, fully 2D, 100% cat-approved: I fit in a mailbox.",
+   "biscuit": "Paper plane mode!! I love being folded!!"
+  },
+  "soulcalibur-ii": {
+   "nova": "Soulcalibur II. I main whoever has the most dramatic cape. It's a lifestyle.",
+   "iggy": "Soulcalibur II. I press buttons calmly. Nova presses them emotionally. I win.",
+   "duskie": "Soulcalibur II? Rematch. I've been practising. Not really.",
+   "mochi": "Link has a sword. I have claws. I will not elaborate.",
+   "biscuit": "SWORD FIGHT!! I'd fetch the sword!! (it's heavy)"
+  },
+  "mario-kart-double-dash": {
+   "nova": "Double Dash: two per kart, like a proper team. I drive. Iggy throws things. Perfect.",
+   "iggy": "Double Dash. I'm in the back with the shells. Nova's driving. Brace.",
+   "duskie": "Double Dash! Bags the back seat. I'll handle the bananas.",
+   "mochi": "Two riders, one kart. Like me and the sunbeam.",
+   "biscuit": "TWO characters per kart?? That's me and my tail!!"
+  },
+  "chibi-robo": {
+   "nova": "Chibi-Robo tidies the house and gets thanked for it. My aspirational self.",
+   "iggy": "Chibi-Robo. Tiny, helpful, runs on a plug. Relatable.",
+   "duskie": "Chibi-Robo's the sweetest little guy. Let him have a nap.",
+   "mochi": "A tiny robot cleaning a house. Finally, someone competent.",
+   "biscuit": "Little guy plugging in!! I would defend him from the vacuum!!"
+  },
+  "animal-crossing": {
+   "nova": "Animal Crossing. I'd pay off a house loan in fruit. I'd pay anything in fruit.",
+   "iggy": "Animal Crossing. I just fish and ignore the loan. Healthy.",
+   "duskie": "Animal Crossing at sunset is the best version. Trust me.",
+   "mochi": "Cats and dogs run the town. Finally, a government I trust.",
+   "biscuit": "NEIGHBORS!! SO MANY NEIGHBORS!!"
+  },
+  "star-fox-adventures": {
+   "nova": "A fox with a staff on a dinosaur planet. Iggy, are you hiding a staff?",
+   "iggy": "Star Fox Adventures. Good fox. Nice tail. Reasonable.",
+   "mochi": "A fox in the cat family tree? We don't talk about it.",
+   "biscuit": "Fox buddy!! Hi Fox!!"
+  },
+  "pikmin": {
+   "nova": "Pikmin: thirty days, one crash-landing, endless tiny helpers. I'd eat the fruit.",
+   "iggy": "Pikmin. Tiny guys doing their best. I'm protective.",
+   "mochi": "Tiny followers who obey me. I like this game.",
+   "biscuit": "SO MANY LITTLE GUYS TO HERD!! I'm a herding breed!!"
+  },
+  "cubivore": {
+   "nova": "Cubivore. Everything's a cube and wants to eat. Finally, a game that gets me.",
+   "iggy": "Cubivore is strange and I love it. Don't tell Nova.",
+   "mochi": "Survival of the fittest. I choose naps.",
+   "biscuit": "I'd eat everything!! (I already do.)"
+  },
+  "super-smash-bros-melee": {
+   "nova": "Melee. Everyone in this house has strong opinions and weak thumbs.",
+   "iggy": "Melee. Nova mashes. I wait. I win. Nobody learns.",
+   "mochi": "Everyone fights on floating islands. I'd just nap on the platform edge.",
+   "biscuit": "BRAWL TIME!! I would hug everybody until they win!!"
+  },
+  "wind-waker": {
+   "nova": "Wind Waker. The sea, the sky, a little sailboat. I'd nap on that deck.",
+   "iggy": "Wind Waker. Still looks great. Some things just age well.",
+   "mochi": "A whole ocean and no cats on the boat. I'd file a complaint if I weren't asleep.",
+   "biscuit": "SAILING!! I'd stick my head out of the boat like a car ride!!"
+  },
+  "f-zero-gx": {
+   "nova": "F-Zero GX is too fast for me. I respect it from a safe distance.",
+   "iggy": "F-Zero GX. I go fast. Nova covers his eyes.",
+   "mochi": "Racing so fast it looks like a blur. I'm already a blur when someone opens the treats.",
+   "biscuit": "SO FAST!! The zoomies, but with engines!!"
+  },
+  "pikmin-2": {
+   "nova": "Pikmin 2: collecting treasure that is mostly bottle caps. I've never felt so seen.",
+   "iggy": "Pikmin 2. Hunting for treasure that's mostly junk. I live with Nova; I'm qualified.",
+   "mochi": "More little followers, more things to boss around. Sequel approved.",
+   "biscuit": "Even MORE tiny guys!! I'll herd every one!! Gently!!"
+  },
+  "super-mario-sunshine": {
+   "nova": "Sunshine. A beach holiday with a water backpack. I'd book it.",
+   "iggy": "Sunshine. Hard blue coins. Nice beach. No sunscreen needed.",
+   "mochi": "A tropical island with a water cannon backpack. I'll watch from a dry spot.",
+   "biscuit": "Sprinkler game!! I love water! I love sprinklers!! I love everything!!"
+  },
+  "pokemon-colosseum": {
+   "nova": "Colosseum: rescuing Pokemon from other trainers. Bold. Slightly rude. Love it.",
+   "iggy": "Colosseum. Darker than usual. Good.",
+   "mochi": "Many creatures, one cat who judges all of them. Fair.",
+   "biscuit": "SO MANY PALS!! I'd name every one 'Biscuit'!!"
+  },
+  "luigis-mansion": {
+   "nova": "Luigi's Mansion. Vacuuming ghosts. Iggy, this could go on the chore chart.",
+   "iggy": "Luigi's Mansion. Hoovering ghosts. I'd do it. I'd film it too.",
+   "mochi": "A spooky house with a vacuum. Two of my least favorite things, one game.",
+   "biscuit": "A vacuum that sucks up ghosts?? I'd bark at the vacuum and then at the ghosts!!"
+  },
+  "star-fox-assault": {
+   "nova": "Star Fox Assault. More foxes in space. This household is pro-fox.",
+   "iggy": "Star Fox Assault. Fox pilots. Obviously.",
+   "mochi": "Another fox with a ship. The fox is still not family.",
+   "biscuit": "Pew pew!! Fox pilots!! Do a barrel roll!! (I did! I'm dizzy!)"
+  },
+  "sonic-adventure-2-battle": {
+   "nova": "Sonic Adventure 2. I raised a Chao. It's thriving. I'm very proud.",
+   "iggy": "Sonic Adventure 2. Nova's Chao has better manners than Nova.",
+   "mochi": "Fast hedgehog. I move fast too. When there's tuna.",
+   "biscuit": "SPEED!! Go fast!! I'm fast too (until I get distracted by a leaf)!!"
+  },
+  "donkey-konga": {
+   "nova": "Donkey Konga: drums, bananas, rhythm. I have two of those three.",
+   "iggy": "Donkey Konga. Bongos. Nova clapped once and I'll never forget it.",
+   "mochi": "A game where you hit drums. Cats do this at 3am anyway.",
+   "biscuit": "BONGO TIME!! Paws on the drums!! BOOM BOOM BOOM!!"
+  },
+  "mario-party-4": {
+   "nova": "Mario Party 4. Friendships will be tested. Mine with Iggy is extended release.",
+   "iggy": "Mario Party 4. I'm not losing to Nova again. Probably.",
+   "mochi": "Board games with friends: the best way to stay on the shelf and judge them.",
+   "biscuit": "PARTY PARTY PARTY!! Everyone gets a turn! Even me! ESPECIALLY ME!!"
+  },
+  "resident-evil-4": {
+   "nova": "Resident Evil 4. I'll be under the blanket. Narrating.",
+   "iggy": "Resident Evil 4. I'll play. Nova will hide. Same as always.",
+   "mochi": "Scary stuff. I fluffed up my tail for no reason at all.",
+   "biscuit": "Scary but cool!! Can I hide behind you but also bark at stuff??"
+  },
+  "eternal-darkness": {
+   "nova": "Eternal Darkness messes with your head. I prefer my head unmessed. Mostly.",
+   "iggy": "Eternal Darkness. Spooky. Lights stay on.",
+   "mochi": "A game about sanity. I lost mine years ago. It's fine.",
+   "biscuit": "It's spooky and thoughtful!! Hold me. No wait, hold the controller. Hold both!!"
+  },
+  "viewtiful-joe": {
+   "nova": "Viewtiful Joe. Slow-motion heroics. That's how I walk to the fridge.",
+   "iggy": "Viewtiful Joe. Stylish. Loud. Fun.",
+   "mochi": "A hero in a cape who slows down time. Finally, someone appreciates dramatic pauses.",
+   "biscuit": "SLOW-MO!! I can see the tennis ball so clearly!! I'm coming!!"
+  },
+  "tales-of-symphonia": {
+   "nova": "Tales of Symphonia: a very long road trip with a lot of cooking. Count me in.",
+   "iggy": "Tales of Symphonia has a cooking system. I have notes.",
+   "mochi": "A long adventure with lots of dialogue. Great for a cat nap between chapters.",
+   "biscuit": "A HUGE ADVENTURE!! I'd bring snacks for the whole party!!"
+  },
+  "skies-of-arcadia-legends": {
+   "nova": "Skies of Arcadia. Sky pirates. I'd fly anywhere for a good lunch.",
+   "iggy": "Skies of Arcadia. Airships. I want one. For groceries.",
+   "mochi": "Sky pirates and floating islands. I'd be the one sleeping in the crow's nest.",
+   "biscuit": "FLYING SHIPS!! Wind in my fur!! Wait, I don't have a seatbelt!! Fine!!"
+  },
+  "billy-hatcher": {
+   "nova": "Billy Hatcher. Rolling a giant egg around. I've had breakfasts like that.",
+   "iggy": "Billy Hatcher. Roll the egg. Don't drop the egg. Good rule in the kitchen too.",
+   "mochi": "A guy rolls giant eggs around. I look at the eggs and think: knock them off a table.",
+   "biscuit": "EGG ROLL!! I'd carry the egg like it's my favorite toy!! Gently!!"
+  },
+  "beyond-good-and-evil": {
+   "nova": "Beyond Good and Evil. Taking photos for justice. Iggy, you'd be a natural.",
+   "iggy": "Beyond Good and Evil. A camera as the main tool. Finally, my game.",
+   "mochi": "A photographer with a pet pig-man hybrid. I respect anyone with an eccentric roommate.",
+   "biscuit": "A camera game with animal friends!! I'd photograph every single snack!!"
+  },
+  "spyro-a-heros-tail": {
+   "nova": "Spyro: A Hero's Tail. A small dragon with big ambitions. Relatable.",
+   "iggy": "Spyro. Little dragon. Breathes fire. Better at the stove than Nova.",
+   "mochi": "A little dragon with big attitude. Understandable. Same energy as me.",
+   "biscuit": "DRAGON!! BREATHES FIRE!! I wanna breathe fire!! Please can I??"
+  },
+  "crash-nitro-kart": {
+   "nova": "Crash Nitro Kart. Karting with a bandicoot. I'd still take the corners too wide.",
+   "iggy": "Crash Nitro Kart. Fine. It's no Double Dash. Don't tell it.",
+   "mochi": "Karts and chaos. That is just my morning routine.",
+   "biscuit": "KART RACING WITH EXPLOSIONS!! Boom! Zoom! Wumpa! (I said it right!)"
+  },
+  "ty-the-tasmanian-tiger": {
+   "nova": "Ty the Tasmanian Tiger. Boomerangs and good vibes.",
+   "iggy": "Ty. Boomerangs. They come back. Unlike my containers.",
+   "mochi": "A cat-adjacent hero with boomerangs. I like his style. Don't tell him.",
+   "biscuit": "TY!! BOOMERANG BUDDY!! I'd fetch the boomerang!! It always comes back!!"
+  },
+  "harvest-moon-a-wonderful-life": {
+   "nova": "A Wonderful Life. Farming, cows, a quiet life. I'd sleep in.",
+   "iggy": "A Wonderful Life. Quiet farm. Long seasons. Very me.",
+   "mochi": "Farm life, animals, cozy evenings. A cat's retirement plan.",
+   "biscuit": "A FARM!! With ANIMALS!! I'd be the farm dog!! I volunteer!!"
+  },
+  "pokemon-channel": {
+   "nova": "Pokemon Channel. Watching telly with a Pikachu. That's my day off, exactly.",
+   "iggy": "Pokemon Channel. Barely a game. Very cozy. Fine by me.",
+   "mochi": "Watching creatures on TV with a creature. Peak cat behavior.",
+   "biscuit": "I get to hang out with a cute pal on screen!! We'd be besties!!"
+  },
+  "ikaruga": {
+   "nova": "Ikaruga. Switch colours, dodge everything. My shift in a nutshell.",
+   "iggy": "Ikaruga. Hard. I like it. Nova can't watch.",
+   "mochi": "Black and white bullets. I stare at them. They don't stare back. Win.",
+   "biscuit": "SO MANY BULLETS!! DODGE DODGE DODGE!! I'm not good at this!! It's fun!!"
+  },
+  "timesplitters-2": {
+   "nova": "TimeSplitters 2. Time travel, and a monkey. I'm in.",
+   "iggy": "TimeSplitters 2. Split-screen chaos. Snacks required.",
+   "mochi": "Chaos across time. My schedule is already time-split between naps.",
+   "biscuit": "TIME-TRAVEL SHOOTING!! Multiplayer is so loud and I love it!!"
+  }
+ },
+ "tag_quips": {
+  "furry": {
+   "nova": "{game} has animals in it. I approve on principle.",
+   "iggy": "{game}. Animal cast. Good taste.",
+   "duskie": "{game}! Furry friends. My favourite.",
+   "mochi": "Ah. {game}. Fur: confirmed. Respectable.",
+   "biscuit": "{game} has FLOOFY characters!!"
+  },
+  "cozy": {
+   "nova": "{game} pairs well with soup.",
+   "iggy": "{game}. Blanket game. Good.",
+   "duskie": "{game} feels like golden hour.",
+   "mochi": "{game} is a nap simulator in disguise.",
+   "biscuit": "{game} feels like a warm blanket!!"
+  },
+  "racing": {
+   "nova": "{game}. I take corners like I take naps: too long and with no regrets.",
+   "iggy": "{game}. I'll drive. Nova screams.",
+   "duskie": "{game}! Race you. Loser makes snacks.",
+   "mochi": "Speed is fine. Falling asleep mid-race is better.",
+   "biscuit": "ZOOM!! {game} is basically zoomies!!"
+  },
+  "horror": {
+   "nova": "{game}. I'll be under the blanket. Narrating.",
+   "iggy": "{game}. Lights on. Nova hides. I play.",
+   "duskie": "{game}? I'll sit in the middle. For moral support.",
+   "mochi": "{game}: Scared? No. I just fluffed up for fun.",
+   "biscuit": "{game} is scary!! Can I hide behind you??"
+  },
+  "party": {
+   "nova": "{game}: friendships will be tested. Snacks will be shared. Mostly.",
+   "iggy": "{game}. Party game. Bring the good snacks.",
+   "duskie": "{game}? Party! I brought crisps.",
+   "mochi": "{game}: Friends, snacks, chaos. I'll supervise from the shelf.",
+   "biscuit": "PARTY GAME!! Everybody in!!"
+  },
+  "furry-adjacent": {
+   "nova": "{game} is furry-adjacent. Close enough for me.",
+   "iggy": "{game}. A few animals. That counts.",
+   "duskie": "{game}? Furry enough. I'm in.",
+   "mochi": "{game} has furry vibes if you squint. I squinted. I approve.",
+   "biscuit": "{game} has such good animal energy!! I wanna be friends with everyone!!"
+  },
+  "cats-and-dogs": {
+   "nova": "{game} has cats in it. Clearly the best ones.",
+   "iggy": "{game}. Cats and dogs. Like this street.",
+   "duskie": "{game}! Cats, dogs, and a jackal on the couch.",
+   "mochi": "{game} has both cats and dogs. A fair diplomatic solution.",
+   "biscuit": "{game} has dogs AND cats AND friends!! It's a pet party!!"
+  },
+  "cat-adjacent": {
+   "nova": "{game} is cat-adjacent. I can feel it in my whiskers.",
+   "iggy": "{game}. Something cat-shaped. Nova's interested.",
+   "duskie": "{game} feels very Nova.",
+   "mochi": "{game} has cat-adjacent heroes. I'll allow it. Quietly.",
+   "biscuit": "{game} has someone cat-ish!! Hi cat-ish buddy!! I'm a dog!! Let's be friends!!"
+  },
+  "cute": {
+   "nova": "{game} is so cute I may need a nap to recover.",
+   "iggy": "{game}. Cute. Don't tell anyone I said so.",
+   "duskie": "{game}? So cute. I'm melting.",
+   "mochi": "{game} is cute. I'm cute too. Coincidence? I think not.",
+   "biscuit": "{game} is SO CUTE!! My heart! My tail! My everything!!"
+  },
+  "spooky": {
+   "nova": "{game} is spooky. I'm brave. From over here.",
+   "iggy": "{game}. A bit spooky. Fine.",
+   "duskie": "{game} is spooky. Perfect dusk game.",
+   "mochi": "{game} is spooky in a cozy way. The fog is good for naps.",
+   "biscuit": "{game} is spooky but cute!! I'd boop the ghosts!!"
+  },
+  "rpg": {
+   "nova": "{game}: long, cozy, and full of menus. Like a good formulary.",
+   "iggy": "{game}. Long one. I'll make soup.",
+   "duskie": "{game}! That's a three-day visit right there.",
+   "mochi": "{game} is a very long adventure. I'll bring blankets and a snack.",
+   "biscuit": "{game} has a whole party of friends!! I'd be the loyal dog sidekick!!"
+  },
+  "sports": {
+   "nova": "{game}. Sports. I'm athletic in spirit.",
+   "iggy": "{game}. Sports. I'll keep score.",
+   "duskie": "{game}? Count me in. Loser makes tea.",
+   "mochi": "{game}: sport is just chasing a ball. I get it. I'm still not running.",
+   "biscuit": "{game}!! A BALL!! I know balls!! Balls are my thing!!"
+  },
+  "fighting": {
+   "nova": "{game}. I button-mash with dignity.",
+   "iggy": "{game}. I win. Calmly.",
+   "duskie": "{game}? Rematch. Always rematch.",
+   "mochi": "{game}: violent. I prefer to hiss from a safe distance.",
+   "biscuit": "{game}!! Big fight!! I'd be the cheering crowd!! Go go go!!"
+  },
+  "platformer": {
+   "nova": "{game}. Jumping on things. I'm a serval; it's in my bones.",
+   "iggy": "{game}. Jumps. Lots of them. Fine.",
+   "duskie": "{game} is a nice afternoon run.",
+   "mochi": "{game} is jumping on things. A cat's natural area of expertise.",
+   "biscuit": "{game}!! JUMP!! I can jump!! (Onto the couch. That counts!!)"
+  },
+  "adventure": {
+   "nova": "{game}: an adventure. I'll pack snacks.",
+   "iggy": "{game}. Adventure. I'll bring the map.",
+   "duskie": "{game}? Adventure! I'm staying till the end.",
+   "mochi": "{game} is a quest. I support quests that include rests.",
+   "biscuit": "{game}!! Adventure!! I'll sniff out every secret!!"
+  },
+  "action": {
+   "nova": "{game}. Action. I'll do the dramatic commentary.",
+   "iggy": "{game}. Fast. Good.",
+   "duskie": "{game} gets my tail going.",
+   "mochi": "{game} is a lot of action. I'll watch from the couch.",
+   "biscuit": "{game}: ACTION!! Hit things!! Do cool poses!!"
+  },
+  "scifi": {
+   "nova": "{game} is set in space. My home, spiritually.",
+   "iggy": "{game}. Space. Nova will mention stars.",
+   "duskie": "{game}! Space sunsets must be wild.",
+   "mochi": "{game} is in space. I like space. Lots of room to sprawl.",
+   "biscuit": "{game}!! SPACE!! Can I be a space dog?? Please??"
+  },
+  "co-op": {
+   "nova": "{game}: co-op. I'll carry. Emotionally.",
+   "iggy": "{game}. Co-op. I'll actually carry.",
+   "duskie": "{game}? Co-op! I'll take player three.",
+   "mochi": "{game} is better with friends. Fine. I'll share my sunbeam.",
+   "biscuit": "{game} is co-op!! We can do it together!! I'll be the best partner!!"
+  },
+  "weird": {
+   "nova": "{game} is strange. I respect strange.",
+   "iggy": "{game}. Weird. Love it.",
+   "duskie": "{game} is weird in the best way.",
+   "mochi": "{game} is weird. I respect weird. I am weird.",
+   "biscuit": "{game} is SO WEIRD!! I'm into it!! Tell me more!!"
+  },
+  "arcade": {
+   "nova": "{game}. Arcade rules: one more go. Then one more.",
+   "iggy": "{game}. High scores. I'm competitive. Quietly.",
+   "duskie": "{game}! One more round.",
+   "mochi": "{game}: quick rounds, high scores. I'd rather lie down.",
+   "biscuit": "{game} is arcade-y!! High score!! My name is BSCT!!"
+  },
+  "fox": {
+   "nova": "{game} has a fox in it. Iggy's pretending not to care.",
+   "iggy": "{game}. A fox. Obviously good.",
+   "duskie": "{game} has a fox. Iggy approves, I can tell.",
+   "mochi": "{game} stars a fox. They're basically the dog-cat compromise.",
+   "biscuit": "{game} has a FOX!! Fox buddy!! I'd share my bone!!"
+  },
+  "dragon": {
+   "nova": "{game} has a dragon. I'd share my sandwich with it.",
+   "iggy": "{game}. Dragon. Better with fire than Nova.",
+   "duskie": "{game}! Dragons are just sunset lizards.",
+   "mochi": "{game} has a dragon. Imagine a very large cat with a flamethrower.",
+   "biscuit": "{game} has a DRAGON!! Fire!! Scales!! Cool!! Spot-tacular!!"
+  },
+  "bongos": {
+   "nova": "{game}: bongos. I have rhythm. Somewhere.",
+   "iggy": "{game}. Bongos. The neighbours are on notice.",
+   "duskie": "{game}? Bongos! Let's be loud.",
+   "mochi": "{game} is a drum game. I'm a big fan of making noise at 4am.",
+   "biscuit": "{game}: BONGOS!! Boom boom boom!! My paws are drums!!"
+  },
+  "top5": {
+   "nova": "{game} is in the top five. Pinned, dated, signed.",
+   "iggy": "{game}. Top five. Not up for debate.",
+   "duskie": "{game}! A classic in this house.",
+   "mochi": "{game} is in your Top 5. I'll treat it with the respect of a good pillow.",
+   "biscuit": "{game} is in your TOP 5!! It's a VIP!! Very Important Pup-game!!"
+  },
+  "link-guest": {
+   "nova": "{game} has a guest hero in it. Very fancy.",
+   "iggy": "{game}. Guest appearance. Neat.",
+   "duskie": "{game} has a special guest. Like me!",
+   "mochi": "{game} has a guest fighter with a sword and a green hat. A little fancy for a Tuesday.",
+   "biscuit": "{game} has a special guest fighter!! He's very sword-y!! Hi!!"
+  }
+ },
+ "state_of_collection": {
+  "empty": [
+   "No games found. The bowl is empty. This is a crisis.",
+   "Point me at your game folder and I'll get to work."
   ],
-  "iggy": [
-   "Take a break. I'll make tea.",
-   "Stand up. Stretch. Then back to it.",
-   "Drink some water. That's the whole tip."
+  "few": [
+   "We have a small stack, but I respect quality over quantity.",
+   "A cozy library! Fresh rotations will be quick."
   ],
-  "duskie": [
-   "Go look out a window for a minute. Works every time.",
-   "Break time. Snack's on me.",
-   "Five minutes of nothing. You've earned it."
-  ],
-  "mochi": [
-   "Drink some water. Stretch. I've been doing both for hours, in the sunbeam.",
-   "Close the book for ten minutes. It will still be there. Books are patient.",
-   "You've been staring at that screen a while. Look out the window. Birds exist.",
-   "Break time. I'll keep your seat warm. By sitting in it.",
-   "Shoulders down. Jaw unclenched. Breathe. I'll supervise.",
-   "A snack and some water would be an excellent study technique. I have notes."
-  ],
-  "biscuit": [
-   "WATER BREAK!! Drink a lot!! I'll drink some too!! Splash!!",
-   "Stand up and stretch!! Do the downward dog!! I'll show you!!",
-   "You're working SO hard!! Take a short walk and I'll come too!!",
-   "Time for a snack!! And a pat!! And maybe a nap!! Not in that order!!",
-   "Hey friend!! Look away from the screen!! Look at ME!! I'm a good view!!",
-   "Rest is part of studying!! I read it somewhere!! I think it was a treat bag!!"
+  "many": [
+   "That's a LOT of games. Shuffling time!",
+   "A tall tower of discs. I want to climb it."
   ]
  }
 }

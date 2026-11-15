@@ -207,3 +207,39 @@ assets/
 - **Swiss fork** lives in `swiss_fork/`: `README.md`, `patches/*.patch` (a `git format-patch` series over the
   pinned upstream tag), `art/` (generator script + its outputs), `apply.sh`. No upstream source files and no
   built binaries are committed.
+
+## 9. The Hidden World (owner request, 2026-11-15)
+
+- **What it is:** a second private compartment inside After Dark for the owner's own packs. It ships **empty**.
+  Nothing is authored for it in this repository, and the content rule of section 4 applies to everything
+  written here.
+- **Secrecy:** before it is opened, no visible control, label, tooltip, help text, menu item, status line, log
+  line or `--help` entry may mention it or hint that it exists. The README stays silent about it. (The source
+  code, this spec and the state file do show that the feature exists to anyone who reads them: it hides, it does
+  not protect.)
+- **Setup (owner only):** `python -m pawtation hw-setup`, a subcommand that is hidden from `--help`. It prompts
+  without echo for an 8-character reveal code (letters and digits, exactly 8) and a 10-digit passcode (digits
+  only, exactly 10), each entered twice. Only salted PBKDF2-HMAC-SHA256 hashes are stored (200,000 iterations
+  or more, 16-byte salts) under `state["hw"] = {"v": 1, "code": {...}, "pass": {...}, "fails": 0, "wait_until": 0}`.
+  `hw-setup --clear` removes it. Until it is set up the feature is completely inert.
+- **Reveal:** only while After Dark is unlocked. GUI: typing the 8-character code into the chat box and pressing
+  Enter. A matching entry is swallowed (never shown in the log, never sent to the characters) and a bare
+  passcode prompt opens (no text naming the feature; masked entry). CLI `chat`: the same, with a bare no-echo
+  prompt.
+- **Open:** the correct passcode opens "The Hidden World" (the name appears only now): a separate window in
+  the GUI, a listing in the CLI. It shows the owner's packs whose `pack.json` says `"rating": "hidden"`: each
+  pack's `gallery/` images (PNG and GIF, previous / next) and its scenes and lines, which join the engine only
+  while the section is open. With no such packs it shows a plain empty state. Closing the window or quitting
+  locks it again; nothing persists, so every launch needs the code and the passcode again.
+- **Failure:** a wrong code is an ordinary chat message (no visible difference). A wrong passcode closes the
+  prompt silently. After 5 wrong passcodes further attempts are refused for a doubling delay starting at one
+  minute, tracked in `state["hw"]`, with no message.
+- **Engine rule:** packs rated `hidden` are never loaded, listed or counted anywhere unless the section is open
+  in this process. Card quips, exports, `mods`, `doctor` and `wrapped` never touch them.
+- **Module:** `pawtation/hidden.py` (standard library): `is_configured(state)`, `setup(state, code, passcode)`,
+  `clear(state)`, `check_code(state, text)` (constant-time; False when unconfigured or After Dark is locked),
+  `try_open(state, passcode, now=None)` (applies the throttle), `is_open()`, `close()`, `packs()`.
+- **Tests:** only hashes are stored (the code and passcode never appear in state or output); inert when
+  unconfigured; requires After Dark; wrong inputs indistinguishable from normal chat; throttling; hidden packs
+  unreachable while closed through every public path; no widget text, help text or menu mentions it before it
+  is opened; `--help` does not list `hw-setup`.
