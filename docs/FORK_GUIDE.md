@@ -18,6 +18,21 @@ modify your own copy, and the maintainer's file goes further than "no contributi
 understand or debug the code. Respecting that fully means doing Path B by hand (this guide and the notes tell you where to look),
 or staying on Path A.
 
+### Owner's decision (recorded 2026-11-15)
+After being shown the maintainer's policy text and the alternatives, the owner chose **Path B: a private themed
+fork, for their own consoles only, with agent help**. In their words: "use path 2 for a private fork and
+repository for only our usage". What that commits every future agent and human to:
+- Nothing from this fork ever goes upstream or to the Swiss community: no pull requests, issues, discussions,
+  support requests, or shared builds. If you want a fix upstream, reproduce it on stock Swiss and report it by
+  hand, without fork code.
+- The fork stays private and is always labelled "Pawtation theme, unofficial, based on Swiss" with Swiss's
+  authors and GPL-2.0 licence credited on the info screen. Do not remove attribution.
+- The fork is kept as a small patch queue over a pinned release tag (`swiss_fork/`), cosmetic changes only.
+  Loader, patching and device code are off limits.
+- If a build is ever given to anyone else, GPL-2.0 requires giving them the matching source (the pinned tag plus
+  the patch queue is that source).
+- Stock Swiss on a spare boot card remains the rollback. Hardware testing follows section 5.
+
 ## 2. Two paths
 **Path A (recommended): stock Swiss + Pawtation.** Download an official Swiss release, copy the DOL onto the boot card (`python -m pawtation boot-card`).
 All cat/dog theming lives in Pawtation (desktop app, pets) and in file/folder naming on the cards (`games/<Title>/game.iso`). Zero fork risk, trivially updatable.

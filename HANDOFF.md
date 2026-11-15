@@ -5,6 +5,18 @@
 cat/dog chat pets. The user also owns a working Action Replay disc. Tone: cozy, cat/dog/furry-adjacent jokes + GameCube references.
 Original characters only (Mochi = cat, Biscuit = dog). Never add copyrighted art or ROM/ISO downloads; the user supplies their own legal dumps.
 
+## Decisions on record
+- **2026-11-15, Swiss:** the owner chose a private themed fork with agent help (Path B). Terms in
+  `docs/FORK_GUIDE.md` section 1. Never send anything upstream.
+- **2026-11-15, cast:** the mascots are the owner's own characters Nova (serval) and Iggy (fennec fox); Duskie
+  (golden jackal) is a recurring guest; Mochi and Biscuit are cameos. Canon: `docs/CHARACTERS.md`.
+- **2026-11-15, look:** pink-forward theme driven by the mascots (`docs/DESIGN_SYSTEM.md`); characters appear as
+  vector sticker sprites and low-poly renders, deliberately unlike the owner's other projects.
+- **2026-11-15, After Dark:** an opt-in 18+ tier behind a one-time date-of-birth check. The repository ships
+  innuendo-level banter only; nothing sexually explicit is authored here. `packs/` is the owner's own space.
+- **2026-11-15, home:** this project is meant to live in its own private repository. Until that exists it sits
+  in a `pawtation/` folder on a branch of the owner's Rounds repository; it shares nothing with Rounds.
+
 ## User priorities
 - Top 5: Paper Mario TTYD, Animal Crossing (replaced Katamari Damacy, a PS2 game, at the user's request), Soulcalibur II, Mario Kart Double Dash, Chibi-Robo.
 - Easy rotation, desktop app, timer, expandable to more cards, easy for future agents to modify.
