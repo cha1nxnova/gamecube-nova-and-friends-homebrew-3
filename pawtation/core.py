@@ -106,12 +106,13 @@ def mods_dir(cfg) -> Path:
 
 
 def load_state() -> dict:
+    from . import afterdark, cast         # imported here: cast imports this module
     st = load_json(STATE_PATH, {})
     st.setdefault("ratings", {})          # key -> 1..5
     st.setdefault("history", [])          # list of {"ts","season","plan"}
     st.setdefault("last_rotation_ts", 0)
     st.setdefault("last_on_card", {})     # key -> ts it last got loaded onto any card
-    st.setdefault("pets", {"mochi": {"affection": 5, "energy": 5}, "biscuit": {"affection": 5, "energy": 5}})
+    st.setdefault("pets", {})             # cast id -> {"affection", "energy"} for every non-cameo character
     st.setdefault("plays", {})            # key -> manual play count (GUI "I played this" button)
     for k, kind in (("ratings", dict), ("history", list), ("last_on_card", dict), ("pets", dict), ("plays", dict)):
         if not isinstance(st[k], kind):          # a hand-edited or damaged state.json must not take the app down
@@ -121,10 +122,12 @@ def load_state() -> dict:
     st["history"] = [h for h in st["history"] if isinstance(h, dict) and isinstance(h.get("plan"), dict)]
     if not isinstance(st["last_rotation_ts"], (int, float)):
         st["last_rotation_ts"] = 0
-    for pet in ("mochi", "biscuit"):
+    for pet in cast.regulars():           # entries for anyone else (v1's mochi / biscuit) are left as they are
         p = st["pets"].get(pet)
         if not (isinstance(p, dict) and all(isinstance(p.get(f), (int, float)) for f in ("affection", "energy"))):
             st["pets"][pet] = {"affection": 5, "energy": 5}
+    st["scene"] = cast.clean_scene_state(st.get("scene"))           # who is home: {"who": [ids], "until": ts, "manual": bool}
+    st["afterdark"] = afterdark.clean_state(st.get("afterdark"))    # {"unlocked": False} or {"unlocked": True, "confirmed_on"}
     return st
 
 

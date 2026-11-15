@@ -3,7 +3,7 @@ Everything runs in temp dirs; nothing here can touch a real config, library or S
 import contextlib, io, json, os, random, struct, subprocess, sys, tempfile, unittest, zlib
 from pathlib import Path
 
-from pawtation import core, discimage, patching, pets, plugins, saves
+from pawtation import cast, core, discimage, patching, pets, plugins, saves
 from pawtation.core import Catalog
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -32,6 +32,9 @@ class Base(unittest.TestCase):
         self.cat = Catalog()
         self.state = {"ratings": {}, "history": [], "last_on_card": {}, "last_rotation_ts": 0,
                       "pets": {p: {"affection": 5, "energy": 5} for p in ("mochi", "biscuit")}, "plays": {}}
+        packs = cast.PACKS_DIR                                               # the owner's own packs/ must not change results
+        cast.PACKS_DIR = self.tmp / "packs"; cast.reload()
+        self.addCleanup(lambda: (setattr(cast, "PACKS_DIR", packs), cast.reload()))
 
     def add(self, name, code6, title="T", kb=64, disc=1):
         (self.lib / name).write_bytes(disc_bytes(code6, title, kb * 1024, disc))
@@ -342,7 +345,7 @@ class ReviewRegressions(Base):
         self.assertIn("D:/roms", (home / "config.json.bak").read_text())
         core.STATE_PATH.write_text(json.dumps({"ratings": {"a": "5", "b": 4}, "pets": 3, "history": [1, {"plan": {}}], "last_on_card": []}))
         st = core.load_state()
-        self.assertEqual((st["ratings"], len(st["history"]), st["pets"]["mochi"]["energy"]), ({"b": 4}, 1, 5))
+        self.assertEqual((st["ratings"], len(st["history"]), st["pets"][pets.NAMES[0]]["energy"]), ({"b": 4}, 1, 5))
         cat = Catalog([{"key": "a", "title": "A", "aliases": None, "code4": ["x"]}, {"key": ["k"], "title": "B"},
                        {"key": "c", "title": 5}, "junk", {"key": "d", "title": "D", "aliases": [1, "Dee"]}])
         self.assertEqual(sorted(cat.by_key), ["a", "d"])
@@ -353,11 +356,13 @@ class ReviewRegressions(Base):
         core.commit_plan(self.state, {"1": []}); self.assertEqual(self.state["history"][-1]["season"], 110)
         keep = json.dumps(pets.PETS)
         self.addCleanup(lambda: (pets.PETS.clear(), pets.PETS.update(json.loads(keep))))
-        pets.PETS.update({"jokes": ["abc", ["Mochi"], 5], "idle": ["x"], "greeting": {"mochi": ["{game.foo}", "{game[a]}", 5], "biscuit": 7},
-                          "activities": {"fetch": "x", "nap": {"affection": "lots", "mochi": 5}}, "game_quips": {"chibi-robo": "x"},
+        one, two = pets.NAMES[0], pets.NAMES[-1]                             # two of the main cast (ids from data/cast.json)
+        pets.PETS.update({"jokes": ["abc", [pets.CHARS[one]["name"]], 5], "idle": ["x"],
+                          "greeting": {one: ["{game.foo}", "{game[a]}", 5], two: 7},
+                          "activities": {"fetch": "x", "nap": {"affection": "lots", one: 5}}, "game_quips": {"chibi-robo": "x"},
                           "tag_quips": [], "fortunes": None, "state_of_collection": 3})
         b = pets.PetBrain(self.state, self.cat, random.Random(2))
-        for text in ("joke", "fortune", "hi", "hello mochi", "fetch", "nap", "zzz", "suggest", "chibi-robo!"):
+        for text in ("joke", "fortune", "hi", f"hello {one}", "fetch", "nap", "zzz", "suggest", "chibi-robo!"):
             for _ in range(5):
                 self.assertTrue(b.reply(text, self.scan()))
         self.assertEqual(b.card_quips(["chibi-robo"]), [])
@@ -617,9 +622,11 @@ class Chat(Base):
         self.assertEqual(self.state["ratings"], {"pikmin-2": 4})
         self.assertIn("Pikmin 2", self.brain.reply("rank", self.roms))
         self.assertIn("WRAPPED", self.brain.reply("wrapped", self.roms))
-        self.assertTrue(self.brain.reply("biscuit play fetch", self.roms).startswith("Biscuit:"))
-        self.assertEqual(self.state["pets"]["biscuit"]["energy"], 3)
-        self.assertTrue(self.brain.reply("mochi, tell me about super mario sunshine", self.roms).startswith("Mochi:"))
+        one, two = pets.NAMES[0], pets.NAMES[-1]                             # main cast ids; both are home by default
+        self.assertTrue(self.brain.reply(f"{two} play fetch", self.roms).startswith(pets.CHARS[two]["name"] + ":"))
+        self.assertEqual(self.state["pets"][two]["energy"], 3)
+        self.assertTrue(self.brain.reply(f"{one}, tell me about super mario sunshine", self.roms)
+                        .startswith(pets.CHARS[one]["name"] + ":"))
         for text in ("joke", "fortune", "i'm so tired", "help", "what should i play", "saves", ""):
             self.assertTrue(self.brain.reply(text, self.roms, {}), text)
         self.assertEqual(len(self.brain.collection([])), 2)

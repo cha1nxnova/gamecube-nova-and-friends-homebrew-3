@@ -1,0 +1,19 @@
+{
+ "version": 1,
+ "characters": {
+  "nova": {"name": "Nova", "species": "serval", "pronouns": "he/him", "role": "main",
+           "aliases": ["nova", "serval", "cat", "kitty"], "color": "#2b2d42", "accent": "#f52fd2"},
+  "iggy": {"name": "Iggy", "species": "fennec fox", "pronouns": "any/all", "role": "main",
+           "aliases": ["iggy", "fennec", "fox", "pup", "puppy"], "color": "#d2b48c", "accent": "#7582b5"},
+  "duskie": {"name": "Duskie", "species": "golden jackal", "pronouns": "he/him", "role": "guest",
+             "aliases": ["duskie", "dusk", "jackal"], "color": "#ffd37c", "accent": "#79bff0"},
+  "mochi": {"name": "Mochi", "species": "cat", "pronouns": "she/her", "role": "cameo", "aliases": ["mochi"]},
+  "biscuit": {"name": "Biscuit", "species": "dog", "pronouns": "he/him", "role": "cameo", "aliases": ["biscuit"]}
+ },
+ "presence": {
+  "groups": {"nova+iggy": 58, "nova": 9, "iggy": 9, "duskie+iggy+nova": 10,
+             "duskie+nova": 5, "duskie+iggy": 5, "cameo": 4},
+  "min_minutes": 20,
+  "max_minutes": 90
+ }
+}

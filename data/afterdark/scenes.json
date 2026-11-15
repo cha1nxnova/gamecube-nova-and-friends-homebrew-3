@@ -1,0 +1,78 @@
+{
+ "version": 1,
+ "_comment": "SEED After Dark scenes (engine placeholders, innuendo-level banter only); the writer replaces them. Loaded only while After Dark is unlocked. Every scene here is treated as rating afterdark.",
+ "scenes": [
+  {
+   "id": "seed-ad-apron",
+   "seed": true,
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "That apron says kiss the cook."
+    ],
+    [
+     "iggy",
+     "It's an instruction. Not a suggestion."
+    ],
+    [
+     "nova",
+     "Then I'm following the label directions."
+    ]
+   ]
+  },
+  {
+   "id": "seed-ad-staring",
+   "seed": true,
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "night",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "You're staring."
+    ],
+    [
+     "nova",
+     "I'm admiring. It's different. It has better lighting."
+    ]
+   ]
+  },
+  {
+   "id": "seed-ad-a-minute",
+   "seed": true,
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "afterdark",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Should I give you two a minute?"
+    ],
+    [
+     "iggy",
+     "Give us ten."
+    ],
+    [
+     "nova",
+     "Five. I'm hungry."
+    ]
+   ]
+  }
+ ]
+}

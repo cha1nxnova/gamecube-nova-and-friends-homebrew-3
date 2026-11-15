@@ -4,7 +4,7 @@ import string
 import unittest
 from pathlib import Path
 
-from pawtation import pets
+from pawtation import cast, pets
 from pawtation.core import Catalog
 
 DATA = json.loads((Path(__file__).resolve().parent.parent / "data" / "pets.json").read_text(encoding="utf-8"))
@@ -79,8 +79,9 @@ class TestPetsContent(unittest.TestCase):
     def test_fortunes_and_jokes(self):
         self.assertGreaterEqual(len(DATA["jokes"]), 48)
         self.assertGreaterEqual(len(DATA["fortunes"]), 20)
+        speakers = {c["name"] for c in cast.characters().values()}          # display names from data/cast.json
         for who, _ in DATA["jokes"] + DATA["fortunes"]:
-            self.assertIn(who, ("Mochi", "Biscuit"))
+            self.assertIn(who, speakers)
         for pet in ("mochi", "biscuit"):
             self.assertGreaterEqual(len(DATA["study_break"][pet]), 6)
 

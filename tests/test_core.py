@@ -1,6 +1,6 @@
 import tempfile, unittest, time
 from pathlib import Path
-from pawtation import core, pets, saves
+from pawtation import cast, core, pets, saves
 from pawtation.core import Catalog
 
 
@@ -69,8 +69,9 @@ class T(unittest.TestCase):
         info = saves.parse_gci(p); self.assertEqual((info["code4"], info["blocks"]), ("G8ME", 3))
         roms = core.scan_library(self.cfg, self.cat)
         brain = pets.PetBrain(self.state, self.cat)
-        self.assertRegex(brain.reply("tell me a joke"), r"^(Mochi|Biscuit):")
-        self.assertRegex(brain.reply("rate paper mario 5", roms), r"^(Mochi|Biscuit):")
+        anyone = "|".join(c["name"] for c in cast.characters().values())    # any cast member may be home and answer
+        self.assertRegex(brain.reply("tell me a joke"), rf"^({anyone}):")
+        self.assertRegex(brain.reply("rate paper mario 5", roms), rf"^({anyone}):")
         self.assertEqual(self.state["ratings"].get("paper-mario-ttyd"), 5)
         self.assertTrue(brain.reply("suggest something", roms))
         self.assertTrue(brain.reply("pet", roms))

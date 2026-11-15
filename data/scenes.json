@@ -1,0 +1,438 @@
+{
+ "version": 1,
+ "_comment": "SEED scenes from the v2 cast engine build; the writer replaces them. Schema: docs/SPEC_V2.md section 2. Optional key for arrive/leave scenes: \"about\" = ids of who arrives/leaves (default: the non-main participants, or everyone if all are mains).",
+ "scenes": [
+  {
+   "id": "seed-nova-quiet",
+   "who": [
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "The house is quiet. Suspiciously quiet."
+    ],
+    [
+     "nova",
+     "With nobody filming, nothing I do right now counts."
+    ]
+   ]
+  },
+  {
+   "id": "seed-nova-sandwich",
+   "who": [
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Grilled cheese for one."
+    ],
+    [
+     "*",
+     "He makes two anyway."
+    ]
+   ]
+  },
+  {
+   "id": "seed-iggy-clean",
+   "who": [
+    "iggy"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "The kitchen is clean and nobody is in it. These facts are related."
+    ],
+    [
+     "iggy",
+     "I'll enjoy it while it lasts."
+    ]
+   ]
+  },
+  {
+   "id": "seed-iggy-camcorder",
+   "who": [
+    "iggy"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Quiet day. I should film something."
+    ],
+    [
+     "iggy",
+     "There is nothing to film. The usual subject is out."
+    ]
+   ]
+  },
+  {
+   "id": "seed-duskie-couch",
+   "who": [
+    "duskie"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Nobody home? I'll hold the couch down."
+    ],
+    [
+     "*",
+     "He takes the whole couch."
+    ]
+   ]
+  },
+  {
+   "id": "seed-duskie-snacks",
+   "who": [
+    "duskie"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Golden hour and a snack bowl all to myself."
+    ],
+    [
+     "*",
+     "He saves half for the others."
+    ]
+   ]
+  },
+  {
+   "id": "cheese-drawer",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "I can hear the cheese drawer from here."
+    ],
+    [
+     "iggy",
+     "It hasn't moved."
+    ],
+    [
+     "nova",
+     "It could."
+    ]
+   ]
+  },
+  {
+   "id": "seed-duo-take-with-food",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Take with food. That is my professional advice."
+    ],
+    [
+     "iggy",
+     "You're holding a controller."
+    ],
+    [
+     "nova",
+     "And a sandwich."
+    ]
+   ]
+  },
+  {
+   "id": "seed-nova-duskie-snacks",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "I brought snacks."
+    ],
+    [
+     "nova",
+     "Refills: unlimited. I like this arrangement."
+    ]
+   ]
+  },
+  {
+   "id": "seed-nova-duskie-rematch",
+   "who": [
+    "duskie",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Best of three?"
+    ],
+    [
+     "duskie",
+     "You said that three rounds ago."
+    ],
+    [
+     "nova",
+     "PRN rematches."
+    ]
+   ]
+  },
+  {
+   "id": "seed-iggy-duskie-taster",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Need a taste tester?"
+    ],
+    [
+     "iggy",
+     "I need one who leaves some for dinner."
+    ]
+   ]
+  },
+  {
+   "id": "seed-iggy-duskie-window",
+   "who": [
+    "duskie",
+    "iggy"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "You're staying three days again, aren't you."
+    ],
+    [
+     "duskie",
+     "The sunset's better from your window."
+    ]
+   ]
+  },
+  {
+   "id": "seed-trio-snacks",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "duskie",
+     "Hey, you two."
+    ],
+    [
+     "nova",
+     "He brought snacks. He can stay."
+    ],
+    [
+     "iggy",
+     "He was always going to stay."
+    ]
+   ]
+  },
+  {
+   "id": "seed-trio-players",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "any",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "Four-player game, three players."
+    ],
+    [
+     "iggy",
+     "I'm filming. Two players."
+    ],
+    [
+     "duskie",
+     "I'll take both spare controllers."
+    ]
+   ]
+  },
+  {
+   "id": "seed-arrive-duskie",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "arrive",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "duskie"
+   ],
+   "lines": [
+    [
+     "*",
+     "The door opens."
+    ],
+    [
+     "duskie",
+     "Hey, you two. Miss me?"
+    ],
+    [
+     "iggy",
+     "You left an hour ago."
+    ]
+   ]
+  },
+  {
+   "id": "seed-leave-duskie",
+   "who": [
+    "duskie",
+    "iggy",
+    "nova"
+   ],
+   "when": "leave",
+   "rating": "all",
+   "weight": 1,
+   "about": [
+    "duskie"
+   ],
+   "lines": [
+    [
+     "duskie",
+     "Golden hour. I'm off to catch it."
+    ],
+    [
+     "nova",
+     "Bring back snacks."
+    ]
+   ]
+  },
+  {
+   "id": "seed-rotated-duo",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "rotated",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "New rotation. Fresh games, dispensed as written."
+    ],
+    [
+     "iggy",
+     "You pressed one button."
+    ],
+    [
+     "nova",
+     "With precision."
+    ]
+   ]
+  },
+  {
+   "id": "seed-synced-duo",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "synced",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "Card {card} is done copying."
+    ],
+    [
+     "nova",
+     "Label it. Take with food."
+    ]
+   ]
+  },
+  {
+   "id": "seed-due-duo",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "due",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "iggy",
+     "The rotation timer ran out."
+    ],
+    [
+     "nova",
+     "I noticed. I was going to mention it after this sandwich."
+    ]
+   ]
+  },
+  {
+   "id": "seed-night-duo",
+   "who": [
+    "iggy",
+    "nova"
+   ],
+   "when": "night",
+   "rating": "all",
+   "weight": 1,
+   "lines": [
+    [
+     "nova",
+     "It's late. One more level."
+    ],
+    [
+     "iggy",
+     "That's what you said at ten."
+    ]
+   ]
+  }
+ ]
+}

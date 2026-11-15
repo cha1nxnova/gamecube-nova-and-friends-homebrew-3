@@ -1,0 +1,21 @@
+{
+ "_comment": "SEED After Dark lines (engine placeholders, mild flirty banter only); the writer replaces them. Same shape as data/pets.json; lists are appended to it, only while After Dark is unlocked.",
+ "_seed": true,
+ "idle": {
+  "nova": [
+   "Iggy wears that apron on purpose. I have filed no complaints."
+  ],
+  "iggy": [
+   "Nova calls it bedside manner. It's flirting. It works."
+  ],
+  "duskie": [
+   "I knock before I come in now. Those two make eyes at each other constantly."
+  ]
+ },
+ "jokes": [
+  [
+   "Nova",
+   "My prescription for Iggy: one kiss, as needed. Refills: unlimited."
+  ]
+ ]
+}

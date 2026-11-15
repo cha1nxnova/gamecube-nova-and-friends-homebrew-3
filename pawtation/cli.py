@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 import os
 import time
 from pathlib import Path
 
-from . import core, patching, pets, plugins, saves
+from . import afterdark, cast, core, patching, pets, plugins, saves
 from .core import Catalog
 
 
@@ -52,7 +53,7 @@ def cmd_status(a):
         label = cfg["cards"].get(cid, {}).get("label", "?")
         print(f"Card {cid} ({label}): " + ", ".join(titles.get(k) or cat.by_key.get(k, {}).get("title", k) for k in keys))
     if due:
-        for line in pets.PetBrain(state, cat).due_nag(): print(line)
+        for line in pets.PetBrain(state, cat).event("due"): print(line)
 
 
 def cmd_plan(a):
@@ -72,6 +73,7 @@ def cmd_plan(a):
     if a.commit:
         core.commit_plan(state, plan); core.save_state(state); plugins.fire("planned", plan=plan, roms=roms)
         print("\nPlan committed; timer reset.")
+        for line in pets.PetBrain(state, cat).event("rotated"): print(line)
     else:
         print("\n(preview only; add --commit to save it and restart the timer)")
 
@@ -109,7 +111,7 @@ def _sync_one(cfg, state, cat, roms, cid, a) -> bool:
     for e in rep["errors"]: print("ERROR:", e)
     if a.go and not rep["errors"]:
         plugins.fire("synced", card_id=cid, report=rep, mount=mount)
-        for line in pets.PetBrain(state, cat).duo("synced", card=cid): print(line)
+        for line in pets.PetBrain(state, cat).event("synced", card=cid): print(line)
     return not rep["errors"]
 
 
@@ -225,25 +227,108 @@ def cmd_rate(a):
     print(brain.rate(a.title, a.stars, roms)); core.save_state(state)
 
 
+def _art_row(brain, who) -> str:
+    """The CLI art of several characters side by side (each block padded to its own width)."""
+    blocks = [b.split("\n") for b in (brain.art(p, brain.mood(p)) for p in who) if b]
+    rows = []
+    for i in range(max((len(b) for b in blocks), default=0)):
+        rows.append("   ".join((b[i] if i < len(b) else "").ljust(max(len(x) for x in b)) for b in blocks).rstrip())
+    return "\n".join(rows)
+
+
+def _cast_ctx():
+    """State + brain for the commands that only need the characters (no library scan)."""
+    plugins.load_plugins()
+    state = core.load_state()
+    return state, pets.PetBrain(state, Catalog())
+
+
 def cmd_chat(a):
     cfg, state, cat, roms = build_ctx()
     brain = pets.PetBrain(state, cat)
     sv = saves.scan_saves(cfg.get("saves_dir", ""))
-    print(pets.PETS.get("title", "")); print(brain.art("mochi")); print(brain.art("biscuit"))
+    cast.step(state, datetime.datetime.now(), brain.rng)            # whoever came or went while the app was closed
+    title = pets.PETS.get("title")
+    if isinstance(title, str) and title: print(title)
+    art = _art_row(brain, brain.speakers())
+    if art: print(art)
+    print(brain.home_line())
     for l in brain.duo("greeting"): print(l)
     if core.rotation_due(cfg, state)[0] and roms:
-        for l in brain.due_nag(): print(l)
+        for l in brain.event("due"): print(l)
     print("(type 'quit' to leave, 'help' for ideas)")
     try:
         while True:
             try: t = input("> ")
             except EOFError: break
             if t.strip().lower() in ("q", "quit", "exit", "bye"): break
+            change = cast.step(state, datetime.datetime.now(), brain.rng)
+            if change["changed"]:                                   # someone came home or headed out meanwhile
+                for l in brain.presence_lines(change): print(l)
+                print(brain.home_line())
             if t.strip():
                 print(brain.reply(t, roms, sv))
     except KeyboardInterrupt:
         print()
     core.save_state(state)
+
+
+def cmd_cast(a):
+    state, brain = _cast_ctx()
+    now = datetime.datetime.now()
+    if a.everyone or a.gather is not None:
+        change = cast.gather(state, cast.regulars() if a.everyone else a.gather, a.minutes, now)
+        if change["error"]:
+            print(change["error"]); return 1
+    elif a.random:
+        change = cast.shuffle(state, now, brain.rng)
+    else:
+        change = cast.step(state, now, brain.rng)
+    core.save_state(state)
+    for line in brain.presence_lines(change): print(line)
+    print(brain.home_line())
+    left = cast.remaining(state, now)
+    if left:
+        until = (now + datetime.timedelta(seconds=left)).strftime("%H:%M")
+        print(f"(a meetup you set up; it lasts until about {until}, then who is home is random again)"
+              if cast.is_manual(state) else f"(the next change is around {until})")
+    home = brain.home()
+    for cid, c in cast.characters().items():
+        print(f"  {c['name']:<10} {c['species']:<14} {c['role']:<6} {'home' if cid in home else 'out'}")
+    return 0
+
+
+def cmd_scene(a):
+    state, brain = _cast_ctx()
+    cast.step(state, datetime.datetime.now(), brain.rng)
+    core.save_state(state)
+    print(brain.home_line())
+    for line in brain.scene(a.when): print(line)
+    return 0
+
+
+def cmd_afterdark(a):
+    state = core.load_state()
+    if a.lock:
+        afterdark.lock(state); core.save_state(state)
+        print("After Dark is locked. Run `afterdark` again if you ever want it back."); return 0
+    if afterdark.is_unlocked(state):
+        print(afterdark.status(state) + " To turn it off: afterdark --lock"); return 0
+    if a.status:
+        print(afterdark.status(state)); return 0
+    print("After Dark is an opt-in 18+ tier: flirtier banter between the adult characters. It is off by default.\n"
+          "To unlock it, confirm your date of birth once. It is checked against today's date and then forgotten:\n"
+          "only the fact that you confirmed, and the day you did, are saved.")
+    try:
+        text = input("Date of birth (YYYY-MM-DD, MM/DD/YYYY or DD.MM.YYYY): ")
+    except (EOFError, KeyboardInterrupt):
+        print("\nNo date entered. After Dark stays locked."); return 1
+    ok, message = afterdark.unlock(state, afterdark.parse_date(text))   # the date is never echoed, stored or logged
+    del text
+    print(message)
+    if ok:
+        core.save_state(state)
+    return 0 if ok else 1
 
 
 def _gui(a):
@@ -256,7 +341,8 @@ def _gui(a):
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(prog="pawtation", description="Rotate GameCube games across GC2SD cards, with Mochi & Biscuit.")
+    stars = cast.names(cast.regulars())
+    p = argparse.ArgumentParser(prog="pawtation", description=f"Rotate GameCube games across GC2SD cards, with {stars}.")
     sub = p.add_subparsers(dest="cmd", required=True)
     def add(name, fn, help):
         sp = sub.add_parser(name, help=help, description=help); sp.set_defaults(f=fn); return sp
@@ -279,7 +365,19 @@ def main(argv=None):
     add("saves", cmd_saves, "what your exported .gci saves say about themselves")
     add("wrapped", cmd_wrapped, "season recap")
     add("doctor", cmd_doctor, "check this computer is ready")
-    add("chat", cmd_chat, "talk to Mochi and Biscuit")
+    add("chat", cmd_chat, f"talk to {stars} (whoever is home)")
+    s = add("cast", cmd_cast, "who is home; set up a meetup with --gather / --everyone, or --random")
+    g = s.add_mutually_exclusive_group()
+    g.add_argument("--gather", nargs="+", metavar="NAME", help="put exactly these characters at home (e.g. --gather nova duskie)")
+    g.add_argument("--everyone", action="store_true", help="get every non-cameo character together")
+    g.add_argument("--random", action="store_true", help="draw a new random group now")
+    s.add_argument("--minutes", type=float, help="how long a meetup lasts (default: the cast's max_minutes)")
+    s = add("scene", cmd_scene, "play a scene with whoever is home")
+    s.add_argument("--when", help="moment to play: any, night, morning, rotated, synced, due, arrive, leave, game:<key>, tag:<tag>")
+    s = add("afterdark", cmd_afterdark, "After Dark (opt-in 18+ tier): unlock with a one-time date-of-birth check, or --lock")
+    g = s.add_mutually_exclusive_group()
+    g.add_argument("--lock", action="store_true", help="lock After Dark again")
+    g.add_argument("--status", action="store_true", help="only say whether it is locked; never asks for a date")
     add("gui", _gui, "desktop app (needs tkinter)")
     plugins.load_plugins()
     for name, (fn, help) in plugins.COMMANDS.items():

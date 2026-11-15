@@ -1,0 +1,315 @@
+{
+  "version": 1,
+  "about": "Pawtation design tokens. docs/DESIGN_SYSTEM.md explains every role. Colours are #rrggbb. pawtation/theme.py holds a built-in copy and repairs anything missing here.",
+  "default": "light",
+  "labels": {
+    "light": "Blush",
+    "dark": "Cosmic"
+  },
+  "themes": {
+    "light": {
+      "bg": "#fff5fa",
+      "surface": "#ffffff",
+      "surface_alt": "#ffe9f3",
+      "stage": "#ffe4f0",
+      "ink": "#1b1c30",
+      "ink_muted": "#625a78",
+      "line": "#e2358d",
+      "primary": "#ff3d9a",
+      "primary_ink": "#1b1c30",
+      "primary_soft": "#ffd6e9",
+      "accent": "#3d8fe0",
+      "accent_ink": "#1b1c30",
+      "accent_soft": "#dcecfc",
+      "success": "#0f7b5b",
+      "warning": "#8f5600",
+      "danger": "#b8162f",
+      "focus": "#d916c0",
+      "selection": "#ff5fad",
+      "selection_ink": "#1b1c30",
+      "nova": "#2b2d42",
+      "iggy": "#5a6699",
+      "duskie": "#fec349",
+      "line_soft": "#ffc4de",
+      "header": "#ff3d9a",
+      "header_ink": "#1b1c30",
+      "primary_hover": "#ff62ae",
+      "primary_active": "#f43a92",
+      "primary_text": "#c2136e",
+      "accent_hover": "#62a6ea",
+      "accent_active": "#3a8adc",
+      "accent_text": "#1b62b0",
+      "gold": "#f7bd45",
+      "gold_ink": "#1b1c30",
+      "gold_soft": "#ffefc9",
+      "gold_text": "#8a5a00",
+      "success_soft": "#e0f6ea",
+      "warning_soft": "#ffefc9",
+      "danger_soft": "#ffe1e3",
+      "danger_ink": "#ffffff",
+      "danger_hover": "#cb2b43",
+      "danger_active": "#9f1127",
+      "disabled": "#f3e6ee",
+      "disabled_ink": "#978da6",
+      "stage_floor": "#ffa9cf",
+      "stage_glow": "#ffbfdb",
+      "keyline": "#ffffff",
+      "shadow": "#f4b6d3",
+      "nova_ink": "#ff6fdc",
+      "iggy_ink": "#ffffff",
+      "duskie_ink": "#1b1c30",
+      "cameo": "#e9e3f4",
+      "cameo_ink": "#1b1c30"
+    },
+    "dark": {
+      "bg": "#17122b",
+      "surface": "#241d40",
+      "surface_alt": "#322855",
+      "stage": "#110c24",
+      "ink": "#f1eff8",
+      "ink_muted": "#b9b0d2",
+      "line": "#d14f98",
+      "primary": "#ff4fa3",
+      "primary_ink": "#1b1c30",
+      "primary_soft": "#4a2050",
+      "accent": "#5fa9f2",
+      "accent_ink": "#1b1c30",
+      "accent_soft": "#1c3358",
+      "success": "#62e0b4",
+      "warning": "#ffcf6b",
+      "danger": "#ff8266",
+      "focus": "#ff8cf0",
+      "selection": "#ff4fa3",
+      "selection_ink": "#1b1c30",
+      "nova": "#ff6fdc",
+      "iggy": "#5a6699",
+      "duskie": "#ffd37c",
+      "line_soft": "#4b3b6e",
+      "header": "#ff4fa3",
+      "header_ink": "#1b1c30",
+      "primary_hover": "#ff78b9",
+      "primary_active": "#f04499",
+      "primary_text": "#ff85c0",
+      "accent_hover": "#84bff7",
+      "accent_active": "#4a97e6",
+      "accent_text": "#8cc8ff",
+      "gold": "#ffc94d",
+      "gold_ink": "#1b1c30",
+      "gold_soft": "#3d3122",
+      "gold_text": "#ffd166",
+      "success_soft": "#153828",
+      "warning_soft": "#3d3122",
+      "danger_soft": "#47202a",
+      "danger_ink": "#1b1c30",
+      "danger_hover": "#ff9b84",
+      "danger_active": "#f2714f",
+      "disabled": "#2b2547",
+      "disabled_ink": "#81789c",
+      "stage_floor": "#2e2440",
+      "stage_glow": "#4a1c58",
+      "keyline": "#f1eff8",
+      "shadow": "#0a0717",
+      "nova_ink": "#1b1c30",
+      "iggy_ink": "#ffffff",
+      "duskie_ink": "#1b1c30",
+      "cameo": "#3a3060",
+      "cameo_ink": "#f1eff8"
+    }
+  },
+  "type": {
+    "unit": "px",
+    "families": {
+      "display": [
+        "Fredoka",
+        "Baloo 2",
+        "Nunito",
+        "Quicksand",
+        "Varela Round",
+        "M PLUS Rounded 1c",
+        "Arial Rounded MT Bold",
+        "Hiragino Maru Gothic ProN",
+        "Chalkboard SE",
+        "Ubuntu",
+        "Trebuchet MS",
+        "Cantarell",
+        "Avenir Next",
+        "Verdana",
+        "DejaVu Sans",
+        "Helvetica Neue",
+        "Arial"
+      ],
+      "body": [
+        "Nunito",
+        "Varela Round",
+        "M PLUS Rounded 1c",
+        "Ubuntu",
+        "Cantarell",
+        "Avenir Next",
+        "Trebuchet MS",
+        "Verdana",
+        "Noto Sans",
+        "DejaVu Sans",
+        "Helvetica Neue",
+        "Segoe UI",
+        "Liberation Sans",
+        "Arial"
+      ],
+      "mono": [
+        "JetBrains Mono",
+        "Cascadia Mono",
+        "Cascadia Code",
+        "SF Mono",
+        "Menlo",
+        "Consolas",
+        "DejaVu Sans Mono",
+        "Ubuntu Mono",
+        "Liberation Mono",
+        "Courier New"
+      ]
+    },
+    "scale": {
+      "display": {
+        "family": "display",
+        "px": 26,
+        "weight": "bold"
+      },
+      "title": {
+        "family": "display",
+        "px": 20,
+        "weight": "bold"
+      },
+      "heading": {
+        "family": "display",
+        "px": 16,
+        "weight": "bold"
+      },
+      "body": {
+        "family": "body",
+        "px": 14,
+        "weight": "normal"
+      },
+      "body_strong": {
+        "family": "body",
+        "px": 14,
+        "weight": "bold"
+      },
+      "small": {
+        "family": "body",
+        "px": 12,
+        "weight": "normal"
+      },
+      "tag": {
+        "family": "body",
+        "px": 12,
+        "weight": "bold"
+      },
+      "mono": {
+        "family": "mono",
+        "px": 13,
+        "weight": "normal"
+      }
+    },
+    "leading": 1.4
+  },
+  "space": [
+    0,
+    2,
+    4,
+    8,
+    12,
+    16,
+    24,
+    32,
+    48
+  ],
+  "radius": {
+    "none": 0,
+    "sm": 6,
+    "md": 10,
+    "lg": 16,
+    "pill": 999
+  },
+  "size": {
+    "header": 64,
+    "control": 36,
+    "control_sm": 28,
+    "control_lg": 44,
+    "row": 30,
+    "chip": 30,
+    "progress": 22,
+    "meter": 12,
+    "star": 22,
+    "hit_min": 28,
+    "stage": 292,
+    "stage_compact": 188
+  },
+  "layout": {
+    "window_min": [
+      960,
+      640
+    ],
+    "window_default": [
+      1120,
+      780
+    ],
+    "side_panel": 448,
+    "gutter": 18
+  },
+  "keyline": {
+    "hair": 1,
+    "control": 2,
+    "card": 2,
+    "sticker": 3,
+    "focus": 3,
+    "focus_gap": 2
+  },
+  "elevation": {
+    "flat": [
+      0,
+      0
+    ],
+    "card": [
+      3,
+      3
+    ],
+    "raised": [
+      4,
+      5
+    ],
+    "dialog": [
+      6,
+      7
+    ]
+  },
+  "motion": {
+    "fast": 90,
+    "base": 160,
+    "slow": 280,
+    "sparkle": 900,
+    "stripe": 700,
+    "sprite_fps_max": 12,
+    "blink_min": 2800,
+    "blink_max": 6500,
+    "bubble_hold": 6000,
+    "toast_hold": 4500,
+    "reduced": {
+      "fast": 0,
+      "base": 0,
+      "slow": 0,
+      "sparkle": 0,
+      "stripe": 0,
+      "sprite_fps_max": 0
+    }
+  },
+  "sprite": {
+    "stage": 192,
+    "stage_compact": 96,
+    "cameo": 96,
+    "dialog": 96,
+    "empty_state": 192,
+    "overlap": 24,
+    "gap_compact": 16,
+    "pad": 16,
+    "baseline": 0.92
+  }
+}
