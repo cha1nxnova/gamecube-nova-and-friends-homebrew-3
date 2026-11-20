@@ -53,12 +53,14 @@ Linux GUI: `sudo apt install python3-tk`. Every command has `--help`. Making it 
 plugins): `docs/MODDING.md`.
 
 ## Your hardware flow (Action Replay + GC2SD)
+Step by step, with troubleshooting: **`docs/GAMECUBE_GUIDE.md`**. Swiss is always the official, unmodified release (`docs/SWISS.md`).
+
 1. **Boot card:** a *separate small standard SD, 2 GB or less* (the Action Replay SD Media Launcher reads only standard SD, not SDHC/SDXC).
    Put Swiss on it as `autoexec.dol`: `python -m pawtation boot-card --mount E:\ --swiss-dol swiss.dol --go`.
 2. Boot the Action Replay disc with the boot card in the GC2SD; it launches Swiss.
 3. Swap in one of your 5 game cards (rotated by Pawtation), refresh Swiss's device list, play. Swapping while powered on is the common community
    workflow but is at your own risk; power off first if unsure.
-4. **Saves:** the GC2SD can't act as a save memory card. Use a real GameCube memory card for saves (Swiss can also emulate one on some setups; see docs/FORK_GUIDE.md sources).
+4. **Saves:** the GC2SD can't act as a save memory card. Use a real GameCube memory card for saves (Swiss can also emulate one on some setups; see `docs/RESEARCH_NOTES.md`).
 
 ## How rotation works
 - **Pinned favorites:** your top 5 (`config.json -> pinned`) go one-per-card, in order, so every card has a favorite.
@@ -84,18 +86,12 @@ python3 art/lowpoly/build.py         # low-poly renders -> assets/renders (--onl
 ```
 Details: `docs/ART_PIPELINE.md`, `docs/ART_LOWPOLY.md`.
 
-## The Swiss theme
-`swiss_fork/` holds a private, unofficial, cosmetic theme for the Swiss loader (Pawtation colours, logo, backdrop
-and Nova in the title bar) as a patch queue over Swiss `v0.6r2119`, with a script that builds it in Docker. Swiss's
-authors and GPL-2.0 licence stay credited, and nothing is ever sent upstream. Read `docs/FORK_GUIDE.md` section 1
-and `swiss_fork/README.md` first.
-
 ## Things you should know (honest notes)
 1. **Top 5:** Paper Mario TTYD, Animal Crossing, Soulcalibur II, Mario Kart Double Dash, Chibi-Robo (Animal Crossing replaced Katamari Damacy, which is a PS2 game, not GameCube). Change `pinned` in `config.json` any time.
 2. **Image formats:** Swiss starts `.iso`/`.gcm`. It refuses `.gcz`/`.rvz` and has no `.ciso` support, so Pawtation shows those in `scan` but never puts them on a card. Convert them to `.iso` with Dolphin or NKit.
 3. **Game list:** `data/catalog.json` has 651 titles (from Wikipedia's GameCube list), 444 with a North American disc ID checked against GameTDB. Games without an ID match by file name, including dump-set names like `Legend of Zelda, The - The Wind Waker (USA).iso`. Only the original 79 have tags (which drive game quips). Sources: `docs/CATALOG_SOURCES.md`.
 4. **Saves:** `saves` (and asking about "saves" in chat) shows game, size, date and the description text each save carries. Real story progress needs a per-game reader; none ship because none could be checked against a real save (`docs/MODDING.md`). Set `saves_dir` in `config.json` to a folder of exported `.gci`/`.gcs` files.
-5. **Swiss theme status:** it builds, but it has **not been seen running**: the emulator in the build container shows a black screen even for stock Swiss, and nothing has run on a real console. Try it on your own hardware with a stock Swiss boot card at hand. Our build of unmodified Swiss is not byte-identical to the official release.
+5. **Swiss:** Pawtation uses stock Swiss releases only. The earlier private theme fork was removed on 2026-11-20 at the owner's request, out of respect for the Swiss maintainers' request that AI tools not be used on their code (`docs/SWISS.md`). All the theming lives in this app.
 6. **Tested how:** the logic has automated tests (temp folders standing in for SD cards). The desktop app was run under a virtual Linux display only; see `docs/GUI_CHECKLIST.md` for what was and was not exercised. Nothing has been run on Windows or macOS, on a real SD card, or on a real GameCube.
 7. **Action Replay boot:** how your AR disc launches Swiss from the GC2SD varies by AR version. Swiss's release archive contains an `ActionReplay/AUTOEXEC.DOL`; that is the file to give `boot-card`. An existing `autoexec.dol` is kept as `autoexec.dol.bak`.
 8. **Version 1 saves:** an old `state.json` keeps loading; Mochi's and Biscuit's version-1 stats are left alone.

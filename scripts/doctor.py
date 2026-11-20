@@ -90,12 +90,14 @@ except Exception as e:
     bad(f"After Dark state unreadable: {type(e).__name__}")
 
 section("Tools")
-for tool, why in [("xdelta3", "optional: applying .xdelta mod patches"), ("git", "version control"),
-                  ("docker", "optional: Swiss fork build container"), ("powerpc-eabi-gcc", "optional: devkitPPC on the host")]:
+for tool, why in [("xdelta3", "optional: applying .xdelta mod patches"), ("git", "version control")]:
     (ok if shutil.which(tool) else warn)(f"{tool}: {'found' if shutil.which(tool) else 'not found'} ({why})")
-spots = [Path(os.environ["PAWTATION_SWISS_WORK"])] if os.environ.get("PAWTATION_SWISS_WORK") else []
-spots += [Path.home() / "swiss-work", ROOT.parent / "swiss-work"]
-work = next((w for w in spots if (w / "build.sh").is_file()), spots[0])
-(ok if (work / "build.sh").is_file() else warn)(
-    f"Swiss build workspace: {'found at ' + str(work) if (work / 'build.sh').is_file() else 'not found (' + str(work) + '); only needed to rebuild the Swiss theme, see swiss_fork/README.md'}")
+try:
+    boot = core.load_config().get("boot_card", {}) or {}
+except Exception:
+    boot = {}
+dol = str(boot.get("swiss_dol") or "")
+(ok if dol and Path(dol).is_file() else warn)(
+    "Swiss: " + ("boot card file set (" + Path(dol).name + ")" if dol and Path(dol).is_file()
+                 else "no Swiss file set yet; get the official release and see docs/GAMECUBE_GUIDE.md"))
 print("Done. New here? README.md. Changing things? HANDOFF.md and docs/MODDING.md.")

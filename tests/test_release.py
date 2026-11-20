@@ -56,7 +56,7 @@ class Doctor(unittest.TestCase):
 
     def test_reports_art_theme_and_afterdark_without_details(self):
         out = self.run_doctor({})
-        for needle in ("sprites:", "low-poly renders:", "theme file", "After Dark: locked", "Swiss build workspace"):
+        for needle in ("sprites:", "low-poly renders:", "theme file", "After Dark: locked", "Swiss: "):
             self.assertIn(needle, out)
         self.assertNotIn("[FAIL]", out)
         out = self.run_doctor({"afterdark": {"unlocked": True, "confirmed_on": "2026-11-15"}})

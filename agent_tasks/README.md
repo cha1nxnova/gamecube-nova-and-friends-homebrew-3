@@ -5,7 +5,7 @@ For current work read `docs/SPEC_V2.md` (contracts between modules), `HANDOFF.md
 `docs/MODDING.md` (packs, plugins, themes).
 
 Supervisor rules that still hold when delegating:
-- Never delegate policy decisions (`docs/FORK_GUIDE.md` section 1), anything that writes to a real SD card, or catalog
+- Never delegate policy decisions (`docs/SWISS.md`), anything that writes to a real SD card, or catalog
   `code4` values nobody can verify.
 - Give each helper one task and a list of the only files it may edit; review every diff and run
   `python3 -m unittest discover -s tests` after each merge.

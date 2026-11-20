@@ -4,14 +4,15 @@
 **Pawtation** (version 2): rotates the owner's own legally acquired GameCube disc images across GC2SD SD cards (5 now,
 expandable), with a desktop app and a CLI starring the owner's characters **Nova** (serval) and **Iggy** (fennec fox),
 with **Duskie** (golden jackal) as a regular guest and ten rare cameo neighbours. The owner also has a working Action
-Replay disc and a private, cosmetic Swiss theme (`swiss_fork/`). Never add copyrighted art or ROM/ISO downloads; the
+Replay disc and runs stock Swiss (`docs/SWISS.md`). Never add copyrighted art or ROM/ISO downloads; the
 owner supplies their own dumps.
 
 Read next: `docs/SPEC_V2.md` (contracts between modules), `docs/CHARACTERS.md` (character canon).
 
 ## Decisions on record
-- **2026-11-15, Swiss:** the owner chose a private themed fork with agent help (Path B). Terms in
-  `docs/FORK_GUIDE.md` section 1. Never send anything upstream.
+- **2026-11-20, Swiss:** the owner chose **stock Swiss** and had the private themed fork (chosen 2026-11-15) removed,
+  respecting the Swiss maintainers' request that AI tools not be used on their code. Rules: `docs/SWISS.md`.
+  Hardware: Action Replay disc + GC2SD adapters with microSD cards. User guide: `docs/GAMECUBE_GUIDE.md`.
 - **2026-11-15, cast:** the mascots are the owner's own characters Nova (serval) and Iggy (fennec fox); Duskie
   (golden jackal) is a recurring guest; Mochi and Biscuit are cameos. Canon: `docs/CHARACTERS.md`.
 - **2026-11-15, look:** pink-forward theme driven by the mascots (`docs/DESIGN_SYSTEM.md`); characters appear as
@@ -27,12 +28,13 @@ Read next: `docs/SPEC_V2.md` (contracts between modules), `docs/CHARACTERS.md` (
 ## User priorities
 - Top 5: Paper Mario TTYD, Animal Crossing (replaced Katamari Damacy, a PS2 game, at the user's request), Soulcalibur II, Mario Kart Double Dash, Chibi-Robo.
 - Easy rotation, desktop app, timer, expandable to more cards, easy for future agents to modify.
-- The characters front and centre; a themed Swiss (built, not yet seen running: see Status).
+- The characters front and centre (in the desktop app; Swiss stays stock).
+- Get it launching on the real GameCube (`docs/GAMECUBE_GUIDE.md`).
 
 ## Start here (next agent)
 1. `python scripts/doctor.py` (or `python -m pawtation doctor`): Python, tkinter, config, library, cards, cast,
-   sprites, renders, theme file, After Dark locked/unlocked, Docker and the Swiss build workspace.
-2. Read `docs/SPEC_V2.md` and `docs/CHARACTERS.md`. Before touching Swiss, read `docs/FORK_GUIDE.md` section 1.
+   sprites, renders, theme file, After Dark locked/unlocked.
+2. Read `docs/SPEC_V2.md` and `docs/CHARACTERS.md`. Before anything Swiss-related, read `docs/SWISS.md`.
 3. Run `python -m unittest discover -s tests` before and after every change; GUI tests need tkinter and a display:
    `xvfb-run -a python3.12 -m unittest discover -s tests`.
 4. `agent_tasks/README.md`: the version-1 task prompts are done and removed; it keeps the supervisor rules for
@@ -57,11 +59,10 @@ Read next: `docs/SPEC_V2.md` (contracts between modules), `docs/CHARACTERS.md` (
 | `data/catalog.json` | 651 games (79 hand-tagged seed + Wikipedia list; `scripts/build_catalog.py` regenerates, `scripts/import_ids.py` merges IDs) |
 | `assets/sprites/`, `assets/renders/` | committed outputs of the art pipeline (PNGs + `manifest.json`) |
 | `art/` | dev-time art sources: `lib2d/` + `rigs/` (2D stickers, `art/build.py`), `lowpoly/` (3D renders). Never imported by the app. `art/out/` is scratch (git-ignored) |
-| `swiss_fork/` | the private Swiss theme as a patch queue over `v0.6r2119` plus `apply.sh`, Dockerfile and art generator |
 | `packs/` | the owner's own content packs (git-ignored except `README.md`) |
 | `mods/`, `plugins/` | per-game card files and plugins (`docs/MODDING.md`) |
 | `config.json` (user, git-ignored) / `config.example.json` | settings; `state.json` = ratings, history, timer, character stats, presence, After Dark flag. `PAWTATION_HOME` moves both |
-| `docs/` | `SPEC_V2.md`, `CHARACTERS.md`, `MODDING.md` (start here to extend), `DESIGN_SYSTEM.md`, `ART_PIPELINE.md`, `ART_LOWPOLY.md`, `GUI_CHECKLIST.md`, `FORK_GUIDE.md`, `BUILD_LOG.md`, `SWISS_THEME_MAP.md`, `RESEARCH_NOTES.md`, `CATALOG_SOURCES.md` |
+| `docs/` | `SPEC_V2.md`, `CHARACTERS.md`, `MODDING.md` (start here to extend), `DESIGN_SYSTEM.md`, `ART_PIPELINE.md`, `ART_LOWPOLY.md`, `GUI_CHECKLIST.md`, `SWISS.md`, `GAMECUBE_GUIDE.md`, `RESEARCH_NOTES.md`, `CATALOG_SOURCES.md` |
 | `tests/` | `test_core`, `test_features` (sync safety, containers, patching, saves, chat, plugins, CLI end-to-end), `test_catalog`, `test_cast` (cast, presence, scenes, packs, After Dark lockdown), `test_afterdark` (After Dark through the real CLI), `test_pets_content`, `test_scenes_content`, `test_sprites`, `test_lowpoly`, `test_theme`, `test_release` (doctor, small regressions), `test_gui` (skips without tkinter + display) |
 
 ## Rules of the road
@@ -86,7 +87,7 @@ Read next: `docs/SPEC_V2.md` (contracts between modules), `docs/CHARACTERS.md` (
 14. **Art outputs are committed.** Change a rig or model, rebuild (`python3 art/build.py`, `python3 art/lowpoly/build.py`),
     commit the regenerated PNGs and manifests. The app must still start with every image missing (text fallback).
 15. Characters: never change a species, palette or marking; no character addresses the player with pet names.
-16. Swiss: cosmetic only, credits and GPL-2.0 kept, nothing goes upstream (`docs/FORK_GUIDE.md` section 1).
+16. Swiss: stock releases only; no AI work on Swiss source and nothing sent upstream (`docs/SWISS.md`).
 
 ## How to...
 - **Add a game:** append to `data/catalog.json` -> `{"key":"slug","title":"...","year":0,"developer":"","genres":[],"tags":[],"code4":"XXXX","aliases":[]}`.
@@ -119,14 +120,12 @@ whenever the stage is tall enough for the bubble and wide enough that no name ta
 visiting cameo stays at 96 px beside them); the compact 96 px stage only when they do not fit or four or more are
 home. The Game column takes spare table width. See `docs/GUI_CHECKLIST.md`. The desktop app has only ever run under
 Xvfb on Linux: not run on Windows or macOS, not seen on a real monitor at real DPI.
-**Built, never seen running:** the Swiss theme compiles but has never been seen running. The four patches apply and build (`swiss_fork/`, `docs/BUILD_LOG.md`),
-but the emulator capture in this container is black even for stock Swiss, so there are no screenshots. Our build of
-the unmodified tag is not byte-identical to the official release (build path and toolchain snapshot differ).
+**Removed 2026-11-20:** the Swiss theme fork (`swiss_fork/`, `docs/BUILD_LOG.md`, `docs/SWISS_THEME_MAP.md`); it stays in git history only.
 **Not done:** per-game progress parsers
 (TTYD layout documented, unverified against a real save); tags/genres for the 572 imported catalog titles; `.sav` save
 wrapper; OS notifications; printable card labels.
 **Unverified on real hardware (nothing has run on real hardware yet):** anything on a real GameCube, GC2SD or SD card; multi-disc file naming
-(`disc1.iso`/`disc2.iso`); the Swiss cheat file path/format; memory-card emulation with a GC2SD; the Swiss theme.
+(`disc1.iso`/`disc2.iso`); the Swiss cheat file path/format; memory-card emulation with a GC2SD; which Action Replay file starts Swiss on the owner's disc (`autoexec.dol` or `SDLOADER.BIN`).
 
 ## Ideas backlog
 Character mini-game (fetch/guess-the-game), per-card themes, play-time tracking, OS reminder when rotation is due, TTYD
