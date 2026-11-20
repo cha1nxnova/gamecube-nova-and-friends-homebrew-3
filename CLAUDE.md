@@ -1,8 +1,7 @@
 # Pawtation (GameCube: Nova and friends)
 
 Private, personal project. A desktop app + CLI (Python 3.9+, standard library only) that rotates the owner's own
-GameCube disc images across SD cards, starring the owner's characters Nova, Iggy and Duskie, plus a private
-cosmetic fork of the Swiss loader kept as a patch queue.
+GameCube disc images across SD cards, starring the owner's characters Nova, Iggy and Duskie. It sets up stock Swiss boot cards; Swiss itself is never modified.
 
 - Read `HANDOFF.md` first, then `docs/SPEC_V2.md` (contracts between modules) and `docs/CHARACTERS.md` (canon).
 - `python3 -m pawtation --help` lists commands. Tests: `python3 -m unittest discover -s tests`
@@ -19,7 +18,7 @@ cosmetic fork of the Swiss loader kept as a patch queue.
 - The Hidden World (docs/SPEC_V2.md section 9) is a hidden, passcode-locked compartment inside After Dark for
   the owner's own packs. It ships empty: author nothing for it, and never mention or hint at it in the UI, help
   text or README.
-- Swiss fork (`swiss_fork/`, see `docs/FORK_GUIDE.md` section 1): private, cosmetic only, Swiss's authors and
-  GPL-2.0 licence stay credited, and nothing ever goes upstream (no pull requests, issues or support requests).
+- Swiss is **stock only** (`docs/SWISS.md`): never clone, read, patch, build or debug Swiss source with an AI tool,
+  and never contact the Swiss project about anything made here. The old theme fork was removed on 2026-11-20.
 - Never commit `config.json`, `state.json`, disc images, saves, real names or birth dates.
 - Tests must never touch the real config or state: pass a cfg/state, or patch `core.CONFIG_PATH` / `STATE_PATH`.

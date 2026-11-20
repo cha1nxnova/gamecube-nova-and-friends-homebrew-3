@@ -184,7 +184,7 @@ assets/
 | 2D art | `art/lib2d/`, `art/rigs/`, `art/build.py`, `assets/sprites/`, `pawtation/sprites.py`, `tests/test_sprites.py`, `docs/ART_PIPELINE.md` |
 | 3D art | `art/lowpoly/`, `assets/renders/`, `tests/test_lowpoly.py`, `docs/ART_LOWPOLY.md` |
 | Theme | `data/theme.json`, `pawtation/theme.py`, `tests/test_theme.py`, `docs/DESIGN_SYSTEM.md` |
-| Later (second wave) | `pawtation/gui.py`, `tests/test_gui.py`, Swiss fork, printable labels |
+| Later (second wave) | `pawtation/gui.py`, `tests/test_gui.py`, printable labels |
 
 ## 8. Wave 3 addenda (2026-11-15)
 
@@ -210,9 +210,7 @@ assets/
   `gui_plain_widgets` (bool; env `PAWTATION_PLAIN_WIDGETS=1`): plain ttk widgets instead of the drawn pill buttons.
 - **After Dark stays as specified in section 4:** the repository ships innuendo-level banter only. No explicit
   text or art is authored here, by anyone, for any tier.
-- **Swiss fork** lives in `swiss_fork/`: `README.md`, `patches/*.patch` (a `git format-patch` series over the
-  pinned upstream tag), `art/` (generator script + its outputs), `apply.sh`. No upstream source files and no
-  built binaries are committed.
+- **Swiss** is stock only; the fork planned here was removed on 2026-11-20 (`docs/SWISS.md`).
 
 ## 9. The Hidden World (owner request, 2026-11-15)
 
