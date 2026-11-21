@@ -116,6 +116,15 @@ class Wizard(unittest.TestCase):
         self.assertTrue(core.load_config()["setup_done"])
         self.assertFalse(self.app.wants_setup())
 
+    def test_build_smoke_report(self):
+        import json
+        from pawtation import gui
+        out = self.tmp / "smoke.json"
+        self.assertEqual(gui._smoke_report(self.app, str(out)), 0)
+        r = json.loads(out.read_text())
+        self.assertTrue(r["ok"]); self.assertTrue(r["guide"]); self.assertGreater(r["catalog"], 600)
+        self.app.destroy()                                     # the report closed the window: closing again is safe
+
     def test_bad_card_sizes_are_refused(self):
         w = self.app.open_setup(); w.go(1)
         w.count.set("1"); w._redraw_sizes(); w.size_vars["1"].set("lots")

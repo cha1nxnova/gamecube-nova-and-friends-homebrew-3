@@ -27,6 +27,7 @@ import random
 import threading
 import time
 import traceback
+from pathlib import Path
 
 try:                                    # tkinter may be missing (Linux without python3-tk): the CLI must still import us
     import tkinter as tk
@@ -1088,7 +1089,10 @@ if HAVE_TK:
             for name in list(self._after):
                 self._cancel(name)
             self._after.clear()
-            super().destroy()
+            try:
+                super().destroy()
+            except tk.TclError:                              # already gone (closed twice): nothing left to do
+                pass
 
         # ---------- theme plumbing ----------
         def space(self, i):
@@ -2603,6 +2607,30 @@ if HAVE_TK:
                 self.cfg = core.update_config(boot_card={**boot, "mount": mount, "swiss_dol": dol})
 
 
+def _smoke_report(app, out_path):
+    """Used by the Windows build to prove the packaged app starts and finds its shipped files. Writes JSON, exits."""
+    import json
+    from . import paths, setup_wizard
+    report = {"ok": False}
+    try:
+        app.update()
+        w = app.open_setup()
+        for i in range(len(setup_wizard.STEPS)):
+            w.go(i); app.update()
+        report = {"ok": True, "frozen": paths.FROZEN, "bundle": str(paths.BUNDLE), "root": str(paths.ROOT),
+                  "home": str(core.HOME), "theme": app.theme_name, "catalog": len(core.load_catalog()),
+                  "sprites": len(list((paths.BUNDLE / "assets" / "sprites").rglob("*.png"))),
+                  "guide": setup_wizard.guide_path().is_file(), "wizard_steps": len(setup_wizard.STEPS)}
+    except Exception as e:
+        report = {"ok": False, "error": f"{type(e).__name__}: {e}", "trace": traceback.format_exc()}
+    finally:
+        try:
+            Path(out_path).write_text(json.dumps(report, indent=1), encoding="utf-8")
+        finally:
+            app.destroy()
+    return 0 if report.get("ok") else 1
+
+
 def run():
     if not HAVE_TK:
         print("Pawtation's window needs tkinter, which this Python does not have.\n"
@@ -2615,6 +2643,9 @@ def run():
     except tk.TclError as e:
         print(f"Could not open a window ({e}). Is a display available? Try the CLI: python -m pawtation --help")
         return 1
+    smoke = os.environ.get("PAWTATION_SMOKE_TEST")
+    if smoke:                                           # build check (CI): open, report what loaded, close
+        return _smoke_report(app, smoke)
     if app.wants_setup():
         app.after(400, app.open_setup)                  # first run: walk through setting up the GameCube
     app.mainloop()

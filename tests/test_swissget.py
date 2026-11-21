@@ -42,6 +42,7 @@ class FakeGitHub:
     def __call__(self, req, timeout=None):
         url = req.full_url
         self.calls.append(url)
+        self.headers = getattr(self, "headers", {}); self.headers[url] = dict(req.header_items())
         if url == swissget.RELEASES_API:
             if self.api_status != 200:
                 raise urllib.error.HTTPError(url, self.api_status, "nope", {}, None)
@@ -85,6 +86,15 @@ class Download(unittest.TestCase):
         with self.assertRaises(swissget.SwissError) as e:
             swissget.get_latest(opener=FakeGitHub(fake_release(self.tmp), api_status=403))
         self.assertIn("download the release", str(e.exception))
+
+    def test_a_build_token_only_ever_goes_to_the_api(self):
+        with mock.patch.dict("os.environ", {"PAWTATION_GITHUB_TOKEN": "t0k"}):
+            swissget.get_latest(opener=self.gh)
+        api = self.gh.headers[swissget.RELEASES_API]
+        self.assertEqual(api.get("Authorization"), "Bearer t0k")
+        downloads = [h for u, h in self.gh.headers.items() if u != swissget.RELEASES_API]
+        self.assertTrue(downloads)
+        self.assertFalse(any("Authorization" in h for h in downloads))
 
     def test_cancel_leaves_nothing_behind(self):
         self.assertIsNone(swissget.get_latest(opener=self.gh, cancel=lambda: True))

@@ -53,7 +53,11 @@ def _safe_tag(tag: str) -> str:
 
 def _open(url: str, timeout: float, opener=None):
     opener = opener or urllib.request.urlopen                  # looked up at call time (tests and proxies can swap it)
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/vnd.github+json"})
+    headers = {"User-Agent": USER_AGENT, "Accept": "application/vnd.github+json"}
+    token = os.environ.get("PAWTATION_GITHUB_TOKEN")           # build machines only (shared IPs hit GitHub's limit);
+    if token and url == RELEASES_API:                          # sent to the API alone, never to the download host
+        headers["Authorization"] = f"Bearer {token}"
+    req = urllib.request.Request(url, headers=headers)
     try:
         return opener(req, timeout=timeout)
     except urllib.error.HTTPError as e:

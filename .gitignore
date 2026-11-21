@@ -8,3 +8,6 @@ packs/*
 !packs/README.md
 /art/out/
 swiss/
+/packaging/pawtation.ico
+/build/
+/dist/
