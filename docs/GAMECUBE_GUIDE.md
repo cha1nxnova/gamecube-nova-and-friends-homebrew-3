@@ -5,6 +5,10 @@ One small card boots Swiss; your bigger cards hold the games Pawtation rotates.
 
 > Nova says: "Read it once all the way through, then follow it like a prescription. No improvising the dose." 🐾
 
+**The easy way:** open `Pawtation.exe` (see the README) and follow **GameCube setup**. It does sections 1 and 2 for you,
+including downloading Swiss, then shows section 3 as a checklist. The rest of this page is the manual way and the
+troubleshooting reference.
+
 ## What you need
 
 | Thing | Notes |
@@ -13,18 +17,19 @@ One small card boots Swiss; your bigger cards hold the games Pawtation rotates.
 | **Game cards** | Your bigger microSDs, one per GC2SD. Pawtation fills these. |
 | **A real memory card** | For saves. A GC2SD can't save games. |
 | **Action Replay disc** | Starts Swiss from the boot card. |
-| **Swiss** | The official release from github.com/emukidid/swiss-gc/releases (the `.7z` file; open it with 7-Zip). The last one checked here is **r2119**. |
+| **Swiss** | The official release from github.com/emukidid/swiss-gc/releases. Pawtation can download it for you (`swiss get`, or **Get Swiss** in the setup), or use the `.tar.xz` / the folder you unpacked the `.7z` into. The last one checked here is **r2119**. |
 
 ## 1. Make the boot card (once)
 
 1. Format the 2 GB card as **FAT** (Windows picks this by default for a card that small).
-2. Unpack the Swiss `.7z` somewhere on your computer.
-3. Put the card in your computer and run (change `E:\` and the path to match yours):
+2. Get Swiss: `python -m pawtation swiss get` downloads the newest official release and keeps only its boot files.
+   (Or download it yourself and run `python -m pawtation swiss use PATH` with the `.tar.xz` or the unpacked folder.)
+3. Put the card in your computer and run (change `E:\` to match yours):
    ```
-   python -m pawtation boot-card --mount E:\ --swiss-dol "C:\Downloads\swiss_r2119\ActionReplay\AUTOEXEC.DOL" --go
+   python -m pawtation boot-card --mount E:\ --go
    ```
-   That copies it to the card as `autoexec.dol`. Leave out `--go` first if you want to preview.
-   (The desktop app's **Boot card…** button does the same.)
+   That copies the release's `ActionReplay/AUTOEXEC.DOL` to the card as `autoexec.dol`. Leave out `--go` first if you
+   want to preview. (GameCube setup, or the desktop app's **Boot card…** button, does the same.)
 4. Label this card **BOOT** with a sticker so it never ends up in the game rotation.
 
 ## 2. Fill the game cards (every rotation)

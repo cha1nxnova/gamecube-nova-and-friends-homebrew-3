@@ -10,6 +10,11 @@ owner supplies their own dumps.
 Read next: `docs/SPEC_V2.md` (contracts between modules), `docs/CHARACTERS.md` (character canon).
 
 ## Decisions on record
+- **2026-11-21, Windows app:** the owner asked for a plain executable and an in-app way to do all the GameCube
+  setup. `Pawtation.exe` (one file, windowed) is built by GitHub Actions (`.github/workflows/build-windows.yml`,
+  `packaging/`); the **GameCube setup** wizard (`pawtation/setup_wizard.py`) covers library, cards, Swiss, boot card,
+  first rotation and the console checklist. Swiss comes from a one-click download of the official release
+  (`pawtation/swissget.py`, owner's choice), boot files only.
 - **2026-11-20, Swiss:** the owner chose **stock Swiss** and had the private themed fork (chosen 2026-11-15) removed,
   respecting the Swiss maintainers' request that AI tools not be used on their code. Rules: `docs/SWISS.md`.
   Hardware: Action Replay disc + GC2SD adapters with microSD cards. User guide: `docs/GAMECUBE_GUIDE.md`.
@@ -59,6 +64,10 @@ Read next: `docs/SPEC_V2.md` (contracts between modules), `docs/CHARACTERS.md` (
 | `data/catalog.json` | 651 games (79 hand-tagged seed + Wikipedia list; `scripts/build_catalog.py` regenerates, `scripts/import_ids.py` merges IDs) |
 | `assets/sprites/`, `assets/renders/` | committed outputs of the art pipeline (PNGs + `manifest.json`) |
 | `art/` | dev-time art sources: `lib2d/` + `rigs/` (2D stickers, `art/build.py`), `lowpoly/` (3D renders). Never imported by the app. `art/out/` is scratch (git-ignored) |
+| `pawtation/paths.py` | where files live: shipped data from the bundle (`sys._MEIPASS` in the exe), your own files beside `Pawtation.exe` |
+| `pawtation/swissget.py` | the one-click official Swiss download (boot files only); the only network code |
+| `pawtation/setup_wizard.py` | the GameCube setup window (uses the App's theme, dialogs and plan/sync flows) |
+| `packaging/`, `.github/workflows/` | PyInstaller recipe, icon tool and the Windows build + smoke test |
 | `packs/` | the owner's own content packs (git-ignored except `README.md`) |
 | `mods/`, `plugins/` | per-game card files and plugins (`docs/MODDING.md`) |
 | `config.json` (user, git-ignored) / `config.example.json` | settings; `state.json` = ratings, history, timer, character stats, presence, After Dark flag. `PAWTATION_HOME` moves both |

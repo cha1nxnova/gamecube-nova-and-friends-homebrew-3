@@ -3,7 +3,20 @@
 Rotate your own legally acquired GameCube disc images across 5 (or more) GC2SD SD cards, with a rotation timer, a
 desktop app, a CLI, and a small household of characters who live on the app's stage.
 
-Pure Python 3.9+, standard library only, works offline.
+Pure Python 3.9+, standard library only, works offline (the one exception: the optional one-click Swiss download).
+
+## Get Pawtation.exe (Windows, nothing to install)
+1. On GitHub, open this repository's **Actions** tab, then the newest green **Build Pawtation.exe** run.
+2. Under **Artifacts**, download **Pawtation-windows** and unzip it into its own folder (e.g. `Documents\Pawtation`).
+   Your settings, ratings and downloaded Swiss files are kept next to `Pawtation.exe`.
+3. Double-click `Pawtation.exe`. Windows may say "Windows protected your PC" (the app is not from a known publisher):
+   click **More info**, then **Run anyway**.
+4. The first time, **GameCube setup** opens and walks you through everything: your games folder, your game cards,
+   getting Swiss (one click), the boot card, the first rotation and what to do at the console. The
+   **GameCube setup…** button opens it again any time.
+
+GitHub builds a fresh `Pawtation.exe` every time code is pushed (`.github/workflows/build-windows.yml`); the build also
+starts the app once to check it opens and finds its files.
 
 ## The cast
 - **Nova** (serval, he/him) and **Iggy** (fennec fox, they) are the mascots and are home most of the time, usually
@@ -33,6 +46,7 @@ comes from `data/theme.json` and is checked for contrast (WCAG AA). Reduced moti
 ```
 python -m pawtation init --library "D:\GameCube\ROMs"   # writes config.json
 python -m pawtation doctor                               # is this computer ready?
+python -m pawtation swiss get                            # download the official Swiss release's boot files
 python -m pawtation scan                                 # what did we find? (reads disc IDs, pairs multi-disc games)
 python -m pawtation plan                                 # preview a rotation
 python -m pawtation plan --commit                        # save it + start the timer

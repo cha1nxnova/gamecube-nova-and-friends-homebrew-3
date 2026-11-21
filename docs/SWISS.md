@@ -25,6 +25,11 @@ maintainers' request.
 
 ## What Pawtation does with Swiss
 
+- `swiss get` (and **Get Swiss** in the setup wizard, `pawtation/swissget.py`) downloads the newest official release
+  archive (`.tar.xz`) from Swiss's GitHub releases page, checks its size and the SHA-256 GitHub publishes, and copies
+  out only `ActionReplay/AUTOEXEC.DOL`, `ActionReplay/SDLOADER.BIN` and `DOL/swiss_r<N>.dol`. Nothing else in the
+  archive is read. This is release *binaries*, used as shipped; it is not working with Swiss source, and must stay
+  that way. It is the only code in Pawtation that goes online.
 - `python -m pawtation boot-card --mount <card> --swiss-dol <file> --go` copies the release's
   `ActionReplay/AUTOEXEC.DOL` to the root of a 2 GB (or smaller) boot card as `autoexec.dol`, keeping any existing
   one as `autoexec.dol.bak`. It touches nothing else on the card.
