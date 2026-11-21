@@ -235,6 +235,9 @@ class GuiTests(unittest.TestCase):
         self.assertNotEqual(second, first)
         self.assertEqual(self.app.c["bg"], gui.theme.load(second)["bg"])
         self.assertEqual(str(self.app.cget("bg")), gui.theme.load(second)["bg"])
+        self.app.focus_force(); self.app.update()                   # key events go to the focused window
+        if self.app.focus_get() is None:
+            self.skipTest("this desktop session does not give the test window keyboard focus (F2 part not run)")
         self.app.event_generate("<F2>"); self.app.update()
         self.assertEqual(core.load_config()["gui_theme"], first)
 
@@ -291,9 +294,15 @@ class GuiTests(unittest.TestCase):
         for cid in cast.regulars():
             self.assertEqual(a.stage.actors[cid]["kind"], "sprite" if sprites.has(cid) else "text")
 
+    def needs_screen(self, w, h):
+        if self.app.winfo_screenwidth() < w or self.app.winfo_screenheight() < h:
+            self.skipTest(f"needs a screen of at least {w}x{h} (this one is "
+                          f"{self.app.winfo_screenwidth()}x{self.app.winfo_screenheight()})")
+
     def test_stage_sprite_size_rule(self):
         """Up to three regulars get the large stickers on a wide, tall stage (a walk-on stays small beside them);
         the compact size only when they do not fit. Name tags never overlap."""
+        self.needs_screen(1400, 900)
         a = self.app
         a.geometry("1400x900+0+0")
         a.everyone()
@@ -320,13 +329,30 @@ class GuiTests(unittest.TestCase):
         self.assertFalse(st.plan(sp["stage"], 360, regs, [])[1])
         self.assertTrue(st.plan(sp["stage"], 560, regs, [])[1])
 
+    def test_game_list_fits_the_smallest_window(self):
+        """At the minimum window size (and so on any laptop screen) no column is cut off at the right edge: the
+        least important columns are hidden instead, and Game stays readable."""
+        a = self.app
+        w, h = a.tok["layout"]["window_min"]
+        a.geometry(f"{w}x{h}+0+0")
+        for _ in range(20):
+            a.update(); time.sleep(0.01)
+        a._place_sash(); a.update(); a._fit_columns(); a.update()
+        shown = [str(c) for c in a.tree["displaycolumns"]]
+        self.assertLessEqual(sum(int(a.tree.column(c, "width")) for c in shown), a.tree.winfo_width())
+        self.assertIn("game", shown); self.assertIn("rating", shown)
+        self.assertGreaterEqual(int(a.tree.column("game", "width")), a.GAME_MIN)
+        self.assertEqual(shown, [c[0] for c in a.COLUMNS if c[0] in shown])          # order kept
+
     def test_game_column_takes_spare_width(self):
+        self.needs_screen(1400, 900)
         a = self.app
         a.geometry("1400x900+0+0")
         for _ in range(10):
             a.update(); time.sleep(0.01)
         a._fit_columns()
         self.assertGreaterEqual(int(a.tree.column("game", "width")), dict((c[0], c[2]) for c in a.COLUMNS)["game"])
+        self.assertEqual([str(c) for c in a.tree["displaycolumns"]], [c[0] for c in a.COLUMNS])   # all shown when wide
         total = sum(int(a.tree.column(c[0], "width")) for c in a.COLUMNS)
         self.assertLessEqual(total, a.tree.winfo_width())
 

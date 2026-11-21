@@ -1208,9 +1208,14 @@ if HAVE_TK:
                 self._last_w = w
                 self._place_sash(w - 2 * self.tok["layout"]["gutter"])
 
+        GAME_MIN, TAGS_MIN = 170, 90          # below these the column is not worth showing / reading
+
         def _fit_columns(self):
             """Give the Game column the spare width (up to its longest title) once Tags has room for its
-            longest entry (up to twice its base width); Tags takes whatever is left."""
+            longest entry (up to twice its base width); Tags takes whatever is left. When the list is too narrow
+            for every column (the default window on a laptop screen), Discs and then Tags are hidden, and Game
+            and Tags shrink towards their minimums, so nothing is cut off at the right edge. (Tags goes last:
+            it carries warnings such as "convert to .iso first".)"""
             tree = getattr(self, "tree", None)
             if tree is None:
                 return
@@ -1219,14 +1224,34 @@ if HAVE_TK:
                 if avail <= 1:
                     return
                 base = {c[0]: c[2] for c in self.COLUMNS}
-                fixed = sum(w for cid, w in base.items() if cid not in ("game", "tags"))
+                hidden = []
+                for drop in ("discs", "tags"):                # least important first
+                    shown = [c for c in base if c not in hidden]
+                    fixed_now = sum(base[c] for c in shown if c not in ("game", "tags"))
+                    tags_need = self.TAGS_MIN if "tags" in shown else 0
+                    if avail - fixed_now - tags_need - 4 >= self.GAME_MIN:
+                        break
+                    hidden.append(drop)
+                shown = [c[0] for c in self.COLUMNS if c[0] not in hidden]
+                if [str(c) for c in tree["displaycolumns"]] != shown:
+                    tree.configure(displaycolumns=shown)
+                fixed = sum(base[c] for c in shown if c not in ("game", "tags"))
+                room = avail - fixed - 4                       # for Game (+ Tags when shown)
                 font = self.fonts["body_strong"]
                 rows = tree.get_children("")
                 need = max([font.measure(str(tree.set(i, "game"))) for i in rows] or [0]) + self.space(6)
+                if "tags" not in shown:
+                    game = max(self.GAME_MIN, room)
+                    if int(tree.column("game", "width")) != game:
+                        tree.column("game", width=game)
+                    return
                 tneed = max([font.measure(str(tree.set(i, "tags"))) for i in rows] or [0]) + self.space(4)
                 tneed = max(base["tags"], min(tneed, base["tags"] * 2))
-                game = max(base["game"], min(need, avail - fixed - tneed - 4))
-                tags = max(base["tags"], avail - fixed - game - 4)
+                game = max(base["game"], min(need, room - tneed))
+                tags = max(base["tags"], room - game)
+                if game + tags > room:                         # tight: shrink both, keeping their minimums
+                    tags = max(self.TAGS_MIN, min(tags, room - self.GAME_MIN))
+                    game = max(self.GAME_MIN, room - tags)
                 if int(tree.column("game", "width")) != game:
                     tree.column("game", width=game)
                 if int(tree.column("tags", "width")) != tags:
