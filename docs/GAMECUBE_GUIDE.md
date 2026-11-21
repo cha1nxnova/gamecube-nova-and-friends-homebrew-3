@@ -67,7 +67,7 @@ One small card boots Swiss; your bigger cards hold the games Pawtation rotates.
 |---|---|
 | The Action Replay menu comes up, not Swiss | Is the **boot card** in the GC2SD (a game card can't start Swiss)? Then: the boot card is over 2 GB, isn't FAT, holds a file other than the release's `ActionReplay/AUTOEXEC.DOL`, or the GC2SD is in the other slot (try Slot A). If it still won't start, see "Backup route" below. |
 | `sync` says the library folder isn't found | Plug in the drive with your disc images (or fix `library_dir`). Nothing on the cards was touched. |
-| `sync` says "not enough space" | Set that card's `capacity_gb` to the size printed on it; after one sync Pawtation uses the card's real size. |
+| `sync` says "not enough space" | Set that card's `capacity_gb` to the size printed on it, then run `plan --commit` again (sync copies the committed plan). After one sync Pawtation also knows the card's real size. If your own files fill part of the card, free some space or lower `capacity_gb`. |
 | A game isn't in the list | It's probably not an `.iso`/`.gcm`; convert it. Also try the unknown-files setting. |
 | Swiss says the file is too fragmented | Reformat the card and let Pawtation fill it fresh (Swiss can't start a file split into more than 40 pieces). |
 | A black screen after starting a game | Try the game's video setting in Swiss (forcing the region's video mode), then power-cycle. |

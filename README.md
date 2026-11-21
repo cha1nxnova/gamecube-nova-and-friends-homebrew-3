@@ -73,7 +73,8 @@ Step by step, with troubleshooting: **`docs/GAMECUBE_GUIDE.md`**. Swiss is alway
   time to reduce fragmentation (Swiss prefers contiguous files; for best results re-format a card now and then and let Pawtation refill it).
 - **Add a card:** add an entry under `cards` in `config.json`. Nothing else changes.
 - **Card size:** set each card's `capacity_gb` to the size printed on it (e.g. `32`). Until a card has been synced once,
-  the planner fills only about 95% of that; after a sync it uses the card's real, measured size.
+  the planner fills only about 95% of that; after a sync it uses the card's real, measured size (never more than
+  `capacity_gb`). A changed size counts from the next `plan --commit`.
 - **Cards know who they are:** after its first sync a card carries its number, so later syncs find it by itself, and
   syncing card 2's games onto card 1 by mistake is refused (`--force` to re-purpose a card).
 - **Multi-disc games** count as one game and both discs travel together.
@@ -98,7 +99,10 @@ Details: `docs/ART_PIPELINE.md`, `docs/ART_LOWPOLY.md`.
 6. **Tested how:** the logic has automated tests (temp folders standing in for SD cards). The desktop app was run under a virtual Linux display only; see `docs/GUI_CHECKLIST.md` for what was and was not exercised. Nothing has been run on Windows or macOS, on a real SD card, or on a real GameCube.
 7. **Action Replay boot:** how your AR disc launches Swiss from the GC2SD varies by AR version. Swiss's release archive contains an `ActionReplay/AUTOEXEC.DOL`; that is the file to give `boot-card`. An existing `autoexec.dol` is kept as `autoexec.dol.bak`.
 8. **Version 1 saves:** an old `state.json` keeps loading; Mochi's and Biscuit's version-1 stats are left alone.
-9. **`--verify`** re-reads each copied file and compares checksums. On Linux it reads the card itself; on Windows and macOS
-   the re-read may come from the PC's memory, so there it mainly catches copy errors, not a failing or fake-capacity card.
+9. **`--verify`** re-reads each copied file and compares checksums. On Linux it reads the card itself. On Windows and
+   macOS the re-read may come from the PC's memory, so there it may not detect anything. The real test on Windows is
+   starting the game on the console.
 10. **Library on an external drive?** If it is unplugged, `sync` and `plan --commit` stop with a message and change
-   nothing; a game whose library file is missing, renamed or now compressed is never removed from a card by sync.
+   nothing. A planned game whose library file is missing, renamed or now compressed stays on its card for the current
+   season; once a new plan leaves it out (it can no longer be copied), the next sync removes it like any game that
+   rotates out. So keep a playable `.iso` in the library for every game you want to keep rotating.

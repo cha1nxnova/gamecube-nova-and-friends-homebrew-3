@@ -1443,7 +1443,8 @@ if HAVE_TK:
         def _bind_keys(self):
             for seq, fn in (("<Control-r>", self.refresh), ("<Control-p>", self.plan), ("<Control-s>", self.sync_card),
                             ("<Control-f>", self.focus_search), ("<F1>", self.show_help), ("<F2>", self.toggle_theme)):
-                self.bind_all(seq, lambda e, fn=fn: (None if self.grab_current() is not None else fn(), "break")[1])
+                # inert while any dialog holds the grab (tkinter's grab_current() raises KeyError for Tk's own choosers)
+                self.bind_all(seq, lambda e, fn=fn: (None if self.tk.call("grab", "current") else fn(), "break")[1])
 
         def focus_search(self, _e=None):
             self.search.focus_set()
@@ -2016,7 +2017,7 @@ if HAVE_TK:
             pinned = r.key in self.cfg["pinned"]
             return dict(fav="♥" if pinned else "", game=r.title, card=where.get(r.key, "-"), size=core.fmt_gb(r.size),
                         discs=len(r.discs), rating=("★" * stars + "☆" * (5 - stars)) if stars else "",
-                        tags=", ".join(r.tags) if r.launchable else "⚠ convert to .iso first")
+                        tags=", ".join(r.tags) if r.launchable else "⚠ " + r.why_short)
 
         def _sort_value(self, r, where, col):
             if col == "fav": return 0 if r.key in self.cfg["pinned"] else 1
@@ -2113,7 +2114,8 @@ if HAVE_TK:
                 label = card.get("label", f"Card {cid}") if card else f"Card {cid}"
                 if not card:
                     status, fg, bg, border = "not set up", "disabled_ink", "disabled", "line_soft"
-                elif cap_gb and used > core.card_budget(self.cfg, card, (self.state.get("card_bytes") or {}).get(cid)):
+                elif cap_gb and used > core.card_budget(self.cfg, card, (self.state.get("card_bytes") if isinstance(
+                        self.state.get("card_bytes"), dict) else {}).get(cid)):
                     status, fg, bg, border = "⚠ too full", "danger", "surface", "line"
                 elif cid in self._mounted:
                     status, fg, bg, border = "● inserted", "success", "primary_soft", "line"
@@ -2388,10 +2390,13 @@ if HAVE_TK:
             quips = self._pet_call("card_quips", keys) if self.cfg.get("export_quips", True) else None
             try:
                 rep = core.sync_card(self.cfg, cid, keys, self.roms, mount, dry_run=True, log=lambda *_: None, quips=quips)
-                if any("labelled as card" in e for e in rep["errors"]):
-                    if not self.ask_yes_no("This card says it is a different card",
-                                           "\n".join(rep["errors"]) + "\n\nUse this card anyway (re-purpose it)? "
-                                           "Files Pawtation did not write are never touched."):
+                if rep.get("refused") in ("wrong_card", "damaged_manifest"):
+                    ask = (("This card says it is a different card", "Use this card anyway (re-purpose it)?")
+                           if rep["refused"] == "wrong_card" else
+                           ("This card's Pawtation label is damaged", "Start a new label? The damaged file is kept as a "
+                            "backup, and games already on the card are left alone (not recognised as Pawtation's)."))
+                    if not self.ask_yes_no(ask[0], "\n".join(rep["errors"]) + "\n\n" + ask[1] +
+                                           " Files Pawtation did not write are never touched."):
                         return
                     force = True
                     rep = core.sync_card(self.cfg, cid, keys, self.roms, mount, dry_run=True, log=lambda *_: None,
@@ -2498,7 +2503,7 @@ if HAVE_TK:
                 self.say("✕ " + e, "err")
             for w in rep["warnings"]:
                 self.say("⚠ " + w, "err")
-            if self._sync_mount and core.note_card_size(self.state, cid, self._sync_mount):
+            if self._sync_mount and not rep.get("refused") and core.note_card_size(self.state, cid, self._sync_mount):
                 self._save()                                    # the next plan budgets with the card's real size
             if rep.get("cancelled"):
                 self.prog_text.set("Cancelled. Finished files stay on the card; run sync again to resume.")

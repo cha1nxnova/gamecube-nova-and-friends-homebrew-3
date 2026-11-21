@@ -6,6 +6,7 @@ the desktop GUI, and any future front-end (web, GameCube-side) share one brain.
 from __future__ import annotations
 
 import json
+import math
 import os
 import random
 import re
@@ -120,6 +121,9 @@ def load_state() -> dict:
     st.setdefault("last_on_card", {})     # key -> ts it last got loaded onto any card
     st.setdefault("pets", {})             # cast id -> {"affection", "energy"} for every non-cameo character
     st.setdefault("plays", {})            # key -> manual play count (GUI "I played this" button)
+    cb = st.get("card_bytes")                    # card id -> measured bytes (note_card_size); anything odd is dropped
+    st["card_bytes"] = {str(k): int(v) for k, v in cb.items() if isinstance(v, (int, float)) and not isinstance(v, bool)
+                        and math.isfinite(v) and 0 < v < 2**62} if isinstance(cb, dict) else {}
     for k, kind in (("ratings", dict), ("history", list), ("last_on_card", dict), ("pets", dict), ("plays", dict)):
         if not isinstance(st[k], kind):          # a hand-edited or damaged state.json must not take the app down
             st[k] = kind()
@@ -276,6 +280,14 @@ class Rom:
             return "a disc is missing from the set"
         return ""
 
+    @property
+    def why_short(self) -> str:
+        """A few words for a table column ('' if launchable)."""
+        why = self.why_not_launchable
+        return ("convert to .iso first" if why.startswith("compressed") else
+                "not a GameCube disc image" if why.startswith("not a GameCube") else
+                "a disc is missing" if why else "")
+
     def __post_init__(self):
         if not self.discs:
             self.discs = [{"path": self.path, "size": self.size, "disc": 1}]
@@ -342,6 +354,10 @@ def scan_library(cfg, catalog: Catalog | None = None) -> list[Rom]:
             DUPLICATES.append((old["path"], str(p)))  # ...unless this one is the better file
             rom.discs.remove(old)
         rom.discs.append(disc)
+        if disc_no == 1 and h:                       # the better file's own header, not the one it replaced
+            rom.code6, rom.internal_title = code, internal
+            if not rom.in_catalog:
+                rom.title = internal or rom.title
         rom.discs.sort(key=lambda d: d["disc"])
         rom.size = sum(d["size"] for d in rom.discs)
         rom.path = rom.discs[0]["path"]
@@ -545,8 +561,11 @@ def load_manifest(mount_p: Path) -> dict:
     m["titles"] = {str(k): str(v) for k, v in titles.items()}
     m["pending"] = [r for r in m.get("pending", []) if isinstance(r, str)] if isinstance(m.get("pending"), list) else []
     src = m.get("src") if isinstance(m.get("src"), dict) else {}  # rel -> [size, mtime] of the library file it came from
-    m["src"] = {str(k): [int(v[0]), int(v[1])] for k, v in src.items()
-                if isinstance(v, list) and len(v) == 2 and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v)}
+    m["src"] = {}
+    for k, v in src.items():                     # untrusted: NaN, Infinity, 1e400 and friends are dropped, not crashed on
+        if isinstance(v, list) and len(v) == 2 and all(isinstance(x, (int, float)) and not isinstance(x, bool)
+                                                       and math.isfinite(x) and abs(x) < 2**62 for x in v):
+            m["src"][str(k)] = [int(v[0]), int(v[1])]
     return m
 
 
@@ -560,7 +579,12 @@ def _src_sig(p: Path) -> list | None:
 
 
 def _sig_match(a, b) -> bool:
-    return bool(a and b) and a[0] == b[0] and abs(a[1] - b[1]) <= 2   # 2 s: FAT/exFAT timestamp granularity
+    """Same size and the same time to within 2 s (FAT/exFAT granularity), or exactly one hour apart: Windows shows the
+    times of files on a FAT32 drive shifted by an hour after a daylight-saving change."""
+    if not (a and b) or a[0] != b[0]:
+        return False
+    d = abs(a[1] - b[1])
+    return d <= 2 or abs(d - 3600) <= 2
 
 
 def _manifest_rels(manifest: dict, key: str) -> list[str]:
@@ -722,7 +746,8 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
     manifest = load_manifest(mount_p)
     by_key = {r.key: r for r in roms}
     want = {k: by_key[k] for k in keys if k in by_key}
-    report = {"removed": [], "copied": [], "kept": [], "errors": [], "warnings": [], "cancelled": False, "bytes_copied": 0}
+    report = {"removed": [], "copied": [], "kept": [], "errors": [], "warnings": [], "cancelled": False, "bytes_copied": 0,
+              "refused": ""}     # "link" | "damaged_manifest" | "wrong_card" when nothing was done to this card
     tag = "[dry] " if dry_run else ""
 
     for k in keys:
@@ -731,6 +756,7 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
                                       "drive plugged in?). Anything already on the card for it is left as it is.")
     if games_dir.is_symlink() or manifest_p.is_symlink():
         report["errors"].append("The games folder or manifest on this card is a link to somewhere else. Nothing was changed.")
+        report["refused"] = "link"
         return report
     if manifest_p.is_file() and not isinstance(load_json(manifest_p, None), dict):
         bad = manifest_p.with_name(MANIFEST_NAME + ".bad")
@@ -738,6 +764,7 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
             report["errors"].append(f"This card's {MANIFEST_NAME} is damaged (unreadable), so Pawtation cannot tell which "
                                     "files are its own. Nothing was changed. Restore the file if you have a copy, or "
                                     f"use force / --force to start a new one (the damaged file is kept as {bad.name}).")
+            report["refused"] = "damaged_manifest"
             return report
         report["warnings"].append(f"{MANIFEST_NAME} was damaged; starting a new one (old copy kept as {bad.name}). "
                                   "Games already on the card are not recognised as Pawtation's and stay untouched.")
@@ -752,6 +779,7 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
         msg = f"This SD card is labelled as card {other}, not card {card_id}."
         if not force:
             report["errors"].append(msg + " Nothing was changed. (Use force / --force to re-purpose it.)")
+            report["refused"] = "wrong_card"
             return report
         report["warnings"].append(msg + " Re-purposing it as requested.")
 
@@ -841,10 +869,11 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
                 continue
             old = _manifest_rels(manifest, key)
             keep = {rel for rel, _s, _n in wanted_files.get(key, [])}
-            left = [rel for rel in old if rel in keep or not remove(rel, manifest["titles"].get(key, key), {games_dir})]
+            left = [rel for rel in old if rel in keep
+                    or (rel not in gone and not remove(rel, manifest["titles"].get(key, key), {games_dir}))]
             set_rels(key, left)
         for rel in list(manifest["aux"]):
-            if rel not in wanted_aux and manifest["aux"][rel] not in held and remove(rel, rel, set()):
+            if rel not in wanted_aux and manifest["aux"][rel] not in held and (rel in gone or remove(rel, rel, set())):
                 manifest["aux"].pop(rel, None)
         save_manifest()
     except OSError as e:
@@ -852,6 +881,7 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
         return report
 
     # -- decide what needs copying
+    ambiguous = {kept for _ignored, kept in DUPLICATES}         # library files that have a same-disc twin (last scan)
     todo = []                                                   # (key, rel, src, size, title)
     for key, files in wanted_files.items():
         ours = set(_manifest_rels(manifest, key)) | set(manifest["pending"])
@@ -869,6 +899,9 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
             sig, cur = manifest["src"].get(rel), _src_sig(src)
             if same and sig is not None and not _sig_match(sig, cur):
                 same = False                                    # the library file was replaced: copy it again
+            if same and sig is None and str(src) in ambiguous:
+                same = False                                    # copied before tracking began, and the library holds
+                                                                # two files for this disc: refresh once to be sure
             if same:
                 if sig is None and cur and not dry_run:
                     manifest["src"][rel] = cur                  # older manifests: start tracking from here
@@ -917,8 +950,23 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
                     for stale in d.parent.glob(d.name + PART_TAG + "*"):
                         try: stale.unlink()
                         except OSError: pass
-            if shutil.disk_usage(mount_p).free - game_bytes < reserve:
-                report["errors"].append(f"not enough space for {title}"); skip_keys.add(key); continue
+            free = shutil.disk_usage(mount_p).free
+            if free - game_bytes < reserve:
+                old_here = []                                   # our own outdated copies of the discs still to copy
+                for t in todo[i:]:
+                    d = card_path(mount_p, t[1]) if t[0] == key else None
+                    if d is not None and t[1] not in gone and t[1] in _manifest_rels(manifest, key) and d.is_file():
+                        old_here.append((t[1], d, d.stat().st_size))
+                if not old_here or free + sum(s for _r, _d, s in old_here) - game_bytes < reserve:
+                    report["errors"].append(f"not enough space for {title}"); skip_keys.add(key); continue
+                for r, _d, _s in old_here:                      # still ours if anything stops halfway
+                    if r not in manifest["pending"]:
+                        manifest["pending"].append(r)
+                save_manifest()
+                for r, d, _s in old_here:
+                    d.unlink(); gone.add(r); manifest["src"].pop(r, None)
+                report["warnings"].append(f"{title}: the library copy changed and the card is full, so the old copy was "
+                                          "removed first to make room (if this copy is stopped, the next sync puts it back)")
             if dest is None:
                 raise OSError("a link is in the way")
             dest.parent.mkdir(parents=True, exist_ok=True)

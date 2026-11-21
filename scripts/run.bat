@@ -1,8 +1,9 @@
 @echo off
 cd /d "%~dp0.."
-if "%~1"=="" (
-    python -m pawtation gui
-) else (
-    python -m pawtation %*
-)
+if not "%~1"=="" goto args
+python -m pawtation gui
+goto done
+:args
+python -m pawtation %*
+:done
 if errorlevel 1 pause

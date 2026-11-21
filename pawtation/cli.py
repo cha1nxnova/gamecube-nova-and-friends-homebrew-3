@@ -45,7 +45,7 @@ def cmd_scan(a):
         discs = f"  [{len(r.discs)} discs]" if len(r.discs) > 1 else ""
         mods = f"  [+{len(core.mod_files(cfg, r.key))} mod files]" if core.mod_files(cfg, r.key) else ""
         if not r.launchable:
-            flag += "  (compressed: convert to .iso with Dolphin/NKit before it can go on a card)"
+            flag += f"  (not copied to cards: {r.why_not_launchable})"
         print(f"{r.code6 or '------'}  {core.fmt_gb(r.size):>8}  {r.title}{discs}{mods}{flag}")
     print(f"\n{len(roms)} games, {core.fmt_gb(sum(r.size for r in roms))} total")
     for ignored, kept in core.DUPLICATES:
@@ -137,8 +137,10 @@ def _sync_one(cfg, state, cat, roms, cid, a) -> bool:
         clear()
         print(f"Card {cid}: could not sync ({type(e).__name__}: {e})"); return False
     clear()
-    if a.go and core.note_card_size(state, cid, mount):
-        core.save_state(state)                                  # the next plan budgets with the card's real size
+    if a.go and not rep.get("refused"):                         # this card was really used: remember its real size
+        fresh = core.load_state()                               # re-read: other changes may have been saved meanwhile
+        if core.note_card_size(fresh, cid, mount):
+            core.save_state(fresh)
     print(f"\nCard {cid} @ {mount}: {'DONE' if a.go and not rep['errors'] else 'FINISHED WITH PROBLEMS' if a.go else 'DRY RUN (add --go to copy)'}: "
           f"{len(rep['copied'])} copy, {len(rep['removed'])} remove, {len(rep['kept'])} keep")
     for w in rep["warnings"]: print("WARNING:", w)
@@ -180,8 +182,10 @@ def cmd_cards(a):
     for cid in core.card_ids(cfg):
         c = cfg["cards"][cid] if isinstance(cfg["cards"][cid], dict) else {}
         where = labelled.get(cid)                               # by the card's own label, never by drive letter alone
-        print(f"Card {cid}  {c.get('label', ''):<14} {c.get('capacity_gb', '?')} GB  "
-              f"{'mounted at ' + where if where and os.path.isdir(where) else 'not plugged in'}  "
+        blank = None if where else core.configured_mount(cfg, cid)   # remembered folder holding a card with no label yet
+        state_txt = ("mounted at " + where if where and os.path.isdir(where)
+                     else f"unlabelled card at {blank} (not synced yet)" if blank else "not plugged in")
+        print(f"Card {cid}  {c.get('label', ''):<14} {c.get('capacity_gb', '?')} GB  {state_txt}  "
               f"({len(plan.get(cid, []))} games planned)")
         if where and os.path.isdir(where):
             on = core.card_contents(where)["titles"]
@@ -469,8 +473,8 @@ def main(argv=None):
     s = add("sync", cmd_sync, "make an SD card match the plan (dry run unless --go)")
     s.add_argument("card", help="card id, or 'all' for every plugged-in card Pawtation recognises")
     s.add_argument("--mount"); s.add_argument("--go", action="store_true")
-    s.add_argument("--verify", action="store_true", help="re-read each copy and compare checksums (on Windows and "
-                   "macOS the re-read may come from the PC's memory, so it catches copy errors more than a failing card)")
+    s.add_argument("--verify", action="store_true", help="re-read each copy and compare checksums (reads the card on "
+                   "Linux; on Windows and macOS the re-read may come from the PC's memory and may detect nothing)")
     s.add_argument("--force", action="store_true", help="use a card even if it is labelled as a different card")
     add("cards", cmd_cards, "which cards are plugged in and what is on them")
     s = add("rate", cmd_rate, "rate a game 1-5"); s.add_argument("title"); s.add_argument("stars", type=int, choices=range(1, 6))

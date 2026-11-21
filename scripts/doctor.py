@@ -41,7 +41,7 @@ try:
         m = c.get("mount")
         if m and not Path(m).is_dir(): warn(f"card {cid} mount not found: {m}")
     for r in [r for r in roms if not r.launchable]:
-        warn(f"compressed image, Swiss cannot start it (convert to .iso with Dolphin/NKit): {r.title}")
+        warn(f"not copied to cards: {r.title}: {r.why_not_launchable}")
     found = core.find_cards()
     ok("plugged-in Pawtation cards: " + (", ".join(f"{k} at {v}" for k, v in found.items()) or "none right now"))
     from pawtation import plugins

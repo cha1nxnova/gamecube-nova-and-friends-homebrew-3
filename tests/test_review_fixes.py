@@ -246,5 +246,108 @@ class ConfigAndSaves(unittest.TestCase):
         self.assertEqual(saves.parse_gci(d / "save.gci")["comment"], ["Pokémon Colosseum", "Données"])
 
 
+class SecondReview(Fixture):
+    """Problems found by the second review (of the first round of fixes)."""
+
+    def capped(self, games):
+        size = (self.lib / "chibi.iso").stat().st_size
+        cap = int(size * games)
+
+        def usage(_p):
+            used = sum(p.stat().st_size for p in self.sd.rglob("*") if p.is_file())
+            return Usage(cap, used, cap - used)
+        return mock.patch.object(core.shutil, "disk_usage", usage)
+
+    def replace_chibi(self, shift=60):
+        src = self.lib / "chibi.iso"
+        st = src.stat()
+        src.write_bytes(disc_bytes("GGTE01", "T", st.st_size, fill=b"\2"))
+        os.utime(src, (st.st_mtime + shift, st.st_mtime + shift))
+        return src
+
+    def test_a_replaced_dump_is_refreshed_on_a_full_card(self):
+        keys = ["chibi-robo", "mario-kart-double-dash", "paper-mario-ttyd"]
+        with self.capped(3.5):
+            self.assertEqual(self.sync(keys, dry_run=False)["errors"], [])
+            src = self.replace_chibi()
+            rep = self.sync(keys, dry_run=False)
+        self.assertEqual(rep["errors"], [])
+        self.assertEqual(self.card_iso("Chibi-Robo!").read_bytes(), src.read_bytes())
+        self.assertEqual(core.load_manifest(self.sd)["pending"], [])
+
+    def test_a_daylight_saving_shift_is_not_a_replaced_dump(self):
+        self.sync(["chibi-robo"], dry_run=False)
+        src = self.lib / "chibi.iso"; st = src.stat()
+        os.utime(src, (st.st_mtime + 3600, st.st_mtime + 3600))
+        self.assertEqual(self.sync(["chibi-robo"], dry_run=False)["copied"], [])
+
+    def test_cards_from_before_tracking_are_refreshed_once_when_the_library_has_twins(self):
+        self.sync(["chibi-robo"], dry_run=False)
+        self.card_iso("Chibi-Robo!").write_bytes(b"\3" * (self.lib / "chibi.iso").stat().st_size)   # e.g. the old patched build
+        m = json.loads((self.sd / core.MANIFEST_NAME).read_text()); m.pop("src", None)
+        (self.sd / core.MANIFEST_NAME).write_text(json.dumps(m))
+        self.add("chibi - patched.iso", "GGTE01")                                 # a twin of the same disc
+        self.assertIn("games/Chibi-Robo!/game.iso", self.sync(["chibi-robo"], dry_run=False)["copied"])
+        self.assertEqual(self.card_iso("Chibi-Robo!").read_bytes(), (self.lib / "chibi.iso").read_bytes())
+        self.assertEqual(self.sync(["chibi-robo"], dry_run=False)["copied"], [])  # once only
+
+    def test_a_file_is_removed_and_counted_once(self):
+        self.sync(["chibi-robo"], dry_run=False)
+        m = json.loads((self.sd / core.MANIFEST_NAME).read_text())
+        m["pending"] = ["games/Chibi-Robo!/game.iso"]                              # left by a cancelled re-copy
+        (self.sd / core.MANIFEST_NAME).write_text(json.dumps(m))
+        self.assertEqual(self.sync(["paper-mario-ttyd"])["removed"], ["games/Chibi-Robo!/game.iso"])
+
+    def test_junk_numbers_in_the_card_manifest_are_dropped(self):
+        (self.sd / core.MANIFEST_NAME).write_text('{"card_id": "1", "src": {"a": [NaN, 0], "b": [1e400, 0], "c": [5, 6]}}')
+        self.assertEqual(core.load_manifest(self.sd)["src"], {"c": [5, 6]})
+
+    def test_a_better_dump_brings_its_own_disc_id(self):
+        (self.lib / "a").mkdir(); (self.lib / "a" / "Pikmin 2 (USA).iso").write_bytes(b"")
+        (self.lib / "b").mkdir(); (self.lib / "b" / "Pikmin 2 (USA).iso").write_bytes(disc_bytes("GPVE01", "T", 64 * 1024))
+        self.assertEqual([r for r in self.scan() if r.key == "pikmin-2"][0].code6, "GPVE01")
+
+    def test_scan_names_the_real_reason(self):
+        (self.lib / "Katamari Damacy (USA).iso").write_bytes(b"\0" * 0x9000)
+        out = io.StringIO()
+        with mock.patch.object(cli, "build_ctx", lambda: (self.cfg, {}, None, self.scan())), contextlib.redirect_stdout(out):
+            cli.cmd_scan(argparse.Namespace())
+        line = [l for l in out.getvalue().splitlines() if "Katamari" in l][0]
+        self.assertIn("not a GameCube disc image", line); self.assertNotIn("compressed", line)
+
+
+class SizeRecording(Fixture):
+    def test_a_refused_sync_never_records_a_card_size(self):
+        home = mktmp(self)
+        with mock.patch.object(core, "STATE_PATH", home / "state.json"):
+            self.sync(["chibi-robo"], card="2", dry_run=False)                    # the card in the reader is card 2
+            a = argparse.Namespace(mount=str(self.sd), go=True, verify=False, force=False)
+            with mock.patch.object(core, "current_plan", lambda st: {"1": ["chibi-robo"]}), \
+                    contextlib.redirect_stdout(io.StringIO()):
+                self.assertFalse(cli._sync_one(self.cfg, core.load_state(), self.cat, self.scan(), "1", a))
+            self.assertEqual(core.load_state()["card_bytes"], {})
+            with mock.patch.object(core, "current_plan", lambda st: {"2": ["chibi-robo"]}), \
+                    contextlib.redirect_stdout(io.StringIO()):
+                self.assertTrue(cli._sync_one(self.cfg, core.load_state(), self.cat, self.scan(), "2", a))
+            self.assertIn("2", core.load_state()["card_bytes"])
+
+    def test_damaged_card_bytes_in_state_are_dropped(self):
+        home = mktmp(self)
+        (home / "state.json").write_text(json.dumps({"card_bytes": [31914983424]}))
+        with mock.patch.object(core, "STATE_PATH", home / "state.json"):
+            self.assertEqual(core.load_state()["card_bytes"], {})
+        (home / "state.json").write_text(json.dumps({"card_bytes": {"1": 5, "2": "x", "3": -1}}))
+        with mock.patch.object(core, "STATE_PATH", home / "state.json"):
+            self.assertEqual(core.load_state()["card_bytes"], {"1": 5})
+
+    def test_cards_shows_a_blank_card_at_its_remembered_folder(self):
+        self.cfg["cards"]["1"]["mount"] = str(self.sd)
+        out = io.StringIO()
+        with mock.patch.object(cli, "build_ctx", lambda: (self.cfg, {"history": []}, None, [])), \
+                mock.patch.object(core, "find_cards", lambda volumes=None: {}), contextlib.redirect_stdout(out):
+            cli.cmd_cards(argparse.Namespace())
+        self.assertIn("unlabelled card at", out.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main()
