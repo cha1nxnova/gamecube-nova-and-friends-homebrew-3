@@ -1272,9 +1272,10 @@ if HAVE_TK:
                                            ("sync", "Sync a card…", self.sync_card, "secondary"),
                                            ("library", "Pick library folder", self.pick_library, "secondary"),
                                            ("rescan", "Rescan", self.refresh, "ghost"),
-                                           ("boot", "Boot card…", self.boot_card, "ghost")]:
+                                           ("boot", "Boot card…", self.boot_card, "ghost"),
+                                           ("setup", "GameCube setup…", self.open_setup, "ghost")]:
                 self.buttons[key] = bar.add(self.button(bar, text, fn, variant, small=True), padx=1, pady=0)
-            self.guarded = [self.buttons[k] for k in ("library", "rescan", "plan", "sync", "boot")]
+            self.guarded = [self.buttons[k] for k in ("library", "rescan", "plan", "sync", "boot", "setup")]
             sf = self.frame(left)
             sf.grid(row=2, column=0, sticky="ew", pady=2)
             self.search_var = tk.StringVar(self)
@@ -2545,6 +2546,24 @@ if HAVE_TK:
                     time.sleep(0.05)
             self.destroy()
 
+        # ---------- GameCube setup wizard ----------
+        def open_setup(self, _e=None):
+            """One window from 'just downloaded' to 'playing' (pawtation/setup_wizard.py). Only one at a time."""
+            w = getattr(self, "_setup", None)
+            try:
+                if w is not None and w.win.winfo_exists():
+                    w.win.deiconify(); w.win.lift(); w.win.focus_set()
+                    return w
+            except tk.TclError:
+                pass
+            from . import setup_wizard
+            self._setup = setup_wizard.SetupWizard(self)
+            return self._setup
+
+        def wants_setup(self):
+            """First run: no games folder yet and the wizard never finished."""
+            return not self.cfg.get("setup_done") and not self.cfg.get("library_dir")
+
         # ---------- boot card ----------
         def boot_card(self):
             if self.syncing:
@@ -2596,6 +2615,8 @@ def run():
     except tk.TclError as e:
         print(f"Could not open a window ({e}). Is a display available? Try the CLI: python -m pawtation --help")
         return 1
+    if app.wants_setup():
+        app.after(400, app.open_setup)                  # first run: walk through setting up the GameCube
     app.mainloop()
     return 0
 
