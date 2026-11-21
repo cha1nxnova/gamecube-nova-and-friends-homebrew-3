@@ -52,10 +52,10 @@ SHORTCUTS = [("Ctrl+R", "Rescan the library"), ("Ctrl+P", "Plan a new rotation")
 
 
 def fmt_bytes(n: float) -> str:
-    n = float(n)
-    if n >= 1024 ** 3:
-        return f"{n / 1024 ** 3:.2f} GB"
-    return f"{n / 1024 ** 2:.0f} MB"
+    n = float(n)                                        # decimal units, like the size printed on an SD card
+    if n >= 1000 ** 3:
+        return f"{n / 1000 ** 3:.2f} GB"
+    return f"{n / 1000 ** 2:.0f} MB"
 
 
 def fmt_eta(sec: float) -> str:
@@ -1443,7 +1443,7 @@ if HAVE_TK:
         def _bind_keys(self):
             for seq, fn in (("<Control-r>", self.refresh), ("<Control-p>", self.plan), ("<Control-s>", self.sync_card),
                             ("<Control-f>", self.focus_search), ("<F1>", self.show_help), ("<F2>", self.toggle_theme)):
-                self.bind_all(seq, lambda e, fn=fn: (fn(), "break")[1])
+                self.bind_all(seq, lambda e, fn=fn: (None if self.grab_current() is not None else fn(), "break")[1])
 
         def focus_search(self, _e=None):
             self.search.focus_set()
@@ -2113,7 +2113,7 @@ if HAVE_TK:
                 label = card.get("label", f"Card {cid}") if card else f"Card {cid}"
                 if not card:
                     status, fg, bg, border = "not set up", "disabled_ink", "disabled", "line_soft"
-                elif cap_gb and used > cap_gb * 1024 ** 3:
+                elif cap_gb and used > core.card_budget(self.cfg, card, (self.state.get("card_bytes") or {}).get(cid)):
                     status, fg, bg, border = "⚠ too full", "danger", "surface", "line"
                 elif cid in self._mounted:
                     status, fg, bg, border = "● inserted", "success", "primary_soft", "line"
@@ -2296,7 +2296,7 @@ if HAVE_TK:
             if auto:
                 return auto
             configured = self.cfg["cards"].get(str(cid), {}).get("mount")
-            if configured and os.path.isdir(configured):
+            if core.configured_mount(self.cfg, cid):           # remembered, there, and not labelled as another card
                 return configured
             d = self.ask_directory(title or f"Select the mounted SD card for card {cid}", configured or "")
             if d and d != configured and self.ask_yes_no("Remember?", f"Remember {d} as the mount for card {cid}?"):
@@ -2359,11 +2359,23 @@ if HAVE_TK:
             self.loop.grid_remove()
 
         def sync_card(self, _e=None):
-            if self.syncing:
+            if self.syncing or getattr(self, "_sync_flow", False):
                 return
+            self._sync_flow = True                              # its dialogs run a nested event loop: no second flow
+            try:
+                self._sync_card_flow()
+            finally:
+                self._sync_flow = False
+
+        def _sync_card_flow(self):
             plan = core.current_plan(self.state)
             if not plan:
                 self.show_info("Sync", "Plan a rotation first.")
+                return
+            lib = self.cfg.get("library_dir")
+            if not lib or not os.path.isdir(lib):
+                self.show_error("Sync", f"Library folder not found: {lib or '(not set)'}\n\nPlug in the drive that holds "
+                                        "your disc images (or pick the library folder again). Nothing was changed.")
                 return
             cid = self.choose_card(sorted(plan, key=card_sort_key))
             if not cid:
@@ -2373,15 +2385,17 @@ if HAVE_TK:
                 return
             keys = plan[cid]
             force = False
+            quips = self._pet_call("card_quips", keys) if self.cfg.get("export_quips", True) else None
             try:
-                rep = core.sync_card(self.cfg, cid, keys, self.roms, mount, dry_run=True, log=lambda *_: None)
+                rep = core.sync_card(self.cfg, cid, keys, self.roms, mount, dry_run=True, log=lambda *_: None, quips=quips)
                 if any("labelled as card" in e for e in rep["errors"]):
                     if not self.ask_yes_no("This card says it is a different card",
                                            "\n".join(rep["errors"]) + "\n\nUse this card anyway (re-purpose it)? "
                                            "Files Pawtation did not write are never touched."):
                         return
                     force = True
-                    rep = core.sync_card(self.cfg, cid, keys, self.roms, mount, dry_run=True, log=lambda *_: None, force=True)
+                    rep = core.sync_card(self.cfg, cid, keys, self.roms, mount, dry_run=True, log=lambda *_: None,
+                                         force=True, quips=quips)
             except Exception as e:
                 self.show_error("Sync", f"Could not check the card: {e}")
                 return
@@ -2396,9 +2410,13 @@ if HAVE_TK:
                 text += "\n\nWarnings:\n- " + "\n- ".join(rep["warnings"])
             if not self.ask_yes_no(f"Sync card {cid} for real?", text + "\n\nProceed?"):
                 return
-            self.start_sync(cid, keys, mount, force)
+            if self.syncing:                                    # something started while the dialogs were open
+                return
+            self.start_sync(cid, keys, mount, force, quips)
 
-        def start_sync(self, cid, keys, mount, force=False):
+        def start_sync(self, cid, keys, mount, force=False, quips=None):
+            if self.syncing or (self.worker is not None and self.worker.is_alive()):
+                return                                          # never two writers on a card
             self.cancel_event.clear()
             self._sync_mount = mount
             self.sync_info = {}
@@ -2409,7 +2427,8 @@ if HAVE_TK:
                 self.prog.set_busy(True)
             self.prog_text.set(f"Starting card {cid}...")
             self.eta_text.set("")
-            quips = self._pet_call("card_quips", keys) if self.cfg.get("export_quips", True) else None
+            if quips is None and self.cfg.get("export_quips", True):
+                quips = self._pet_call("card_quips", keys)
             cfg, roms = dict(self.cfg), list(self.roms)
             events, cancel = self.events, self.cancel_event
 
@@ -2479,9 +2498,17 @@ if HAVE_TK:
                 self.say("✕ " + e, "err")
             for w in rep["warnings"]:
                 self.say("⚠ " + w, "err")
+            if self._sync_mount and core.note_card_size(self.state, cid, self._sync_mount):
+                self._save()                                    # the next plan budgets with the card's real size
             if rep.get("cancelled"):
                 self.prog_text.set("Cancelled. Finished files stay on the card; run sync again to resume.")
                 self.eta_text.set("Nothing is deleted that Pawtation did not put there.")
+            elif rep["errors"]:
+                self.prog_text.set(f"⚠ Card {cid} is not fully synced: {len(rep['errors'])} problem(s). "
+                                   f"Copied {len(rep['copied'])}, removed {len(rep['removed'])}.")
+                self.eta_text.set("Files Pawtation did not write are never touched. Fix the problem and sync again.")
+                self.show_error(f"Card {cid} is not fully synced", "Some things did not work:\n\n- "
+                                + "\n- ".join(rep["errors"][:12]) + ("\n..." if len(rep["errors"]) > 12 else ""))
             else:
                 self.prog_text.set(f"✓ Card {cid} synced: copied {len(rep['copied'])}, removed {len(rep['removed'])}, "
                                    f"kept {len(rep['kept'])}.")
@@ -2521,12 +2548,19 @@ if HAVE_TK:
             mount = self.ask_directory("Select the BOOT card (small standard SD, <= 2 GB)", boot.get("mount", ""))
             if not mount:
                 return
-            dol = self.ask_file("Select the Swiss .dol (official release)", (("DOL files", "*.dol"), ("All files", "*.*")),
-                                boot.get("swiss_dol", ""))
+            dol = self.ask_file("Select ActionReplay/AUTOEXEC.DOL from the official Swiss release",
+                                (("DOL files", "*.dol"), ("All files", "*.*")), boot.get("swiss_dol", ""))
             if not dol:
                 return
+            force = False
             try:
-                rep = core.prepare_boot_card(mount, dol, dry_run=True, log=lambda *_: None)
+                try:
+                    rep = core.prepare_boot_card(mount, dol, dry_run=True, log=lambda *_: None)
+                except core.GameCardError as e:
+                    if not self.ask_yes_no("This is a game card", f"{e}\n\nWrite the boot file to it anyway?"):
+                        return
+                    force = True
+                    rep = core.prepare_boot_card(mount, dol, dry_run=True, log=lambda *_: None, force=True)
             except Exception as e:
                 self.show_error("Boot card", str(e))
                 return
@@ -2536,11 +2570,11 @@ if HAVE_TK:
             if not self.ask_yes_no("Boot card", text + "\n\nProceed?"):
                 return
             try:
-                rep = core.prepare_boot_card(mount, dol, dry_run=False, log=lambda *_: None)
+                rep = core.prepare_boot_card(mount, dol, dry_run=False, log=lambda *_: None, force=force)
             except Exception as e:
                 self.show_error("Boot card", str(e))
                 return
-            self.show_info("Boot card", f"Wrote {rep['target']}")
+            self.show_info("Boot card", "Already up to date; nothing written." if rep.get("unchanged") else f"Wrote {rep['target']}")
             if (mount, dol) != (boot.get("mount"), boot.get("swiss_dol")) and self.ask_yes_no("Remember?", "Remember these boot card paths?"):
                 self.cfg = core.update_config(boot_card={**boot, "mount": mount, "swiss_dol": dol})
 

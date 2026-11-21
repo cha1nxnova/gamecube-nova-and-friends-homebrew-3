@@ -148,6 +148,7 @@ class SyncProgressOutput(unittest.TestCase):
         with mock.patch.object(cli.core, "sync_card", fake_sync), \
                 mock.patch.object(cli.core, "current_plan", lambda st: {"1": ["k"]}), \
                 mock.patch.object(cli.core, "resolve_mount", lambda cfg, cid, m=None: "/card"), \
+                mock.patch.object(cli, "library_missing", lambda cfg: ""), \
                 mock.patch.object(cli.pets, "PetBrain", Brain), \
                 mock.patch.object(cli.plugins, "fire", lambda *a, **k: None), \
                 mock.patch.object(cli.time, "time", lambda: float(next(clock))), \

@@ -30,7 +30,7 @@ MANIFEST_NAME = ".pawtation.json"   # written to each SD card root; only files l
 
 DEFAULT_CONFIG = {
     "library_dir": "",                       # folder holding your legally acquired disc images
-    "extensions": [".iso", ".gcm", ".ciso", ".gcz"],
+    "extensions": [".iso", ".gcm", ".ciso", ".gcz", ".rvz", ".wia"],   # compressed ones are listed, never copied
     "games_subdir": "games",                 # folder on the SD card Swiss scans
     "rotation_days": 14,                     # length of one rotation "season"
     "reserve_mb": 256,                       # free space left on each card (Swiss, saves, slack)
@@ -70,7 +70,10 @@ def load_json(path: Path, default):
 def save_json(path: Path, obj):
     path = Path(path)
     tmp = path.with_suffix(path.suffix + ".tmp")
-    tmp.write_text(json.dumps(obj, indent=2, ensure_ascii=False), encoding="utf-8")
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(json.dumps(obj, indent=2, ensure_ascii=False))
+        f.flush()
+        os.fsync(f.fileno())                 # the card manifest lives on removable media: be on disk before the rename
     os.replace(tmp, path)
 
 
@@ -86,6 +89,9 @@ def load_config() -> dict:
         cfg["cards"] = {}
     if not isinstance(cfg.get("pinned"), list):
         cfg["pinned"] = []
+    for k in ("boot_card",):                 # nested settings must stay dicts ("boot_card": "E:\\" would crash callers)
+        if not isinstance(cfg.get(k), dict):
+            cfg[k] = dict(DEFAULT_CONFIG[k])
     return cfg
 
 
@@ -253,9 +259,22 @@ class Rom:
 
     @property
     def launchable(self) -> bool:
-        """False for compressed containers (.ciso/.gcz/.rvz: Swiss refuses them) and for a set with a disc missing."""
-        return (all(Path(d["path"]).suffix.lower() in LAUNCHABLE_EXTS for d in self.discs)
+        """False for compressed containers (.ciso/.gcz/.rvz: Swiss refuses them), for a file with no GameCube disc
+        header (an empty file, another console's ISO, a mis-named CISO) and for a set with a disc missing."""
+        return (all(Path(d["path"]).suffix.lower() in LAUNCHABLE_EXTS and d.get("header_ok", True) for d in self.discs)
                 and [d["disc"] for d in self.discs] == list(range(1, len(self.discs) + 1)))   # no missing disc
+
+    @property
+    def why_not_launchable(self) -> str:
+        """Plain words for the first reason launchable is False ('' if it is launchable)."""
+        if any(Path(d["path"]).suffix.lower() not in LAUNCHABLE_EXTS for d in self.discs):
+            return ("compressed image (.ciso/.gcz/.rvz/.wia); Swiss cannot start these, "
+                    "convert to .iso with Dolphin or NKit first")
+        if not all(d.get("header_ok", True) for d in self.discs):
+            return "not a GameCube disc image (no GameCube disc header in the file)"
+        if not self.launchable:
+            return "a disc is missing from the set"
+        return ""
 
     def __post_init__(self):
         if not self.discs:
@@ -268,16 +287,27 @@ def read_disc_header(path: Path):
     return (h["code6"], h["title"]) if h else (None, None)
 
 
+def _base_name(p: Path) -> str:
+    """File name without its image extension (and without ".nkit"), lowercase: the sort key that puts an original
+    before its "- patched" / " copy" / " (1)" siblings."""
+    n = p.name.lower()
+    if p.suffix:
+        n = n[: -len(p.suffix)]
+    return n[:-5] if n.endswith(".nkit") else n
+
+
 def scan_library(cfg, catalog: Catalog | None = None) -> list[Rom]:
     """Find disc images under library_dir. Multi-disc games become ONE Rom with several `discs`."""
     catalog = catalog or Catalog()
     lib = cfg.get("library_dir")
     if not lib or not Path(lib).is_dir():
         return []
-    exts = {e.lower() for e in cfg["extensions"]}
+    exts = {e.lower() for e in cfg["extensions"]} | set(discimage.READERS)   # an old config.json may lack .rvz/.wia
     roms: dict[str, Rom] = {}
     DUPLICATES.clear()
-    for p in sorted(Path(lib).rglob("*")):
+    # "Game (USA).iso" must come before "Game (USA) - patched.iso" / "Game (USA) copy.iso" (a plain sort puts the space
+    # first), so the original is the one kept when two files are the same disc
+    for p in sorted(Path(lib).rglob("*"), key=lambda q: (str(q.parent), _base_name(q), q.name)):
         try:
             if not (p.is_file() and p.suffix.lower() in exts) or p.name.startswith("."):
                 continue
@@ -293,7 +323,8 @@ def scan_library(cfg, catalog: Catalog | None = None) -> list[Rom]:
         disc_no = h["disc"] if h else discimage.disc_from_filename(p.name)
         g = catalog.match(code, p.name)
         key = g["key"] if g else slugify(internal or re.sub(r"\(.*?\)|\[.*?\]", " ", p.stem))
-        disc = {"path": str(p), "size": size, "disc": disc_no}
+        disc = {"path": str(p), "size": size, "disc": disc_no,
+                "header_ok": bool(h) or p.suffix.lower() not in LAUNCHABLE_EXTS}   # compressed: judged by extension
         if key not in roms:
             roms[key] = Rom(str(p), size, code, internal, key, g["title"] if g else (internal or p.stem),
                             bool(g), list(g.get("tags", [])) if g else [], [disc])
@@ -302,10 +333,13 @@ def scan_library(cfg, catalog: Catalog | None = None) -> list[Rom]:
         same = [d for d in rom.discs if d["disc"] == disc_no]
         if same:                                     # duplicate dump of the same disc: keep the first...
             old = same[0]
-            if Path(old["path"]).suffix.lower() in LAUNCHABLE_EXTS or p.suffix.lower() not in LAUNCHABLE_EXTS:
+
+            def rank(d):                             # a startable file with a real header beats one without
+                return (Path(d["path"]).suffix.lower() in LAUNCHABLE_EXTS and d["header_ok"], d["header_ok"])
+            if rank(disc) <= rank(old):
                 DUPLICATES.append((str(p), old["path"]))
                 continue
-            DUPLICATES.append((old["path"], str(p)))  # ...unless the first is compressed and this one Swiss can start
+            DUPLICATES.append((old["path"], str(p)))  # ...unless this one is the better file
             rom.discs.remove(old)
         rom.discs.append(disc)
         rom.discs.sort(key=lambda d: d["disc"])
@@ -319,12 +353,40 @@ def card_ids(cfg) -> list[str]:
     return sorted(cfg["cards"], key=lambda c: (0, int(c), "") if str(c).isascii() and str(c).isdigit() else (1, 0, str(c)))
 
 
-def card_budget(cfg, card: dict) -> int:
+CARD_LABEL_SHARE = 0.95      # a card labelled "32 GB" (decimal) holds a little less once formatted; plan safely below it
+
+
+def card_budget(cfg, card: dict, real_bytes=None) -> int:
+    """Bytes the planner may fill on one card. capacity_gb is the size printed on the card (decimal GB, as sold).
+    real_bytes, when a sync has measured the card (state["card_bytes"]), replaces the estimate, but never goes
+    above capacity_gb, so a deliberately small setting is respected."""
     try:
         gb = float(card.get("capacity_gb", 0)) if isinstance(card, dict) else 0.0
     except (TypeError, ValueError):
         gb = 0.0
-    return max(0, int(gb * 1024**3) - int(cfg["reserve_mb"]) * 1024**2)
+    gb = gb if gb == gb and gb > 0 else 0.0                     # NaN / negative -> 0
+    base = gb * 1000**3 * CARD_LABEL_SHARE
+    if isinstance(real_bytes, (int, float)) and not isinstance(real_bytes, bool) and real_bytes > 0:
+        base = min(gb * 1000**3, real_bytes * 0.995)            # measured: keep a sliver for folders and the manifest
+    return max(0, int(base) - int(cfg["reserve_mb"]) * 1024**2)
+
+
+def note_card_size(state: dict, card_id: str, mount: str) -> bool:
+    """Remember a card's real size after a sync so the next plan budgets with it (state is additive).
+    True if something changed (the caller then saves state)."""
+    try:
+        total = int(shutil.disk_usage(mount).total)
+    except (OSError, TypeError, ValueError):
+        return False
+    if not isinstance(state.get("card_bytes"), dict):
+        state["card_bytes"] = {}
+    if state["card_bytes"].get(str(card_id)) == total:
+        return False
+    state["card_bytes"][str(card_id)] = total
+    return True
+
+
+STALE_CAP_DAYS = 48.0
 
 
 def game_score(rom: Rom, state: dict, now: float) -> float:
@@ -333,7 +395,9 @@ def game_score(rom: Rom, state: dict, now: float) -> float:
     rating = rating if isinstance(rating, (int, float)) else 3
     last = state["last_on_card"].get(rom.key, 0)
     last = last if isinstance(last, (int, float)) else 0
-    days_off = min(365, max(0.0, now - last) / 86400) if last else 365
+    # staleness tops out below one star (48 days -> 6.9 points, plus at most 3 of jitter < 10), so a 1-star game that
+    # has rested longer never pushes out a 5-star one; it only breaks ties between games rated the same
+    days_off = min(STALE_CAP_DAYS, max(0.0, now - last) / 86400) if last else STALE_CAP_DAYS
     return rating * 10 + days_off / 7.0
 
 
@@ -350,7 +414,8 @@ def plan_rotation(cfg, state, roms: list[Rom], now: float | None = None) -> dict
     cards = cfg["cards"]
     ids = card_ids(cfg)
     plan = {c: [] for c in ids}
-    free = {c: card_budget(cfg, cards[c]) for c in ids}
+    measured = state.get("card_bytes") if isinstance(state.get("card_bytes"), dict) else {}
+    free = {c: card_budget(cfg, cards[c], measured.get(c)) for c in ids}
     cap = cfg["max_games_per_card"]
     used = set()
 
@@ -479,7 +544,23 @@ def load_manifest(mount_p: Path) -> dict:
     m["aux"] = {k: str(v) for k, v in aux.items() if isinstance(k, str)}
     m["titles"] = {str(k): str(v) for k, v in titles.items()}
     m["pending"] = [r for r in m.get("pending", []) if isinstance(r, str)] if isinstance(m.get("pending"), list) else []
+    src = m.get("src") if isinstance(m.get("src"), dict) else {}  # rel -> [size, mtime] of the library file it came from
+    m["src"] = {str(k): [int(v[0]), int(v[1])] for k, v in src.items()
+                if isinstance(v, list) and len(v) == 2 and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v)}
     return m
+
+
+def _src_sig(p: Path) -> list | None:
+    """[size, whole-second mtime] of a library file: enough to notice that a dump was replaced or re-patched."""
+    try:
+        st = Path(p).stat()
+    except OSError:
+        return None
+    return [int(st.st_size), int(st.st_mtime)]
+
+
+def _sig_match(a, b) -> bool:
+    return bool(a and b) and a[0] == b[0] and abs(a[1] - b[1]) <= 2   # 2 s: FAT/exFAT timestamp granularity
 
 
 def _manifest_rels(manifest: dict, key: str) -> list[str]:
@@ -559,6 +640,22 @@ def _copy_stream(src: Path, dest: Path, tick, cancel) -> int | None:
     return _write_atomic(dest, _read_chunks(src), tick, cancel)
 
 
+def _drop_cache(path: Path) -> None:
+    """Ask the OS to forget its cached copy of a file we just wrote, so a re-read really reads the card.
+    Works on Linux (posix_fadvise); elsewhere it does nothing and the re-read may come from memory."""
+    if not hasattr(os, "posix_fadvise"):
+        return
+    try:
+        fd = os.open(path, os.O_RDONLY)
+        try:
+            os.fsync(fd)
+            os.posix_fadvise(fd, 0, 0, os.POSIX_FADV_DONTNEED)
+        finally:
+            os.close(fd)
+    except OSError:
+        pass
+
+
 def file_crc32(path: Path, cancel=lambda: False) -> int | None:
     crc = 0
     with open(path, "rb") as f:
@@ -630,10 +727,26 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
 
     for k in keys:
         if k not in by_key:
-            report["warnings"].append(f"{k}: planned for this card but not found in the library (rescan?)")
+            report["warnings"].append(f"{k}: planned for this card but not found in the library (rescan? is the library "
+                                      "drive plugged in?). Anything already on the card for it is left as it is.")
     if games_dir.is_symlink() or manifest_p.is_symlink():
         report["errors"].append("The games folder or manifest on this card is a link to somewhere else. Nothing was changed.")
         return report
+    if manifest_p.is_file() and not isinstance(load_json(manifest_p, None), dict):
+        bad = manifest_p.with_name(MANIFEST_NAME + ".bad")
+        if not force:
+            report["errors"].append(f"This card's {MANIFEST_NAME} is damaged (unreadable), so Pawtation cannot tell which "
+                                    "files are its own. Nothing was changed. Restore the file if you have a copy, or "
+                                    f"use force / --force to start a new one (the damaged file is kept as {bad.name}).")
+            return report
+        report["warnings"].append(f"{MANIFEST_NAME} was damaged; starting a new one (old copy kept as {bad.name}). "
+                                  "Games already on the card are not recognised as Pawtation's and stay untouched.")
+        if not dry_run:
+            try:
+                shutil.copyfile(manifest_p, bad)
+            except OSError as e:
+                report["errors"].append(f"could not back up the damaged {MANIFEST_NAME} ({e}). Nothing was changed.")
+                return report
     other = manifest.get("card_id")
     if other is not None and str(other) != card_id:
         msg = f"This SD card is labelled as card {other}, not card {card_id}."
@@ -647,7 +760,8 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
             return
         label = cfg["cards"].get(card_id, {}).get("label", f"Card {card_id}") if isinstance(cfg["cards"].get(card_id), dict) else f"Card {card_id}"
         manifest.update({"card_id": card_id, "label": label, "updated": int(time.time()), "schema": 2,
-                         "titles": {k: want[k].title for k in manifest["files"] if k in want}})
+                         "titles": {k: want[k].title if k in want else manifest["titles"].get(k, k)
+                                    for k in manifest["files"]}})
         save_json(manifest_p, manifest)
 
     def set_rels(key, rels):
@@ -666,9 +780,8 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
     for key in sorted(want):                                    # sorted: folder choice never depends on plan order
         rom = want[key]
         if not rom.launchable:
-            why = ("a disc is missing from the set" if all(Path(d["path"]).suffix.lower() in LAUNCHABLE_EXTS for d in rom.discs)
-                   else "compressed image (.ciso/.gcz/.rvz); Swiss cannot start these, convert to .iso with Dolphin or NKit first")
-            report["errors"].append(f"{rom.title}: {why}. Skipped.")
+            report["errors"].append(f"{rom.title}: {rom.why_not_launchable}. Not copied; anything already on the card "
+                                    "for it is left as it is.")
             wanted_files[key] = []
             continue
         folder = None
@@ -684,6 +797,10 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
         wanted_files[key] = [(f"{sub}/{folder}/{disc_filename(d['disc'], Path(d['path']).suffix, multi)}", Path(d["path"]), d["size"])
                              for d in rom.discs]
     wanted_rels = {rel for files in wanted_files.values() for rel, _s, _n in files}
+    # Planned games with nothing to copy (library drive unplugged, file renamed or now compressed, a disc missing):
+    # whatever is already on the card for them stays. Removing it would empty the card of games the plan still wants.
+    held = {k for k in keys if not wanted_files.get(k)}
+    held_rels = {rel for k in held for rel in _manifest_rels(manifest, k)}
     wanted_aux: dict[str, tuple] = {}                           # rel -> (src Path | bytes, owner)
     for key in sorted(want):
         if wanted_files.get(key):
@@ -710,20 +827,24 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
                 report["errors"].append(f"could not remove {rel}: {e}")
                 return False                                    # still there: keep it in the manifest
         report["removed"].append(rel); gone.add(rel)
+        if not dry_run:
+            manifest["src"].pop(rel, None)
         return True
 
     try:
         for rel in list(manifest["pending"]):                   # an interrupted copy from last time
-            if rel not in wanted_rels and rel not in wanted_aux:
+            if rel not in wanted_rels and rel not in wanted_aux and rel not in held_rels:
                 if remove(rel, rel, {games_dir}):
                     manifest["pending"].remove(rel)
         for key in list(dict.fromkeys(list(manifest["files"]) + list(manifest["more_files"]))):
+            if key in held:
+                continue
             old = _manifest_rels(manifest, key)
             keep = {rel for rel, _s, _n in wanted_files.get(key, [])}
             left = [rel for rel in old if rel in keep or not remove(rel, manifest["titles"].get(key, key), {games_dir})]
             set_rels(key, left)
         for rel in list(manifest["aux"]):
-            if rel not in wanted_aux and remove(rel, rel, set()):
+            if rel not in wanted_aux and manifest["aux"][rel] not in held and remove(rel, rel, set()):
                 manifest["aux"].pop(rel, None)
         save_manifest()
     except OSError as e:
@@ -745,7 +866,12 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
                 same = rel in _manifest_rels(manifest, key) and dest.is_file() and dest.stat().st_size == size
             except OSError:
                 there = same = False
+            sig, cur = manifest["src"].get(rel), _src_sig(src)
+            if same and sig is not None and not _sig_match(sig, cur):
+                same = False                                    # the library file was replaced: copy it again
             if same:
+                if sig is None and cur and not dry_run:
+                    manifest["src"][rel] = cur                  # older manifests: start tracking from here
                 report["kept"].append(rel)
             elif there and rel not in ours:
                 report["errors"].append(f"{rel} already exists on the card and was not put there by Pawtation; "
@@ -754,6 +880,8 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
             else:
                 game_todo.append((key, rel, src, size, want[key].title))
         todo += game_todo or []
+    pins = [k for k in cfg.get("pinned", []) if isinstance(k, str)]
+    todo.sort(key=lambda t: pins.index(t[0]) if t[0] in pins else len(pins))   # stable: favourites first if space runs out
     all_total = sum(t[3] for t in todo)
     try:
         free_now = shutil.disk_usage(mount_p).free
@@ -783,6 +911,12 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
             report["copied"].append(rel); continue
         try:
             game_bytes = sum(t[3] for t in todo[i:] if t[0] == key)     # all remaining discs must fit, or none go
+            for t in todo[i:]:                                  # an interrupted copy's temp file still takes space
+                d = card_path(mount_p, t[1]) if t[0] == key else None
+                if d is not None and d.parent.is_dir():
+                    for stale in d.parent.glob(d.name + PART_TAG + "*"):
+                        try: stale.unlink()
+                        except OSError: pass
             if shutil.disk_usage(mount_p).free - game_bytes < reserve:
                 report["errors"].append(f"not enough space for {title}"); skip_keys.add(key); continue
             if dest is None:
@@ -805,14 +939,19 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
             if ok and verify:
                 progress({"phase": "verify", "title": title, "rel": rel, "file_done": size, "file_total": size,
                           "all_done": all_done + size, "all_total": all_total})
+                _drop_cache(dest)
                 back = file_crc32(dest, cancel)
                 if back is not None and back != crc:
                     dest.unlink()
                     report["errors"].append(f"verification FAILED for {title} (card may be failing); copy removed")
                     ok = False; skip_keys.add(key)
-            manifest["pending"].remove(rel)
+            if ok or not dest.exists():                         # a cancelled re-copy must not forget a file we own
+                manifest["pending"].remove(rel)
             if ok:
                 set_rels(key, [r for r in _manifest_rels(manifest, key) if r != rel] + [rel])
+                sig = _src_sig(src)
+                if sig:
+                    manifest["src"][rel] = sig
             save_manifest()                                     # after every file: a pulled card stays consistent
             if not ok:
                 continue
@@ -858,7 +997,7 @@ def sync_card(cfg, card_id: str, keys: list[str], roms: list[Rom], mount: str, d
 
 
 def fmt_gb(n: int) -> str:
-    return f"{n / 1024**3:.2f} GB"
+    return f"{n / 1000**3:.2f} GB"                              # decimal, like the size printed on an SD card
 
 
 # ---------- finding SD cards ----------
@@ -900,9 +1039,33 @@ def find_cards(volumes=None) -> dict[str, str]:
     return found
 
 
+def configured_mount(cfg, card_id: str) -> str | None:
+    """The mount remembered in config.json for a card, but only if a folder is there and it is not labelled as a
+    DIFFERENT card. With one card reader every card is remembered at the same drive letter, so the letter alone
+    says nothing about which card is in it."""
+    c = cfg["cards"].get(str(card_id))
+    conf = c.get("mount") if isinstance(c, dict) else None
+    if not conf or not isinstance(conf, str) or not os.path.isdir(conf):
+        return None
+    other = load_manifest(Path(conf)).get("card_id")
+    return conf if other is None or str(other) == str(card_id) else None
+
+
+def labelled_cards(cfg) -> dict[str, str]:
+    """{card_id: mount} for configured cards that are plugged in AND carry their own Pawtation label (what `sync all`
+    means by 'every plugged-in card Pawtation has labelled before')."""
+    found = {c: m for c, m in find_cards().items() if c in cfg["cards"]}
+    for cid in card_ids(cfg):
+        conf = configured_mount(cfg, cid)
+        if cid not in found and conf and str(load_manifest(Path(conf)).get("card_id")) == cid:
+            found[cid] = conf
+    return found
+
+
 def resolve_mount(cfg, card_id: str, explicit: str | None = None) -> str | None:
-    """--mount wins, then config, then a mounted card whose manifest carries this id."""
-    return explicit or cfg["cards"].get(str(card_id), {}).get("mount") or find_cards().get(str(card_id))
+    """--mount wins, then a mounted card whose own label is this card, then the remembered mount (only if a folder is
+    there and it is not labelled as another card)."""
+    return explicit or find_cards().get(str(card_id)) or configured_mount(cfg, card_id)
 
 
 def card_contents(mount: str) -> dict:
@@ -916,27 +1079,43 @@ def card_contents(mount: str) -> dict:
 BOOT_MAX_BYTES = int(2.1 * 1024**3)   # AR SD Media Launcher: standard SD only, 2 GB max (not SDHC/SDXC)
 
 
-def prepare_boot_card(mount: str, swiss_dol: str, dry_run=True, log=print) -> dict:
-    """Copy a user-supplied Swiss .dol to <mount>/autoexec.dol so the Action Replay SD Media Launcher auto-starts it.
-    We never download Swiss; pass the DOL from an official release. Warns if the card looks bigger than 2 GB.
-    An existing autoexec.dol is kept as autoexec.dol.bak (one generation) so a bad build can be rolled back."""
+class GameCardError(OSError):
+    """prepare_boot_card refused: the chosen card is one of the rotated game cards."""
+
+
+def prepare_boot_card(mount: str, swiss_dol: str, dry_run=True, log=print, force=False) -> dict:
+    """Copy the release's ActionReplay/AUTOEXEC.DOL to <mount>/autoexec.dol so the Action Replay starts Swiss.
+    We never download Swiss; the owner passes the file from an official release (docs/GAMECUBE_GUIDE.md).
+    Refuses a card carrying a Pawtation game-card label unless force. Warnings come back BEFORE anything is written
+    in a dry run, so callers can show them first. The copy is atomic; an existing, different autoexec.dol is kept as
+    autoexec.dol.bak (one generation), and an identical one is left alone (so a retry never overwrites the backup)."""
     m, d = Path(mount), Path(swiss_dol)
     if not m.is_dir():
         raise FileNotFoundError(f"Mount path not found: {mount}")
     if not d.is_file() or d.suffix.lower() != ".dol":
         raise FileNotFoundError(f"Swiss DOL not found (need a .dol file): {swiss_dol}")
+    if (m / MANIFEST_NAME).exists() and not force:
+        raise GameCardError(f"{mount} is one of your GAME cards (it has a Pawtation label), not the boot card. "
+                            "Nothing was written. (Use force / --force if you really mean this card.)")
     warn = []
     if shutil.disk_usage(m).total > BOOT_MAX_BYTES:
         warn.append("Card is larger than 2 GB: the Action Replay SD Media Launcher likely won't read it (SDHC/SDXC unsupported).")
     if (m / MANIFEST_NAME).exists():
-        warn.append("This looks like one of your GAME cards (it has a Pawtation manifest), not the boot card.")
+        warn.append("This is one of your GAME cards (it has a Pawtation label); writing to it anyway as asked.")
+    if d.name.lower() != "autoexec.dol":
+        warn.append(f"{d.name} is not the release's ActionReplay/AUTOEXEC.DOL, which is the file the guide uses for an "
+                    "Action Replay boot card. The Action Replay may not start it.")
+    if not os.path.ismount(str(m)):
+        warn.append("This folder is not the top of a card; the Action Replay only looks in the card's top folder.")
     target = m / "autoexec.dol"
-    log(f"{tag_dry(dry_run)}copy {d.name} -> {target}")
-    if not dry_run:
-        if target.is_file() and target.read_bytes() != d.read_bytes():
+    new = d.read_bytes()
+    same = target.is_file() and target.read_bytes() == new
+    log(f"{tag_dry(dry_run)}{'already there: ' if same else 'copy '}{d.name} -> {target}")
+    if not dry_run and not same:
+        if target.is_file():
             shutil.copyfile(target, m / "autoexec.dol.bak")
-        shutil.copyfile(d, target)
-    return {"target": str(target), "warnings": warn}
+        _write_atomic(target, [new])
+    return {"target": str(target), "warnings": warn, "unchanged": same}
 
 
 def tag_dry(dry_run: bool) -> str:

@@ -37,7 +37,7 @@ python -m pawtation scan                                 # what did we find? (re
 python -m pawtation plan                                 # preview a rotation
 python -m pawtation plan --commit                        # save it + start the timer
 python -m pawtation sync 1 --mount E:\                   # dry run for card 1
-python -m pawtation sync 1 --mount E:\ --go              # really copy (add --verify to re-read and checksum)
+python -m pawtation sync 1 --mount E:\ --go              # really copy (add --verify to re-read and checksum; see note 9)
 python -m pawtation sync all --go                        # every plugged-in card Pawtation has labelled before
 python -m pawtation cards                                # which cards are plugged in, what is on them
 python -m pawtation gui                                  # desktop app (needs tkinter)
@@ -56,10 +56,11 @@ plugins): `docs/MODDING.md`.
 Step by step, with troubleshooting: **`docs/GAMECUBE_GUIDE.md`**. Swiss is always the official, unmodified release (`docs/SWISS.md`).
 
 1. **Boot card:** a *separate small standard SD, 2 GB or less* (the Action Replay SD Media Launcher reads only standard SD, not SDHC/SDXC).
-   Put Swiss on it as `autoexec.dol`: `python -m pawtation boot-card --mount E:\ --swiss-dol swiss.dol --go`.
+   Put Swiss on it as `autoexec.dol`: `python -m pawtation boot-card --mount E:\ --swiss-dol "C:\Downloads\swiss_r2119\ActionReplay\AUTOEXEC.DOL" --go`.
 2. Boot the Action Replay disc with the boot card in the GC2SD; it launches Swiss.
-3. Swap in one of your 5 game cards (rotated by Pawtation), refresh Swiss's device list, play. Swapping while powered on is the common community
-   workflow but is at your own risk; power off first if unsure.
+3. **With Swiss running**, swap the boot card for one of your game cards (rotated by Pawtation), pick the SD device again
+   in Swiss, play. Do not power off to swap: the Action Replay can only start Swiss from the small boot card, so after a
+   power cycle you have to boot from the boot card again. Swap on Swiss's file browser, never while a game is loading.
 4. **Saves:** the GC2SD can't act as a save memory card. Use a real GameCube memory card for saves (Swiss can also emulate one on some setups; see `docs/RESEARCH_NOTES.md`).
 
 ## How rotation works
@@ -71,6 +72,8 @@ Step by step, with troubleshooting: **`docs/GAMECUBE_GUIDE.md`**. Swiss is alway
   Your Swiss files, saves and other games are left alone. Removal happens before copying; files are copied one at a
   time to reduce fragmentation (Swiss prefers contiguous files; for best results re-format a card now and then and let Pawtation refill it).
 - **Add a card:** add an entry under `cards` in `config.json`. Nothing else changes.
+- **Card size:** set each card's `capacity_gb` to the size printed on it (e.g. `32`). Until a card has been synced once,
+  the planner fills only about 95% of that; after a sync it uses the card's real, measured size.
 - **Cards know who they are:** after its first sync a card carries its number, so later syncs find it by itself, and
   syncing card 2's games onto card 1 by mistake is refused (`--force` to re-purpose a card).
 - **Multi-disc games** count as one game and both discs travel together.
@@ -95,3 +98,7 @@ Details: `docs/ART_PIPELINE.md`, `docs/ART_LOWPOLY.md`.
 6. **Tested how:** the logic has automated tests (temp folders standing in for SD cards). The desktop app was run under a virtual Linux display only; see `docs/GUI_CHECKLIST.md` for what was and was not exercised. Nothing has been run on Windows or macOS, on a real SD card, or on a real GameCube.
 7. **Action Replay boot:** how your AR disc launches Swiss from the GC2SD varies by AR version. Swiss's release archive contains an `ActionReplay/AUTOEXEC.DOL`; that is the file to give `boot-card`. An existing `autoexec.dol` is kept as `autoexec.dol.bak`.
 8. **Version 1 saves:** an old `state.json` keeps loading; Mochi's and Biscuit's version-1 stats are left alone.
+9. **`--verify`** re-reads each copied file and compares checksums. On Linux it reads the card itself; on Windows and macOS
+   the re-read may come from the PC's memory, so there it mainly catches copy errors, not a failing or fake-capacity card.
+10. **Library on an external drive?** If it is unplugged, `sync` and `plan --commit` stop with a message and change
+   nothing; a game whose library file is missing, renamed or now compressed is never removed from a card by sync.

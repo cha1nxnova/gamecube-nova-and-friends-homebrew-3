@@ -93,7 +93,8 @@ Read next: `docs/SPEC_V2.md` (contracts between modules), `docs/CHARACTERS.md` (
 - **Add a game:** append to `data/catalog.json` -> `{"key":"slug","title":"...","year":0,"developer":"","genres":[],"tags":[],"code4":"XXXX","aliases":[]}`.
   Tags drive quips (`furry`, `cozy`, `racing`, `horror`, `party`...). Add new tags to `pets.json -> tag_quips`.
 - **Add a character, scene or pack:** `docs/MODDING.md` sections 4 and 5.
-- **Add an SD card:** add a key to `config.json -> cards` (`label`, `capacity_gb`, `mount`).
+- **Add an SD card:** add a key to `config.json -> cards` (`label`, `capacity_gb` = the decimal size printed on the
+  card, `mount`). The planner uses 95% of it until a sync measures the card (`state.json -> card_bytes`).
 - **Change favorites:** edit `config.json -> pinned` (catalog keys).
 - **Add an activity:** add to `pets.json -> activities` (`verb`, `needs`, `affection`, `energy`, lines per character). The GUI adds a button.
 - **Add a progress parser:** `saves.PROGRESS_PARSERS["G8ME"] = fn(raw_gci_bytes) -> str`, then surface it in `PetBrain.reply`.
