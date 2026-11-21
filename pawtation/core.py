@@ -1,6 +1,6 @@
 """Pawtation core: config, library scan, catalog matching, rotation planner, SD sync.
 
-Pure standard library. No network. Everything here is UI-agnostic so the CLI,
+Pure standard library. No network (the optional Swiss download lives in swissget.py). Everything here is UI-agnostic so the CLI,
 the desktop GUI, and any future front-end (web, GameCube-side) share one brain.
 """
 from __future__ import annotations
@@ -18,10 +18,11 @@ import zlib
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 
-from . import discimage
+from . import discimage, paths
 
-ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = ROOT / "data"
+ROOT = paths.ROOT                    # your own files: config, state, packs/, mods/, plugins/ (next to Pawtation.exe when packaged)
+BUNDLE = paths.BUNDLE                # files that ship with the app and are only read: data/, assets/
+DATA_DIR = BUNDLE / "data"
 # Your settings + ratings live next to the app by default. Set PAWTATION_HOME to keep them elsewhere
 # (handy for a second profile, or for tests that must not touch your real files).
 HOME = Path(os.environ.get("PAWTATION_HOME") or ROOT)
@@ -1123,6 +1124,44 @@ def card_contents(mount: str) -> dict:
             "titles": {str(k): str(m["titles"].get(k, k)) for k in m["files"]}}
 
 
+def volume_info(path: str) -> dict:
+    """Best-effort facts about the drive holding path: {"fs", "removable", "total", "free", "label"} (None when
+    unknown). Read-only. Windows asks the OS; Linux reads /proc/mounts; elsewhere only the sizes are known."""
+    out = {"fs": None, "removable": None, "total": None, "free": None, "label": None}
+    try:
+        u = shutil.disk_usage(path)
+        out["total"], out["free"] = u.total, u.free
+    except OSError:
+        return out
+    if os.name == "nt":
+        try:
+            import ctypes
+            k32 = ctypes.windll.kernel32
+            root = ctypes.create_unicode_buffer(261)
+            if k32.GetVolumePathNameW(str(path), root, 261):
+                fs, label = ctypes.create_unicode_buffer(261), ctypes.create_unicode_buffer(261)
+                if k32.GetVolumeInformationW(root.value, label, 261, None, None, None, fs, 261):
+                    out["fs"], out["label"] = fs.value or None, label.value or None
+                out["removable"] = k32.GetDriveTypeW(root.value) == 2          # DRIVE_REMOVABLE (SD readers)
+        except Exception:
+            pass
+    elif os.path.exists("/proc/mounts"):
+        try:
+            real, best = os.path.realpath(path), ""
+            for line in Path("/proc/mounts").read_text(encoding="utf-8", errors="replace").splitlines():
+                parts = line.split()
+                if len(parts) >= 3:
+                    mnt = parts[1].replace("\\040", " ")
+                    if (real == mnt or real.startswith(mnt.rstrip("/") + "/")) and len(mnt) >= len(best):
+                        best, out["fs"] = mnt, parts[2]
+        except OSError:
+            pass
+    return out
+
+
+FAT_NAMES = {"fat", "fat12", "fat16", "fat32", "vfat", "msdos"}
+
+
 # ---------- boot card (Action Replay SD Media Launcher) ----------
 BOOT_MAX_BYTES = int(2.1 * 1024**3)   # AR SD Media Launcher: standard SD only, 2 GB max (not SDHC/SDXC)
 
@@ -1150,6 +1189,10 @@ def prepare_boot_card(mount: str, swiss_dol: str, dry_run=True, log=print, force
         warn.append("Card is larger than 2 GB: the Action Replay SD Media Launcher likely won't read it (SDHC/SDXC unsupported).")
     if (m / MANIFEST_NAME).exists():
         warn.append("This is one of your GAME cards (it has a Pawtation label); writing to it anyway as asked.")
+    fs = volume_info(str(m)).get("fs")
+    if fs and fs.lower() not in FAT_NAMES:
+        warn.append(f"The card is formatted as {fs}; the Action Replay needs FAT (Windows offers FAT for a card this "
+                    "small). Format it as FAT first.")
     if d.name.lower() != "autoexec.dol":
         warn.append(f"{d.name} is not the release's ActionReplay/AUTOEXEC.DOL, which is the file the guide uses for an "
                     "Action Replay boot card. The Action Replay may not start it.")

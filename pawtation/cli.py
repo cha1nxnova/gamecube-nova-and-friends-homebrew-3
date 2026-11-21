@@ -10,7 +10,7 @@ import sys
 import time
 from pathlib import Path
 
-from . import afterdark, cast, core, hidden, patching, pets, plugins, saves
+from . import afterdark, cast, core, hidden, patching, pets, plugins, saves, swissget
 from .core import Catalog
 
 
@@ -196,13 +196,54 @@ def cmd_cards(a):
         print(f"Card {cid}  (not in config.json)  mounted at {where}")
 
 
+def _use_swiss(rec: dict) -> None:
+    """Remember a release's AUTOEXEC.DOL as the boot card file."""
+    boot = core.load_config()["boot_card"]
+    core.update_config(boot_card={**boot, "swiss_dol": rec["files"][swissget.AUTOEXEC]})
+    print(f"Swiss {rec.get('tag', '')}: {rec['files'][swissget.AUTOEXEC]}")
+    print("Saved as the boot card file. Next: python -m pawtation boot-card --mount E:\\ --go")
+
+
+def cmd_swiss(a):
+    try:
+        if a.action == "get":
+            last = [0.0]
+
+            def progress(done, total):
+                if time.time() - last[0] > 0.5 and total:
+                    last[0] = time.time()
+                    print(f"\r  downloading {100 * done // total:3d}%", end="", flush=True)
+            print(f"Asking GitHub for the newest official Swiss release ({swissget.RELEASES_PAGE})...")
+            rec = swissget.get_latest(progress=progress)
+            print("\r" + " " * 30 + "\r", end="")
+            if rec is None:
+                print("Stopped."); return 1
+            _use_swiss(rec); return 0
+        if a.action == "use":
+            if not a.path:
+                print("Give the release .tar.xz, the folder you unpacked it into, or its AUTOEXEC.DOL."); return 1
+            _use_swiss(swissget.from_local(a.path)); return 0
+    except swissget.SwissError as e:
+        print("ERROR:", e); return 1
+    except KeyboardInterrupt:
+        print("\nStopped."); return 1
+    rec = swissget.cached()
+    dol = core.load_config()["boot_card"].get("swiss_dol")
+    print(f"Boot card file: {dol or '(not set)'}")
+    print(f"Downloaded release: {rec['tag'] + ' in ' + str(Path(rec['files'][swissget.AUTOEXEC]).parent) if rec else 'none'}")
+    print("Get the newest: python -m pawtation swiss get   |   use a file you have: python -m pawtation swiss use PATH")
+    return 0
+
+
 def cmd_boot_card(a):
     cfg = core.load_config()
     mount = a.mount or cfg["boot_card"].get("mount")
     dol = a.swiss_dol or cfg["boot_card"].get("swiss_dol")
+    if not dol and swissget.cached():                           # downloaded with `swiss get` but not remembered
+        dol = swissget.cached()["files"][swissget.AUTOEXEC]
     if not mount or not dol:
-        print("Need --mount PATH and --swiss-dol PATH: the ActionReplay/AUTOEXEC.DOL from an official Swiss release "
-              "(or set boot_card.mount and boot_card.swiss_dol in config.json). See docs/GAMECUBE_GUIDE.md."); return 1
+        print("Need --mount PATH and the Swiss boot file. Get it with: python -m pawtation swiss get   (or give "
+              "--swiss-dol PATH: the release's ActionReplay/AUTOEXEC.DOL). See docs/GAMECUBE_GUIDE.md."); return 1
     try:
         rep = core.prepare_boot_card(mount, dol, dry_run=True, force=a.force)   # warnings first, before any write
         for w in rep["warnings"]: print("WARNING:", w)
@@ -478,6 +519,10 @@ def main(argv=None):
     s.add_argument("--force", action="store_true", help="use a card even if it is labelled as a different card")
     add("cards", cmd_cards, "which cards are plugged in and what is on them")
     s = add("rate", cmd_rate, "rate a game 1-5"); s.add_argument("title"); s.add_argument("stars", type=int, choices=range(1, 6))
+    s = add("swiss", cmd_swiss, "get the official Swiss release for the boot card (the only command that goes online)")
+    s.add_argument("action", nargs="?", choices=("get", "use"), help="get: download the newest release; "
+                   "use PATH: a .tar.xz, unpacked folder or AUTOEXEC.DOL you already have")
+    s.add_argument("path", nargs="?")
     s = add("boot-card", cmd_boot_card, "copy Swiss's ActionReplay/AUTOEXEC.DOL to a boot card as autoexec.dol")
     s.add_argument("--mount"); s.add_argument("--swiss-dol", help="the release's ActionReplay/AUTOEXEC.DOL")
     s.add_argument("--go", action="store_true")

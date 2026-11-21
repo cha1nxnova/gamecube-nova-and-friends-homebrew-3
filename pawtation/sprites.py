@@ -10,7 +10,9 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
-ASSETS = Path(__file__).resolve().parent.parent / "assets"
+from .paths import BUNDLE
+
+ASSETS = BUNDLE / "assets"
 #: pseudo-character holding decorations (sparkle, heart, ...); not listed by characters()
 PROPS = "props"
 
