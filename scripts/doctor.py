@@ -41,7 +41,7 @@ try:
         m = c.get("mount")
         if m and not Path(m).is_dir(): warn(f"card {cid} mount not found: {m}")
     for r in [r for r in roms if not r.launchable]:
-        warn(f"compressed image, Swiss cannot start it (convert to .iso with Dolphin/NKit): {r.title}")
+        warn(f"not copied to cards: {r.title}: {r.why_not_launchable}")
     found = core.find_cards()
     ok("plugged-in Pawtation cards: " + (", ".join(f"{k} at {v}" for k, v in found.items()) or "none right now"))
     from pawtation import plugins
@@ -93,11 +93,17 @@ section("Tools")
 for tool, why in [("xdelta3", "optional: applying .xdelta mod patches"), ("git", "version control")]:
     (ok if shutil.which(tool) else warn)(f"{tool}: {'found' if shutil.which(tool) else 'not found'} ({why})")
 try:
-    boot = core.load_config().get("boot_card", {}) or {}
-except Exception:
-    boot = {}
-dol = str(boot.get("swiss_dol") or "")
-(ok if dol and Path(dol).is_file() else warn)(
-    "Swiss: " + ("boot card file set (" + Path(dol).name + ")" if dol and Path(dol).is_file()
-                 else "no Swiss file set yet; get the official release and see docs/GAMECUBE_GUIDE.md"))
+    boot = core.load_config().get("boot_card", {})
+    boot = boot if isinstance(boot, dict) else {}
+    dol = str(boot.get("swiss_dol") or "")
+    if not dol:
+        warn("Swiss: no boot file set yet; get the official release and see docs/GAMECUBE_GUIDE.md")
+    elif not Path(dol).is_file():
+        warn(f"Swiss: boot_card.swiss_dol is set but the file is not there: {dol}")
+    elif Path(dol).name.lower() != "autoexec.dol":
+        warn(f"Swiss: boot file is {Path(dol).name}; the guide uses the release's ActionReplay/AUTOEXEC.DOL")
+    else:
+        ok(f"Swiss: boot file set ({dol})")
+except Exception as e:
+    warn(f"Swiss: could not check the boot file setting ({type(e).__name__})")
 print("Done. New here? README.md. Changing things? HANDOFF.md and docs/MODDING.md.")

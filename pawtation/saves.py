@@ -18,14 +18,11 @@ BLOCK = 0x2000
 PREFIX = {".gci": 0, ".gcs": 0x110}   # .gcs = GameShark wrapper: 0x110 extra bytes before the same .gci layout
 
 
-def _text(b: bytes) -> str:
+def _text(b: bytes, japanese: bool = False) -> str:
+    """Save text is Shift-JIS (cp932) on Japanese games and Windows-1252 everywhere else (docs/RESEARCH_NOTES.md C2):
+    'Pok\xe9mon' must read as 'Pokémon', not as a kanji."""
     b = b.split(b"\0")[0]
-    for enc in ("ascii", "shift_jis"):
-        try:
-            return b.decode(enc).strip()
-        except UnicodeDecodeError:
-            pass
-    return b.decode("ascii", "ignore").strip()
+    return b.decode("cp932" if japanese else "cp1252", "replace").replace("\ufffd", "?").strip()
 
 
 def parse_gci(path: Path) -> dict | None:
@@ -45,7 +42,8 @@ def parse_gci(path: Path) -> dict | None:
     if not code4.isalnum() or len(code4) != 4:
         return None
     maker = raw[4:6].decode("ascii", "ignore")
-    name = _text(raw[8:0x28])
+    jp = code4[3:4].upper() == "J"                       # 4th character of the game code is the region
+    name = _text(raw[8:0x28], jp)
     modtime = struct.unpack(">I", raw[0x28:0x2C])[0]
     blocks = struct.unpack(">H", raw[0x38:0x3A])[0]
     comment_at = struct.unpack(">I", raw[0x3C:0x40])[0]
@@ -53,7 +51,7 @@ def parse_gci(path: Path) -> dict | None:
             "modified": GC_EPOCH + modtime, "path": str(path), "comment": []}
     data = raw[HEADER:]
     if comment_at != 0xFFFFFFFF and comment_at + 64 <= len(data):
-        info["comment"] = [_text(data[comment_at:comment_at + 32]), _text(data[comment_at + 32:comment_at + 64])]
+        info["comment"] = [_text(data[comment_at:comment_at + 32], jp), _text(data[comment_at + 32:comment_at + 64], jp)]
     parser = PROGRESS_PARSERS.get(code4)
     if parser:
         try:

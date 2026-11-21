@@ -99,12 +99,18 @@ class SafeSync(Base):
         self.assertGreaterEqual(len(rep["warnings"]), 4)
         self.assertEqual(len(rep["copied"]) - 1, 1 - 1 + 0)        # exactly the game (+ nothing else; quips not passed)
 
-    def test_corrupt_manifest_is_survivable(self):
+    def test_corrupt_manifest_is_refused_then_backed_up_when_forced(self):
         (self.sd / core.MANIFEST_NAME).write_text("{not json")
-        rep = self.sync(["chibi-robo"], dry_run=False)
+        rep = self.sync(["chibi-robo"], dry_run=False)                # unreadable label: change nothing, say why
+        self.assertEqual(len(rep["errors"]), 1); self.assertEqual(rep["copied"], [])
+        self.assertEqual((self.sd / core.MANIFEST_NAME).read_text(), "{not json")
+        self.assertFalse((self.sd / "games").exists())
+        rep = self.sync(["chibi-robo"], dry_run=False, force=True)    # forced: the damaged file is kept as .bad first
         self.assertEqual(rep["errors"], [])
-        (self.sd / core.MANIFEST_NAME).write_text(json.dumps([1, 2]))
-        self.assertEqual(self.sync(["paper-mario-ttyd"], dry_run=False)["errors"], [])
+        self.assertEqual((self.sd / (core.MANIFEST_NAME + ".bad")).read_text(), "{not json")
+        (self.sd / core.MANIFEST_NAME).write_text(json.dumps([1, 2]))  # valid JSON of the wrong shape is damaged too
+        self.assertTrue(self.sync(["paper-mario-ttyd"], dry_run=False)["errors"])
+        self.assertEqual(self.sync(["paper-mario-ttyd"], dry_run=False, force=True)["errors"], [])
         self.assertTrue((self.sd / "games" / "Chibi-Robo!" / "game.iso").exists())   # forgotten by the bad manifest, so left alone
 
     def test_wrong_card_refused_unless_forced(self):
@@ -126,6 +132,7 @@ class SafeSync(Base):
         self.assertTrue((mine / "game.iso").exists())
 
     def test_cancel_leaves_no_partial_file_and_resumes(self):
+        self.cfg["pinned"] = []                                       # plain alphabetical copy order for this test
         old = core.COPY_CHUNK; core.COPY_CHUNK = 16 * 1024
         self.addCleanup(setattr, core, "COPY_CHUNK", old)
         seen = []

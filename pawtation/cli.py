@@ -20,6 +20,15 @@ def build_ctx():
     return cfg, state, cat, core.scan_library(cfg, cat)
 
 
+def library_missing(cfg) -> str:
+    """A message if library_dir is not a reachable folder (e.g. the USB drive holding it is unplugged), else ''."""
+    lib = cfg.get("library_dir")
+    if lib and os.path.isdir(lib):
+        return ""
+    return (f"Library folder not found: {lib or '(library_dir is not set)'}. Plug in the drive that holds your disc "
+            "images, or fix library_dir in config.json (or run `init --library PATH`). Nothing was changed.")
+
+
 def cmd_init(a):
     if core.CONFIG_PATH.exists() and not a.force:
         print("config.json already exists (use --force to overwrite)."); return
@@ -36,7 +45,7 @@ def cmd_scan(a):
         discs = f"  [{len(r.discs)} discs]" if len(r.discs) > 1 else ""
         mods = f"  [+{len(core.mod_files(cfg, r.key))} mod files]" if core.mod_files(cfg, r.key) else ""
         if not r.launchable:
-            flag += "  (compressed: convert to .iso with Dolphin/NKit before it can go on a card)"
+            flag += f"  (not copied to cards: {r.why_not_launchable})"
         print(f"{r.code6 or '------'}  {core.fmt_gb(r.size):>8}  {r.title}{discs}{mods}{flag}")
     print(f"\n{len(roms)} games, {core.fmt_gb(sum(r.size for r in roms))} total")
     for ignored, kept in core.DUPLICATES:
@@ -73,6 +82,10 @@ def cmd_plan(a):
     if left:
         print(f"\nResting this season ({len(left)}): " + ", ".join(r.title for r in left[:12]) + ("..." if len(left) > 12 else ""))
     if a.commit:
+        if library_missing(cfg) or not roms:
+            print("\n" + (library_missing(cfg) or "No disc images found in the library, so there is nothing to plan. "
+                                                   "The current plan and timer are unchanged."))
+            return 1
         core.commit_plan(state, plan); core.save_state(state); plugins.fire("planned", plan=plan, roms=roms)
         print("\nPlan committed; timer reset.")
         for line in pets.PetBrain(state, cat).event("rotated"): print(line)
@@ -85,10 +98,12 @@ def _sync_one(cfg, state, cat, roms, cid, a) -> bool:
     keys = plan.get(cid)
     if keys is None:
         print(f"Card {cid} is not in the current plan."); return False
+    if library_missing(cfg):
+        print(f"Card {cid}: " + library_missing(cfg)); return False
     mount = core.resolve_mount(cfg, cid, a.mount)
     if not mount:
-        print(f"Card {cid}: not found. Give --mount PATH (or set cards.{cid}.mount in config.json; "
-              "cards synced once are found automatically when plugged in)."); return False
+        print(f"Card {cid}: not found. Give --mount PATH (cards synced once are found automatically by their label "
+              "when plugged in)."); return False
     last, shown = [0.0], [False]
 
     def clear():
@@ -122,7 +137,11 @@ def _sync_one(cfg, state, cat, roms, cid, a) -> bool:
         clear()
         print(f"Card {cid}: could not sync ({type(e).__name__}: {e})"); return False
     clear()
-    print(f"\nCard {cid} @ {mount}: {'DONE' if a.go else 'DRY RUN (add --go to copy)'}: "
+    if a.go and not rep.get("refused"):                         # this card was really used: remember its real size
+        fresh = core.load_state()                               # re-read: other changes may have been saved meanwhile
+        if core.note_card_size(fresh, cid, mount):
+            core.save_state(fresh)
+    print(f"\nCard {cid} @ {mount}: {'DONE' if a.go and not rep['errors'] else 'FINISHED WITH PROBLEMS' if a.go else 'DRY RUN (add --go to copy)'}: "
           f"{len(rep['copied'])} copy, {len(rep['removed'])} remove, {len(rep['kept'])} keep")
     for w in rep["warnings"]: print("WARNING:", w)
     for e in rep["errors"]: print("ERROR:", e)
@@ -139,22 +158,34 @@ def cmd_sync(a):
     if a.card == "all":
         if a.mount:
             print("--mount cannot be combined with 'all' (each card has its own path)."); return 1
-        found = [c for c in core.card_ids(cfg) if core.resolve_mount(cfg, c)]
+        if a.force:
+            print("--force cannot be combined with 'all': re-purpose a card one at a time (sync N --mount PATH --force)."); return 1
+        found = core.labelled_cards(cfg)                        # only cards that carry their own label: never a guess
         if not found:
             print("No plugged-in cards recognised. Sync each card once with --mount so it gets labelled."); return 1
-        return 0 if all([_sync_one(cfg, state, cat, roms, c, a) for c in found]) else 1
+        a.mount = None
+        results = []
+        for c in core.card_ids(cfg):
+            if c in found:
+                a.mount = found[c]
+                results.append(_sync_one(cfg, state, cat, roms, c, a))
+        a.mount = None
+        return 0 if all(results) else 1
     return 0 if _sync_one(cfg, state, cat, roms, a.card, a) else 1
 
 
 def cmd_cards(a):
     cfg, state, cat, roms = build_ctx()
     found = core.find_cards()
+    labelled = core.labelled_cards(cfg)
     plan = core.current_plan(state)
     for cid in core.card_ids(cfg):
-        c = cfg["cards"][cid]
-        where = c.get("mount") or found.get(cid)
-        print(f"Card {cid}  {c.get('label', ''):<14} {c.get('capacity_gb', '?')} GB  "
-              f"{'mounted at ' + where if where and os.path.isdir(where) else 'not plugged in'}  "
+        c = cfg["cards"][cid] if isinstance(cfg["cards"][cid], dict) else {}
+        where = labelled.get(cid)                               # by the card's own label, never by drive letter alone
+        blank = None if where else core.configured_mount(cfg, cid)   # remembered folder holding a card with no label yet
+        state_txt = ("mounted at " + where if where and os.path.isdir(where)
+                     else f"unlabelled card at {blank} (not synced yet)" if blank else "not plugged in")
+        print(f"Card {cid}  {c.get('label', ''):<14} {c.get('capacity_gb', '?')} GB  {state_txt}  "
               f"({len(plan.get(cid, []))} games planned)")
         if where and os.path.isdir(where):
             on = core.card_contents(where)["titles"]
@@ -170,13 +201,19 @@ def cmd_boot_card(a):
     mount = a.mount or cfg["boot_card"].get("mount")
     dol = a.swiss_dol or cfg["boot_card"].get("swiss_dol")
     if not mount or not dol:
-        print("Need --mount PATH and --swiss-dol PATH (a swiss .dol from an official release; or set boot_card in config.json)."); return 1
+        print("Need --mount PATH and --swiss-dol PATH: the ActionReplay/AUTOEXEC.DOL from an official Swiss release "
+              "(or set boot_card.mount and boot_card.swiss_dol in config.json). See docs/GAMECUBE_GUIDE.md."); return 1
     try:
-        rep = core.prepare_boot_card(mount, dol, dry_run=not a.go)
+        rep = core.prepare_boot_card(mount, dol, dry_run=True, force=a.force)   # warnings first, before any write
+        for w in rep["warnings"]: print("WARNING:", w)
+        if a.go:
+            rep = core.prepare_boot_card(mount, dol, dry_run=False, force=a.force, log=lambda *_: None)
     except OSError as e:
         print("ERROR:", e); return 1
-    for w in rep["warnings"]: print("WARNING:", w)
-    print("DONE" if a.go else "DRY RUN (add --go to copy)")
+    if a.go:
+        print("Already up to date; nothing written." if rep.get("unchanged") else f"DONE: wrote {rep['target']}")
+    else:
+        print("DRY RUN (add --go to copy)")
 
 
 def cmd_mods(a):
@@ -219,8 +256,9 @@ def cmd_patch(a):
     h = core.discimage.read_header(rep["out"])
     print(f"Wrote {rep['out']} ({core.fmt_gb(rep['size'])}, {rep['format']}). Your original is untouched."
           + (f" Disc ID: {h['code6']}." if h else ""))
-    print("Note: it has the same disc ID as the original, so in one library folder only one of the two is used.\n"
-          "To rotate the mod as its own game, add a catalog entry whose title is the file name (docs/MODDING.md).")
+    print("Note: it has the same disc ID as the original, so in one library only one of the two is rotated: normally\n"
+          "your original, with the patched copy listed under 'Duplicate ignored' in `scan`. To rotate the mod as its own\n"
+          "game, add a catalog entry whose title is the file name (docs/MODDING.md).")
 
 
 def cmd_saves(a):
@@ -435,12 +473,15 @@ def main(argv=None):
     s = add("sync", cmd_sync, "make an SD card match the plan (dry run unless --go)")
     s.add_argument("card", help="card id, or 'all' for every plugged-in card Pawtation recognises")
     s.add_argument("--mount"); s.add_argument("--go", action="store_true")
-    s.add_argument("--verify", action="store_true", help="re-read each copy and compare checksums")
+    s.add_argument("--verify", action="store_true", help="re-read each copy and compare checksums (reads the card on "
+                   "Linux; on Windows and macOS the re-read may come from the PC's memory and may detect nothing)")
     s.add_argument("--force", action="store_true", help="use a card even if it is labelled as a different card")
     add("cards", cmd_cards, "which cards are plugged in and what is on them")
     s = add("rate", cmd_rate, "rate a game 1-5"); s.add_argument("title"); s.add_argument("stars", type=int, choices=range(1, 6))
-    s = add("boot-card", cmd_boot_card, "copy your Swiss .dol to a boot card as autoexec.dol")
-    s.add_argument("--mount"); s.add_argument("--swiss-dol"); s.add_argument("--go", action="store_true")
+    s = add("boot-card", cmd_boot_card, "copy Swiss's ActionReplay/AUTOEXEC.DOL to a boot card as autoexec.dol")
+    s.add_argument("--mount"); s.add_argument("--swiss-dol", help="the release's ActionReplay/AUTOEXEC.DOL")
+    s.add_argument("--go", action="store_true")
+    s.add_argument("--force", action="store_true", help="write even if the card is labelled as a game card")
     s = add("mods", cmd_mods, "list per-game mod files and plugins"); s.add_argument("--new", metavar="GAME", help="create a mods folder for a game")
     s = add("patch", cmd_patch, "apply a .bps/.ips/.xdelta patch to a COPY of your own image")
     s.add_argument("source"); s.add_argument("patch"); s.add_argument("--out")
