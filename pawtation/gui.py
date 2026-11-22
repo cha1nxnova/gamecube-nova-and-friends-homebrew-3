@@ -27,6 +27,7 @@ import random
 import threading
 import time
 import traceback
+from pathlib import Path
 
 try:                                    # tkinter may be missing (Linux without python3-tk): the CLI must still import us
     import tkinter as tk
@@ -1088,7 +1089,10 @@ if HAVE_TK:
             for name in list(self._after):
                 self._cancel(name)
             self._after.clear()
-            super().destroy()
+            try:
+                super().destroy()
+            except tk.TclError:                              # already gone (closed twice): nothing left to do
+                pass
 
         # ---------- theme plumbing ----------
         def space(self, i):
@@ -1204,9 +1208,14 @@ if HAVE_TK:
                 self._last_w = w
                 self._place_sash(w - 2 * self.tok["layout"]["gutter"])
 
+        GAME_MIN, TAGS_MIN = 170, 90          # below these the column is not worth showing / reading
+
         def _fit_columns(self):
             """Give the Game column the spare width (up to its longest title) once Tags has room for its
-            longest entry (up to twice its base width); Tags takes whatever is left."""
+            longest entry (up to twice its base width); Tags takes whatever is left. When the list is too narrow
+            for every column (the default window on a laptop screen), Discs and then Tags are hidden, and Game
+            and Tags shrink towards their minimums, so nothing is cut off at the right edge. (Tags goes last:
+            it carries warnings such as "convert to .iso first".)"""
             tree = getattr(self, "tree", None)
             if tree is None:
                 return
@@ -1215,14 +1224,34 @@ if HAVE_TK:
                 if avail <= 1:
                     return
                 base = {c[0]: c[2] for c in self.COLUMNS}
-                fixed = sum(w for cid, w in base.items() if cid not in ("game", "tags"))
+                hidden = []
+                for drop in ("discs", "tags"):                # least important first
+                    shown = [c for c in base if c not in hidden]
+                    fixed_now = sum(base[c] for c in shown if c not in ("game", "tags"))
+                    tags_need = self.TAGS_MIN if "tags" in shown else 0
+                    if avail - fixed_now - tags_need - 4 >= self.GAME_MIN:
+                        break
+                    hidden.append(drop)
+                shown = [c[0] for c in self.COLUMNS if c[0] not in hidden]
+                if [str(c) for c in tree["displaycolumns"]] != shown:
+                    tree.configure(displaycolumns=shown)
+                fixed = sum(base[c] for c in shown if c not in ("game", "tags"))
+                room = avail - fixed - 4                       # for Game (+ Tags when shown)
                 font = self.fonts["body_strong"]
                 rows = tree.get_children("")
                 need = max([font.measure(str(tree.set(i, "game"))) for i in rows] or [0]) + self.space(6)
+                if "tags" not in shown:
+                    game = max(self.GAME_MIN, room)
+                    if int(tree.column("game", "width")) != game:
+                        tree.column("game", width=game)
+                    return
                 tneed = max([font.measure(str(tree.set(i, "tags"))) for i in rows] or [0]) + self.space(4)
                 tneed = max(base["tags"], min(tneed, base["tags"] * 2))
-                game = max(base["game"], min(need, avail - fixed - tneed - 4))
-                tags = max(base["tags"], avail - fixed - game - 4)
+                game = max(base["game"], min(need, room - tneed))
+                tags = max(base["tags"], room - game)
+                if game + tags > room:                         # tight: shrink both, keeping their minimums
+                    tags = max(self.TAGS_MIN, min(tags, room - self.GAME_MIN))
+                    game = max(self.GAME_MIN, room - tags)
                 if int(tree.column("game", "width")) != game:
                     tree.column("game", width=game)
                 if int(tree.column("tags", "width")) != tags:
@@ -1272,9 +1301,10 @@ if HAVE_TK:
                                            ("sync", "Sync a card…", self.sync_card, "secondary"),
                                            ("library", "Pick library folder", self.pick_library, "secondary"),
                                            ("rescan", "Rescan", self.refresh, "ghost"),
-                                           ("boot", "Boot card…", self.boot_card, "ghost")]:
+                                           ("boot", "Boot card…", self.boot_card, "ghost"),
+                                           ("setup", "GameCube setup…", self.open_setup, "ghost")]:
                 self.buttons[key] = bar.add(self.button(bar, text, fn, variant, small=True), padx=1, pady=0)
-            self.guarded = [self.buttons[k] for k in ("library", "rescan", "plan", "sync", "boot")]
+            self.guarded = [self.buttons[k] for k in ("library", "rescan", "plan", "sync", "boot", "setup")]
             sf = self.frame(left)
             sf.grid(row=2, column=0, sticky="ew", pady=2)
             self.search_var = tk.StringVar(self)
@@ -1527,6 +1557,12 @@ if HAVE_TK:
             for w in list(self._themed):
                 try:
                     w.retheme()
+                except tk.TclError:
+                    pass
+            setup = getattr(self, "_setup", None)
+            if setup is not None:                            # the GameCube setup window follows the theme too
+                try:
+                    setup.retheme()
                 except tk.TclError:
                     pass
             self.theme_btn.configure(text=f"{theme.label(name)} theme")
@@ -2545,6 +2581,24 @@ if HAVE_TK:
                     time.sleep(0.05)
             self.destroy()
 
+        # ---------- GameCube setup wizard ----------
+        def open_setup(self, _e=None):
+            """One window from 'just downloaded' to 'playing' (pawtation/setup_wizard.py). Only one at a time."""
+            w = getattr(self, "_setup", None)
+            try:
+                if w is not None and w.win.winfo_exists():
+                    w.win.deiconify(); w.win.lift(); w.win.focus_set()
+                    return w
+            except tk.TclError:
+                pass
+            from . import setup_wizard
+            self._setup = setup_wizard.SetupWizard(self)
+            return self._setup
+
+        def wants_setup(self):
+            """First run: no games folder yet and the wizard never finished."""
+            return not self.cfg.get("setup_done") and not self.cfg.get("library_dir")
+
         # ---------- boot card ----------
         def boot_card(self):
             if self.syncing:
@@ -2584,6 +2638,30 @@ if HAVE_TK:
                 self.cfg = core.update_config(boot_card={**boot, "mount": mount, "swiss_dol": dol})
 
 
+def _smoke_report(app, out_path):
+    """Used by the Windows build to prove the packaged app starts and finds its shipped files. Writes JSON, exits."""
+    import json
+    from . import paths, setup_wizard
+    report = {"ok": False}
+    try:
+        app.update()
+        w = app.open_setup()
+        for i in range(len(setup_wizard.STEPS)):
+            w.go(i); app.update()
+        report = {"ok": True, "frozen": paths.FROZEN, "bundle": str(paths.BUNDLE), "root": str(paths.ROOT),
+                  "home": str(core.HOME), "theme": app.theme_name, "catalog": len(core.load_catalog()),
+                  "sprites": len(list((paths.BUNDLE / "assets" / "sprites").rglob("*.png"))),
+                  "guide": setup_wizard.guide_path().is_file(), "wizard_steps": len(setup_wizard.STEPS)}
+    except Exception as e:
+        report = {"ok": False, "error": f"{type(e).__name__}: {e}", "trace": traceback.format_exc()}
+    finally:
+        try:
+            Path(out_path).write_text(json.dumps(report, indent=1), encoding="utf-8")
+        finally:
+            app.destroy()
+    return 0 if report.get("ok") else 1
+
+
 def run():
     if not HAVE_TK:
         print("Pawtation's window needs tkinter, which this Python does not have.\n"
@@ -2596,6 +2674,11 @@ def run():
     except tk.TclError as e:
         print(f"Could not open a window ({e}). Is a display available? Try the CLI: python -m pawtation --help")
         return 1
+    smoke = os.environ.get("PAWTATION_SMOKE_TEST")
+    if smoke:                                           # build check (CI): open, report what loaded, close
+        return _smoke_report(app, smoke)
+    if app.wants_setup():
+        app.after(400, app.open_setup)                  # first run: walk through setting up the GameCube
     app.mainloop()
     return 0
 

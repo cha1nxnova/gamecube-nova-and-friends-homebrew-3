@@ -1,0 +1,85 @@
+# Builds Pawtation.exe on Windows for the owner to download (Actions tab -> this run -> Artifacts -> Pawtation-windows).
+# Three independent jobs: build + smoke test the exe, run the tests on Windows, and check a real Swiss download.
+name: Build Pawtation.exe
+
+on:
+  push:
+    branches: [v2, main, "ccr-*"]
+  pull_request:
+    branches: [v2, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and smoke-test Pawtation.exe
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build tools (build machine only; the app itself stays standard library)
+        run: python -m pip install pyinstaller==6.11.1 pillow==11.0.0
+      - name: Icon from Nova's portrait
+        run: python packaging/make_icon.py
+      - name: Build Pawtation.exe
+        run: pyinstaller --noconfirm --clean packaging/pawtation.spec
+      - name: Smoke test (opens, finds its shipped files, keeps your files beside the exe, closes)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force smoke | Out-Null
+          Copy-Item dist/Pawtation.exe smoke/
+          $env:PAWTATION_SMOKE_TEST = "$PWD\smoke\smoke.json"
+          $p = Start-Process -FilePath smoke\Pawtation.exe -PassThru -Wait
+          Get-Content smoke\smoke.json
+          $r = Get-Content smoke\smoke.json | ConvertFrom-Json
+          if ($p.ExitCode -ne 0 -or -not $r.ok -or -not $r.frozen -or -not $r.guide -or $r.catalog -lt 600) { exit 1 }
+          if ((Resolve-Path $r.root).Path -ne (Resolve-Path smoke).Path) { Write-Error "user files not beside the exe"; exit 1 }
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out\Pawtation | Out-Null
+          Copy-Item dist\Pawtation.exe out\Pawtation\
+          Copy-Item "packaging\Start here.txt" out\Pawtation\
+          Copy-Item docs\GAMECUBE_GUIDE.md out\Pawtation\
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Pawtation-windows
+          path: out/
+          if-no-files-found: error
+
+  tests:
+    name: Tests on Windows
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests (temp folders only; never a real config, card or library)
+        run: python -m unittest discover -s tests
+
+  swiss-download:
+    name: Real Swiss download (release layout check)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true      # a GitHub hiccup here must not make a good Pawtation.exe build look broken
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download the newest official Swiss release and keep only the boot files
+        env:
+          PAWTATION_GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          export PAWTATION_HOME="$RUNNER_TEMP/pawtation"
+          mkdir -p "$PAWTATION_HOME"
+          python -m pawtation swiss get
+          ls -l "$PAWTATION_HOME"/swiss/*/
+          test -s "$(ls -d "$PAWTATION_HOME"/swiss/*/)AUTOEXEC.DOL"

@@ -22,7 +22,11 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 VERSION = 1
-THEME_PATH = Path(__file__).resolve().parent.parent / "data" / "theme.json"
+# Standalone on purpose (no pawtation imports): the same rule as pawtation/paths.py, inline. In the packaged .exe the
+# shipped files live in the folder PyInstaller unpacks to (sys._MEIPASS).
+_BUNDLE = (Path(sys._MEIPASS) if getattr(sys, "frozen", False) and getattr(sys, "_MEIPASS", None)
+           else Path(__file__).resolve().parent.parent)
+THEME_PATH = _BUNDLE / "data" / "theme.json"
 
 # ---------------------------------------------------------------------------------------------
 # Roles

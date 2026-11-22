@@ -6,7 +6,10 @@ GameCube disc images across SD cards, starring the owner's characters Nova, Iggy
 - Read `HANDOFF.md` first, then `docs/SPEC_V2.md` (contracts between modules) and `docs/CHARACTERS.md` (canon).
 - `python3 -m pawtation --help` lists commands. Tests: `python3 -m unittest discover -s tests`
   (GUI tests need tkinter and a display: `xvfb-run -a python3.12 -m unittest discover -s tests`).
-- Runtime code under `pawtation/` is standard library only. Art tools under `art/` may use dev-time tools
+- Runtime code under `pawtation/` is standard library only. `pawtation/swissget.py` is the only code that goes online
+  (official Swiss release download, boot files only). The Windows exe is built by `.github/workflows/build-windows.yml`
+  from `packaging/`; shipped files are found via `pawtation/paths.py` (`theme.py` inlines the same rule, since it
+  must not import other pawtation modules). Art tools under `art/` may use dev-time tools
   (headless Chromium, Pillow); what they generate under `assets/` is committed, and the app must still start
   with every image missing.
 - SD-card safety is absolute (HANDOFF.md "Rules of the road"): only files listed in a card's own manifest are

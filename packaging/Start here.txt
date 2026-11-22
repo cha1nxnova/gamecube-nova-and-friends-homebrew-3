@@ -1,0 +1,15 @@
+Pawtation (personal GameCube SD-card helper)
+============================================
+
+1. Keep Pawtation.exe in its own folder (for example Documents\Pawtation). Your settings, ratings and downloaded
+   Swiss files are saved next to it, so moving the folder moves everything.
+2. Double-click Pawtation.exe. The first time, "GameCube setup" opens and walks you through:
+   your games folder -> your game cards -> getting Swiss -> the boot card -> the first rotation -> the console.
+   You can open it again any time with the "GameCube setup..." button.
+3. Windows may say "Windows protected your PC" because this app is not from a known publisher.
+   Click "More info", then "Run anyway". (It is your own build, made by GitHub from your repository.)
+
+Full guide: GAMECUBE_GUIDE.md in this folder (also opened from the last setup step). It shows the buttons to
+press in the app, plus the python -m pawtation commands for people running from the source code.
+Swiss is used exactly as released: https://github.com/emukidid/swiss-gc (GPL-2.0, by emu_kidid, Extrems and
+contributors). Pawtation never modifies it.
