@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 import queue
+import subprocess
 import sys
 import threading
 import webbrowser
@@ -26,7 +27,10 @@ GUIDE = "docs/GAMECUBE_GUIDE.md"
 
 
 def guide_path() -> Path:
-    return paths.BUNDLE / GUIDE
+    """The guide next to Pawtation.exe (it ships in the download, so it stays after the app closes and opens from
+    a normal folder), else the copy bundled inside the app."""
+    beside = paths.ROOT / Path(GUIDE).name
+    return beside if beside.is_file() else paths.BUNDLE / GUIDE
 
 
 def boot_candidates() -> list[dict]:
@@ -60,9 +64,12 @@ class SetupWizard:
     """A non-modal window owned by the App. `app` provides theme (c, fonts, space, button), dialogs
     (ask_yes_no, show_info, show_error, ask_directory, ask_file) and the plan / sync / refresh flows."""
 
+    c = property(lambda self: self.app.c)                     # read live: a theme switch (F2) recolours the wizard
+    fonts = property(lambda self: self.app.fonts)
+
     def __init__(self, app):
         self.app = app
-        self.c, self.fonts = app.c, app.fonts
+        self.closed = False
         self.step = 0
         self.events: "queue.Queue" = queue.Queue()
         self.cancel = threading.Event()
@@ -74,10 +81,11 @@ class SetupWizard:
         self.win.transient(app)
         self.win.minsize(940, 540)                              # steady size: steps don't make the window jump
         self.win.protocol("WM_DELETE_WINDOW", self.close)
-        side = tk.Frame(self.win, bg=self.c["surface_alt"])
+        self.side = side = tk.Frame(self.win, bg=self.c["surface_alt"])
         side.pack(side="left", fill="y")
-        tk.Label(side, text="GameCube setup", bg=self.c["surface_alt"], fg=self.c["ink"], font=self.fonts["title"],
-                 padx=16, pady=12, anchor="w").pack(fill="x")
+        self.title_lab = tk.Label(side, text="GameCube setup", bg=self.c["surface_alt"], fg=self.c["ink"],
+                                  font=self.fonts["title"], padx=16, pady=12, anchor="w")
+        self.title_lab.pack(fill="x")
         self.step_labels = []
         for i, (_k, title) in enumerate(STEPS):
             lab = tk.Label(side, text=f"{i + 1}. {title}", bg=self.c["surface_alt"], fg=self.c["ink_muted"],
@@ -85,11 +93,11 @@ class SetupWizard:
             lab.pack(fill="x")
             lab.bind("<Button-1>", lambda _e, n=i: self.go(n))
             self.step_labels.append(lab)
-        main = tk.Frame(self.win, bg=self.c["bg"])
+        self.main = main = tk.Frame(self.win, bg=self.c["bg"])
         main.pack(side="left", fill="both", expand=True)
         self.body = tk.Frame(main, bg=self.c["surface"], highlightthickness=2, highlightbackground=self.c["line"])
         self.body.pack(fill="both", expand=True, padx=16, pady=(16, 8))
-        foot = tk.Frame(main, bg=self.c["bg"])
+        self.foot = foot = tk.Frame(main, bg=self.c["bg"])
         foot.pack(fill="x", padx=16, pady=(0, 16))
         self.back_btn = app.button(foot, "Back", lambda: self.go(self.step - 1), "secondary")
         self.back_btn.pack(side="left")
@@ -130,9 +138,35 @@ class SetupWizard:
         b.pack(side="left", padx=(0, 8))
         return b
 
+    def retheme(self):
+        """Called by App.apply_theme: recolour the frame and redraw the current step in the new palette."""
+        if not self.alive():
+            return
+        c = self.c
+        for w, role in ((self.win, "bg"), (self.side, "surface_alt"), (self.main, "bg"), (self.foot, "bg")):
+            w.configure(bg=c[role])
+        self.title_lab.configure(bg=c["surface_alt"], fg=c["ink"])
+        self.body.configure(bg=c["surface"], highlightbackground=c["line"])
+        if not self.busy():
+            self.go(self.step)
+
+    def alive(self):
+        try:
+            return not self.closed and bool(self.win.winfo_exists())
+        except tk.TclError:                                     # the whole App is gone
+            return False
+
+    def copying(self):
+        """True (and says so) while a card is being copied: the wizard never writes to a card or changes the plan
+        meanwhile, just like the main window."""
+        if self.app.syncing:
+            self.app.show_info("A card is being copied", "Wait for it to finish (or press Cancel in the main window).")
+            return True
+        return False
+
     # ---------- navigation ----------
     def go(self, n):
-        if self.busy():
+        if not self.alive() or self.busy():                     # e.g. closed while one of its dialogs was open
             return
         n = max(0, min(len(STEPS) - 1, n))
         self.step = n
@@ -149,7 +183,7 @@ class SetupWizard:
         self.next_btn.configure(text="Finish" if n == len(STEPS) - 1 else "Next")
 
     def next(self):
-        if self.busy():
+        if not self.alive() or self.busy():
             return
         leave = getattr(self, "leave_" + STEPS[self.step][0], None)
         if leave is not None and leave() is False:
@@ -163,11 +197,13 @@ class SetupWizard:
         return self.worker is not None and self.worker.is_alive()
 
     def close(self):
+        self.closed = True
         self.cancel.set()                                       # a download stops at its next chunk; nothing is left
         self.app._cancel("setup-poll")
         self.win.destroy()
 
     def finish(self):
+        self.closed = True
         self.app.cfg = core.update_config(setup_done=True)
         self.app._cancel("setup-poll")
         self.win.destroy()
@@ -192,6 +228,8 @@ class SetupWizard:
         self.btn(r, "Choose folder…", self.pick_library, "primary")
 
     def pick_library(self):
+        if self.copying():
+            return
         d = self.app.ask_directory("Folder with your GameCube disc images", self.app.cfg.get("library_dir") or "")
         if d:
             self.app.cfg = core.update_config(library_dir=d)
@@ -255,6 +293,8 @@ class SetupWizard:
             card = old.get(k, {"label": f"Card {k}", "mount": ""})
             card["capacity_gb"] = gb
             new[k] = card
+        if new != old and self.copying():
+            return False
         dropped = sorted(set(old) - set(new), key=lambda x: (len(x), x))
         if dropped and not self.app.ask_yes_no("Fewer cards", "Stop using card " + ", ".join(dropped) + "? Games already "
                                                "on it stay there; Pawtation just stops planning for it."):
@@ -269,12 +309,13 @@ class SetupWizard:
         self.para("Swiss is the free program that lets the GameCube start games from an SD card. Pawtation can "
                   "download the newest official release for you from its GitHub page and keep only the file the "
                   "Action Replay needs. Swiss itself is used exactly as released.")
-        dol = self.app.cfg["boot_card"].get("swiss_dol")
-        rec = swissget.cached()
-        if dol and Path(dol).is_file():
+        dol = swissget.boot_file(self.app.cfg)              # chosen, or already downloaded (no need to go online)
+        if dol and dol != self.app.cfg["boot_card"].get("swiss_dol"):
+            boot = self.app.cfg["boot_card"]                # e.g. the Pawtation folder was moved: remember the new place
+            self.app.cfg = core.update_config(boot_card={**boot, "swiss_dol": dol})
+        if dol:
             self.status(f"Ready: {dol}")
-        elif rec:
-            self.status(f"Downloaded Swiss {rec['tag']} (not chosen yet; press Download to use it)", "info")
+            self.para("Download again to check for a newer release.", muted=True)
         else:
             self.status("Not downloaded yet.", "info")
         r = self.row()
@@ -353,15 +394,17 @@ class SetupWizard:
 
     def _use(self, path):
         try:
-            self._remember(swissget.from_local(path))
+            rec = swissget.from_local(path)
         except swissget.SwissError as e:
             self.app.show_error("Swiss", str(e))
             return
+        self._remember(rec)
+        if rec.get("note"):
+            self.app.show_info("Swiss", rec["note"] + ".")
         self.go(self.step)
 
     def leave_swiss(self):
-        dol = self.app.cfg["boot_card"].get("swiss_dol")
-        if dol and Path(dol).is_file():
+        if swissget.boot_file(self.app.cfg):
             return True
         return self.app.ask_yes_no("No Swiss yet", "The boot card needs Swiss. Skip this step for now?")
 
@@ -371,8 +414,8 @@ class SetupWizard:
         self.para("Put the small boot card (2 GB or smaller) in the computer. It needs to be formatted as FAT "
                   "(on Windows: right-click the drive in File Explorer → Format → File system FAT). Pawtation puts "
                   "Swiss on it as autoexec.dol and touches nothing else on it.")
-        dol = self.app.cfg["boot_card"].get("swiss_dol")
-        if not (dol and Path(dol).is_file()):
+        dol = swissget.boot_file(self.app.cfg)
+        if not dol:
             self.status("Get Swiss first (step 3).", "warn")
             return
         drives = boot_candidates()
@@ -385,38 +428,58 @@ class SetupWizard:
                                font=self.fonts["body"], anchor="w", highlightthickness=0).pack(fill="x", padx=24)
         else:
             self.status("No SD card found. Put the boot card in and press Look again.", "info")
+        self.backup = tk.BooleanVar(self.win, value=False)
+        tk.Checkbutton(self.body, text="Also add the backup-route files (SDLOADER.BIN + swiss.dol), for Action Replay "
+                       "discs that don't start autoexec.dol", variable=self.backup, bg=self.c["surface"], fg=self.c["ink"],
+                       selectcolor=self.c["surface"], activebackground=self.c["surface"], font=self.fonts["small"],
+                       anchor="w", wraplength=520, justify="left",
+                       highlightthickness=0).pack(fill="x", padx=16, pady=(6, 0))
         r = self.row()
         self.btn(r, "Put Swiss on this card", self.write_boot, "primary")
         self.btn(r, "Look again", lambda: self.go(self.step))
         self.btn(r, "Another folder…", self.pick_boot, "ghost")
 
     def pick_boot(self):
+        if self.copying():
+            return
         d = self.app.ask_directory("The boot card (2 GB or smaller)")
         if d:
             self.boot_choice.set(d)
             self.write_boot()
 
     def write_boot(self):
+        if self.copying():
+            return
         mount = self.boot_choice.get() if self.boot_choice is not None else ""
         if not mount:
             self.app.show_error("Boot card", "Choose the boot card first.")
             return
-        dol = self.app.cfg["boot_card"]["swiss_dol"]
+        dol = swissget.boot_file(self.app.cfg)
+        if not dol:
+            self.app.show_error("Boot card", "Get Swiss first (step 3).")
+            return
+        extras = {}
+        if getattr(self, "backup", None) is not None and self.backup.get():
+            extras = dict(swissget.companions(Path(dol)))
+            if len(extras) < 2:
+                self.app.show_error("Boot card", "The backup-route files were not found next to the Swiss file. "
+                                    "Use Download Swiss (step 3) to get them.")
+                return
         force = False
         try:
             try:
-                rep = core.prepare_boot_card(mount, dol, dry_run=True, log=lambda *_: None)
+                rep = core.prepare_boot_card(mount, dol, dry_run=True, log=lambda *_: None, extras=extras)
             except core.GameCardError as e:
                 if not self.app.ask_yes_no("This is a game card", f"{e}\n\nPut Swiss on it anyway?"):
                     return
                 force = True
-                rep = core.prepare_boot_card(mount, dol, dry_run=True, log=lambda *_: None, force=True)
+                rep = core.prepare_boot_card(mount, dol, dry_run=True, log=lambda *_: None, force=True, extras=extras)
             text = f"Put Swiss on {mount} as autoexec.dol?"
             if rep["warnings"]:
                 text += "\n\nPlease check:\n- " + "\n- ".join(rep["warnings"])
             if not self.app.ask_yes_no("Boot card", text):
                 return
-            rep = core.prepare_boot_card(mount, dol, dry_run=False, log=lambda *_: None, force=force)
+            rep = core.prepare_boot_card(mount, dol, dry_run=False, log=lambda *_: None, force=force, extras=extras)
         except Exception as e:
             self.app.show_error("Boot card", str(e))
             return
@@ -447,10 +510,14 @@ class SetupWizard:
                   muted=True)
 
     def _plan(self):
+        if self.copying():
+            return
         self.app.plan()
         self.go(self.step)
 
     def _sync(self):
+        if self.copying():
+            return
         self.app.sync_card()
 
     # ---------- 6. on the GameCube ----------
@@ -461,7 +528,8 @@ class SetupWizard:
                      "3. With Swiss still running, swap the boot card for a game card, then pick the SD device again "
                      "in Swiss. Never power off to swap: the Action Replay can only start Swiss from the boot card.",
                      "4. Open games, choose one, press A. Saves go to the real memory card in Slot A.",
-                     "Nothing yet? Try the GC2SD in Slot A, and check the boot card is 2 GB or smaller and FAT."):
+                     "Nothing yet? Try the GC2SD in Slot A, and check the boot card is 2 GB or smaller and FAT. "
+                     "Still the Action Replay menu? Go back to step 4 and tick the backup-route box."):
             self.para(line)
         r = self.row()
         self.btn(r, "Open the full guide", self.open_guide)
@@ -473,7 +541,10 @@ class SetupWizard:
             return
         try:
             if sys.platform.startswith("win"):
-                os.startfile(str(g))                            # opens in the default app for .md (often Notepad)
+                try:
+                    os.startfile(str(g))                        # the app registered for .md, if any
+                except OSError:
+                    subprocess.Popen(["notepad.exe", str(g)])   # plain Windows has no .md handler: Notepad reads it
             else:
                 webbrowser.open(g.as_uri())
         except Exception as e:

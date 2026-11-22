@@ -31,6 +31,9 @@ def library_missing(cfg) -> str:
 
 def cmd_init(a):
     if core.CONFIG_PATH.exists() and not a.force:
+        if a.library:                                           # keep everything else (e.g. the Swiss boot file)
+            core.update_config(library_dir=a.library)
+            print(f"config.json already exists; set library_dir to {a.library}."); return
         print("config.json already exists (use --force to overwrite)."); return
     cfg = json.loads(json.dumps(core.DEFAULT_CONFIG)); cfg["library_dir"] = a.library or ""
     core.save_json(core.CONFIG_PATH, cfg); print(f"Wrote {core.CONFIG_PATH}")
@@ -201,6 +204,8 @@ def _use_swiss(rec: dict) -> None:
     boot = core.load_config()["boot_card"]
     core.update_config(boot_card={**boot, "swiss_dol": rec["files"][swissget.AUTOEXEC]})
     print(f"Swiss {rec.get('tag', '')}: {rec['files'][swissget.AUTOEXEC]}")
+    if rec.get("note"):
+        print("Note:", rec["note"])
     print("Saved as the boot card file. Next: python -m pawtation boot-card --mount E:\\ --go")
 
 
@@ -225,11 +230,15 @@ def cmd_swiss(a):
             _use_swiss(swissget.from_local(a.path)); return 0
     except swissget.SwissError as e:
         print("ERROR:", e); return 1
+    except OSError as e:                                        # the Pawtation folder itself (disk full, read-only)
+        print(f"ERROR: could not save the Swiss files ({e})."); return 1
     except KeyboardInterrupt:
         print("\nStopped."); return 1
     rec = swissget.cached()
-    dol = core.load_config()["boot_card"].get("swiss_dol")
+    dol = swissget.boot_file(core.load_config())
     print(f"Boot card file: {dol or '(not set)'}")
+    if rec and rec["files"].get(swissget.SDLOADER):
+        print(f"Backup route files (SDLOADER.BIN, swiss.dol): {Path(rec['files'][swissget.SDLOADER]).parent}")
     print(f"Downloaded release: {rec['tag'] + ' in ' + str(Path(rec['files'][swissget.AUTOEXEC]).parent) if rec else 'none'}")
     print("Get the newest: python -m pawtation swiss get   |   use a file you have: python -m pawtation swiss use PATH")
     return 0
@@ -238,17 +247,21 @@ def cmd_swiss(a):
 def cmd_boot_card(a):
     cfg = core.load_config()
     mount = a.mount or cfg["boot_card"].get("mount")
-    dol = a.swiss_dol or cfg["boot_card"].get("swiss_dol")
-    if not dol and swissget.cached():                           # downloaded with `swiss get` but not remembered
-        dol = swissget.cached()["files"][swissget.AUTOEXEC]
+    dol = a.swiss_dol or swissget.boot_file(cfg)                # chosen file, or the newest download if it moved
     if not mount or not dol:
         print("Need --mount PATH and the Swiss boot file. Get it with: python -m pawtation swiss get   (or give "
               "--swiss-dol PATH: the release's ActionReplay/AUTOEXEC.DOL). See docs/GAMECUBE_GUIDE.md."); return 1
+    extras = {}
+    if getattr(a, "backup_route", False):                       # some Action Replay discs start SDLOADER.BIN instead
+        extras = dict(swissget.companions(Path(dol)))         # {"SDLOADER.BIN": path, "swiss.dol": path}
+        if len(extras) < 2:
+            print("ERROR: the backup-route files (SDLOADER.BIN and the main swiss DOL) were not found next to "
+                  f"{dol}. Run `python -m pawtation swiss get`, or choose an unpacked release."); return 1
     try:
-        rep = core.prepare_boot_card(mount, dol, dry_run=True, force=a.force)   # warnings first, before any write
+        rep = core.prepare_boot_card(mount, dol, dry_run=True, force=a.force, extras=extras)   # warnings first
         for w in rep["warnings"]: print("WARNING:", w)
         if a.go:
-            rep = core.prepare_boot_card(mount, dol, dry_run=False, force=a.force, log=lambda *_: None)
+            rep = core.prepare_boot_card(mount, dol, dry_run=False, force=a.force, log=lambda *_: None, extras=extras)
     except OSError as e:
         print("ERROR:", e); return 1
     if a.go:
@@ -527,6 +540,8 @@ def main(argv=None):
     s.add_argument("--mount"); s.add_argument("--swiss-dol", help="the release's ActionReplay/AUTOEXEC.DOL")
     s.add_argument("--go", action="store_true")
     s.add_argument("--force", action="store_true", help="write even if the card is labelled as a game card")
+    s.add_argument("--backup-route", action="store_true", help="also copy SDLOADER.BIN and swiss.dol (for Action "
+                   "Replay discs that start SDLOADER.BIN; see docs/GAMECUBE_GUIDE.md)")
     s = add("mods", cmd_mods, "list per-game mod files and plugins"); s.add_argument("--new", metavar="GAME", help="create a mods folder for a game")
     s = add("patch", cmd_patch, "apply a .bps/.ips/.xdelta patch to a COPY of your own image")
     s.add_argument("source"); s.add_argument("patch"); s.add_argument("--out")

@@ -151,6 +151,61 @@ class Wizard(unittest.TestCase):
         self.assertIn("GitHub", w.swiss_msg.cget("text"))
         self.assertFalse(core.load_config()["boot_card"].get("swiss_dol"))
 
+    def test_closing_while_a_dialog_is_open_is_harmless(self):
+        w = self.app.open_setup(); w.go(1)
+        w.count.set("1"); w._redraw_sizes()                       # fewer cards -> the 'Fewer cards' question
+        errors = []
+        self.app.report_callback_exception = lambda *a: errors.append(a)
+        self.app.ask_yes_no = lambda t, x: (w.close() or True)    # the window's X pressed while the question is open
+        w.next(); self.app.update()
+        self.assertEqual(errors, [])
+        self.assertFalse(w.alive())
+
+    def test_no_card_writes_while_a_card_is_being_copied(self):
+        dol = self.tmp / "AUTOEXEC.DOL"; dol.write_bytes(b"AR")
+        self.app.cfg = core.update_config(boot_card={"label": "b", "mount": "", "swiss_dol": str(dol)})
+        w = self.app.open_setup(); w.go(3)
+        self.app.syncing = True
+        try:
+            w.boot_choice.set(str(self.boot)); w.write_boot()
+            w.pick_library(); w._plan()
+        finally:
+            self.app.syncing = False
+        self.assertFalse((self.boot / "autoexec.dol").exists())
+        self.assertTrue(any("being copied" in t for t, _x in self.msgs))
+        self.assertFalse(core.load_config().get("library_dir"))
+
+    def test_the_wizard_follows_a_theme_switch(self):
+        from pawtation import gui
+        w = self.app.open_setup(); w.go(0)
+        self.app.toggle_theme(); self.app.update()
+        self.assertEqual(str(w.body.cget("bg")), gui.theme.load(self.app.theme_name)["surface"])
+        self.assertEqual(str(w.win.cget("bg")), gui.theme.load(self.app.theme_name)["bg"])
+
+    def test_backup_route_box_adds_the_two_files(self):
+        gh = FakeGitHub(fake_release(self.tmp))
+        rec = swissget.get_latest(opener=gh)
+        self.app.cfg = core.update_config(boot_card={"label": "b", "mount": "", "swiss_dol": rec["files"]["AUTOEXEC.DOL"]})
+        w = self.app.open_setup(); w.go(3)
+        w.backup.set(True); w.boot_choice.set(str(self.boot)); w.write_boot()
+        self.assertEqual(sorted(p.name for p in self.boot.iterdir()), ["SDLOADER.BIN", "autoexec.dol", "swiss.dol"])
+
+    def test_an_existing_download_is_used_without_going_online(self):
+        swissget.get_latest(opener=FakeGitHub(fake_release(self.tmp)))          # on disk, but never chosen
+        self.assertFalse(core.load_config()["boot_card"].get("swiss_dol"))
+        w = self.app.open_setup()
+        with mock.patch.object(swissget.urllib.request, "urlopen", side_effect=AssertionError("went online")):
+            w.go(2)
+            self.assertTrue(core.load_config()["boot_card"]["swiss_dol"].endswith("AUTOEXEC.DOL"))
+            w.go(3)
+            self.assertIsNotNone(w.boot_choice)                                  # the boot step is usable
+
+    def test_the_guide_beside_the_exe_is_preferred(self):
+        from pawtation import setup_wizard
+        (self.tmp / "GAMECUBE_GUIDE.md").write_text("guide")
+        with mock.patch.object(setup_wizard.paths, "ROOT", self.tmp):
+            self.assertEqual(setup_wizard.guide_path(), self.tmp / "GAMECUBE_GUIDE.md")
+
     def test_closing_mid_download_cancels_it(self):
         w = self.app.open_setup(); w.go(2)
         slow = FakeGitHub(fake_release(self.tmp))

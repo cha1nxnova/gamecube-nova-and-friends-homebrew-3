@@ -136,6 +136,12 @@ old code. Highlights: an unplugged library drive no longer empties cards; capaci
 the card, with the measured size used after a sync; boot-card refuses game cards and names ActionReplay/AUTOEXEC.DOL;
 cards are found by their own label, not a remembered drive letter; the guide now says to swap cards with Swiss
 running. `--verify` only truly reads the card on Linux.
+**Windows app reviewed 2026-11-22:** a review of the exe, Swiss download and setup wizard fixed: network drops
+mid-download, Swiss files found again after the Pawtation folder moves (`swissget.boot_file`, `cached()` rebuilds
+paths), the backup route (`boot-card --backup-route`, a wizard checkbox), wizard guards (no card writes during a
+copy, safe to close mid-dialog, follows theme switches), `.gitignore` no longer hiding `mods/.../swiss/` cheats,
+`init` merging into an existing config. The game list hides Discs, then Tags, on narrow windows (found by the first
+Windows test run). Unverified: which Action Replay file the owner's disc starts.
 **Removed 2026-11-20:** the Swiss theme fork (`swiss_fork/`, `docs/BUILD_LOG.md`, `docs/SWISS_THEME_MAP.md`); it stays in git history only.
 **Not done:** per-game progress parsers
 (TTYD layout documented, unverified against a real save); tags/genres for the 572 imported catalog titles; `.sav` save

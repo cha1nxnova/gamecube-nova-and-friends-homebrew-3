@@ -36,9 +36,10 @@ troubleshooting reference.
 
 1. Format each game card as **FAT32** the first time. (Windows' own formatter won't do FAT32 above 32 GB; a free
    FAT32 formatter tool will.)
-2. Tell Pawtation how big each card is (once): in `config.json`, set each card's `capacity_gb` to the size printed
-   on it, e.g. `"capacity_gb": 32`. The default is 8.
-3. In Pawtation: `plan` → `plan --commit` → `sync 1 --mount E:\` (dry run) → add `--go` to copy for real.
+2. Tell Pawtation how big each card is (once): GameCube setup step 2 (**Your game cards**), or in `config.json` set
+   each card's `capacity_gb` to the size printed on it, e.g. `"capacity_gb": 32`. The default is 8.
+3. In the app: **Plan new rotation**, then **Sync a card…** for each card (it shows a dry run first).
+   On the command line: `plan` → `plan --commit` → `sync 1 --mount E:\` (dry run) → add `--go` to copy for real.
    Games land in `games/<Title>/game.iso`. Keep the drive with your game library plugged in while syncing.
 4. Only `.iso` / `.gcm` files work. If `scan` lists a `.rvz`, `.gcz` or `.ciso`, convert it to `.iso` with
    Dolphin first.
@@ -71,16 +72,17 @@ troubleshooting reference.
 | What you see | Try |
 |---|---|
 | The Action Replay menu comes up, not Swiss | Is the **boot card** in the GC2SD (a game card can't start Swiss)? Then: the boot card is over 2 GB, isn't FAT, holds a file other than the release's `ActionReplay/AUTOEXEC.DOL`, or the GC2SD is in the other slot (try Slot A). If it still won't start, see "Backup route" below. |
-| `sync` says the library folder isn't found | Plug in the drive with your disc images (or fix `library_dir`). Nothing on the cards was touched. |
-| `sync` says "not enough space" | Set that card's `capacity_gb` to the size printed on it, then run `plan --commit` again (sync copies the committed plan). After one sync Pawtation also knows the card's real size. If your own files fill part of the card, free some space or lower `capacity_gb`. |
+| A sync says the library folder isn't found | Plug in the drive with your disc images (or fix `library_dir`). Nothing on the cards was touched. |
+| A sync says "not enough space" | Set that card's size (GameCube setup step 2, or `capacity_gb`) to the size printed on it, then make a new plan (**Plan new rotation**, or `plan --commit`): a sync copies the committed plan. After one sync Pawtation also knows the card's real size. If your own files fill part of the card, free some space or lower `capacity_gb`. |
 | A game isn't in the list | It's probably not an `.iso`/`.gcm`; convert it. Also try the unknown-files setting. |
 | Swiss says the file is too fragmented | Reformat the card and let Pawtation fill it fresh (Swiss can't start a file split into more than 40 pieces). |
 | A black screen after starting a game | Try the game's video setting in Swiss (forcing the region's video mode), then power-cycle. |
 
-**Backup route (not yet tested on your hardware):** some Action Replay discs use the release's
-`ActionReplay/SDLOADER.BIN` instead. Swiss's own file notes say it starts Swiss from the card and that `swiss.dol`
-must also be on the card. So copy `SDLOADER.BIN` and the release's `DOL/swiss_r2119.dol` (renamed to `swiss.dol`)
-to the boot card's root as well.
+**Backup route (not yet tested on your hardware):** some Action Replay discs start the release's
+`ActionReplay/SDLOADER.BIN` instead of `autoexec.dol`. Swiss's own file notes say it starts Swiss from the card and
+that `swiss.dol` must also be on the card. Pawtation already keeps both (from **Download Swiss** / `swiss get`, in the
+`swiss` folder next to it): tick **Also add the backup-route files** in GameCube setup step 4, or run
+`python -m pawtation boot-card --mount E:\ --backup-route --go`. They go next to `autoexec.dol`, which stays.
 
 ## Still unchecked on real hardware
 

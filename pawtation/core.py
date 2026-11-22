@@ -1170,7 +1170,20 @@ class GameCardError(OSError):
     """prepare_boot_card refused: the chosen card is one of the rotated game cards."""
 
 
-def prepare_boot_card(mount: str, swiss_dol: str, dry_run=True, log=print, force=False) -> dict:
+def _put_boot_file(m: Path, name: str, data: bytes, dry_run: bool, log, src_name: str) -> bool:
+    """Write one file to the boot card root: skipped if identical, a different one is kept as <name>.bak first,
+    written atomically. Returns True if it was (or, in a dry run, would be) already up to date."""
+    target = m / name
+    same = target.is_file() and target.read_bytes() == data
+    log(f"{tag_dry(dry_run)}{'already there: ' if same else 'copy '}{src_name} -> {target}")
+    if not dry_run and not same:
+        if target.is_file():
+            shutil.copyfile(target, m / (name + ".bak"))
+        _write_atomic(target, [data])
+    return same
+
+
+def prepare_boot_card(mount: str, swiss_dol: str, dry_run=True, log=print, force=False, extras=None) -> dict:
     """Copy the release's ActionReplay/AUTOEXEC.DOL to <mount>/autoexec.dol so the Action Replay starts Swiss.
     We never download Swiss; the owner passes the file from an official release (docs/GAMECUBE_GUIDE.md).
     Refuses a card carrying a Pawtation game-card label unless force. Warnings come back BEFORE anything is written
@@ -1198,15 +1211,14 @@ def prepare_boot_card(mount: str, swiss_dol: str, dry_run=True, log=print, force
                     "Action Replay boot card. The Action Replay may not start it.")
     if not os.path.ismount(str(m)):
         warn.append("This folder is not the top of a card; the Action Replay only looks in the card's top folder.")
-    target = m / "autoexec.dol"
-    new = d.read_bytes()
-    same = target.is_file() and target.read_bytes() == new
-    log(f"{tag_dry(dry_run)}{'already there: ' if same else 'copy '}{d.name} -> {target}")
-    if not dry_run and not same:
-        if target.is_file():
-            shutil.copyfile(target, m / "autoexec.dol.bak")
-        _write_atomic(target, [new])
-    return {"target": str(target), "warnings": warn, "unchanged": same}
+    extras = {str(k): Path(v) for k, v in (extras or {}).items()}   # backup route: {"SDLOADER.BIN": src, "swiss.dol": src}
+    for name, src in extras.items():
+        if name.lower() not in ("sdloader.bin", "swiss.dol") or not src.is_file():
+            raise FileNotFoundError(f"Backup-route file not found: {src}")
+    same = _put_boot_file(m, "autoexec.dol", d.read_bytes(), dry_run, log, d.name)
+    for name, src in extras.items():
+        same = _put_boot_file(m, name, src.read_bytes(), dry_run, log, src.name) and same
+    return {"target": str(m / "autoexec.dol"), "warnings": warn, "unchanged": same, "extras": sorted(extras)}
 
 
 def tag_dry(dry_run: bool) -> str:

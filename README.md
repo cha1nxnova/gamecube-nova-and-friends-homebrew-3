@@ -6,9 +6,12 @@ desktop app, a CLI, and a small household of characters who live on the app's st
 Pure Python 3.9+, standard library only, works offline (the one exception: the optional one-click Swiss download).
 
 ## Get Pawtation.exe (Windows, nothing to install)
-1. On GitHub, open this repository's **Actions** tab, then the newest green **Build Pawtation.exe** run.
+1. On GitHub, open this repository's **Actions** tab and pick **Build Pawtation.exe**. Choose the newest run on
+   the **v2** branch (or **main** once it is updated) whose **Build and smoke-test Pawtation.exe** job is green.
+   Runs on `ccr-…` branches are work in progress.
 2. Under **Artifacts**, download **Pawtation-windows** and unzip it into its own folder (e.g. `Documents\Pawtation`).
-   Your settings, ratings and downloaded Swiss files are kept next to `Pawtation.exe`.
+   Your settings, ratings and downloaded Swiss files are kept next to `Pawtation.exe`, and the folder can be moved.
+   Artifacts expire after 90 days: if it is gone, press **Run workflow** on that page (branch v2) for a fresh one.
 3. Double-click `Pawtation.exe`. Windows may say "Windows protected your PC" (the app is not from a known publisher):
    click **More info**, then **Run anyway**.
 4. The first time, **GameCube setup** opens and walks you through everything: your games folder, your game cards,

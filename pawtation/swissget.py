@@ -14,6 +14,7 @@ Standard library only.
 from __future__ import annotations
 
 import hashlib
+import http.client
 import json
 import lzma
 import os
@@ -71,11 +72,21 @@ def _open(url: str, timeout: float, opener=None):
                          f"download the release yourself from {RELEASES_PAGE} and choose the file.") from e
 
 
+def _read(r, n: int) -> bytes:
+    """One network read; a timeout, reset, TLS error or cut-off reply becomes a SwissError (local disk errors don't
+    pass through here, so they are never blamed on the network)."""
+    try:
+        return r.read(n)
+    except (OSError, http.client.HTTPException) as e:
+        raise SwissError(f"The connection to GitHub was interrupted ({e or type(e).__name__}). Try again, or "
+                         f"download the release yourself from {RELEASES_PAGE} and choose the file.") from e
+
+
 def latest_release(timeout: float = 20, opener=None) -> dict:
     """{"tag", "page", "asset": {"name", "size", "url", "sha256" or None}} for the newest official release."""
     with _open(RELEASES_API, timeout, opener) as r:
         try:
-            info = json.loads(r.read(4 * 1024**2).decode("utf-8"))
+            info = json.loads(_read(r, 4 * 1024**2).decode("utf-8"))
         except ValueError as e:
             raise SwissError("GitHub sent something that is not release information. Try again later.") from e
     if not isinstance(info, dict) or not info.get("tag_name"):
@@ -111,7 +122,7 @@ def download(release: dict, dest_dir: Path, progress=None, cancel=None, timeout:
             while True:
                 if cancel and cancel():
                     raise _Cancelled()
-                chunk = r.read(CHUNK)
+                chunk = _read(r, CHUNK)
                 if not chunk:
                     break
                 done += len(chunk)
@@ -208,19 +219,72 @@ def get_latest(progress=None, cancel=None, opener=None) -> dict | None:
                              "sha256": rel["asset"]["sha256"]})
 
 
+_RELEASE_NO = re.compile(r"swiss_r(\d+)", re.IGNORECASE)
+
+
+def _release_roots(folder: Path, depth: int = 2) -> list[Path]:
+    """Folders (folder itself, or up to `depth` levels below it) that hold ActionReplay/AUTOEXEC.DOL, the way an
+    unpacked release does. Shallow on purpose: a release is swiss_r<N>/ActionReplay/..., and 7-Zip's "Extract to
+    swiss_r<N>\\" adds one level; walking a whole Downloads folder would be slow and could pick a stray copy."""
+    found, level = [], [folder]
+    for _ in range(depth + 1):
+        nxt = []
+        for d in level:
+            try:
+                kids = [k for k in d.iterdir() if k.is_dir()]
+            except OSError:
+                continue
+            for k in kids:
+                try:
+                    if k.name.lower() == "actionreplay" and any(f.name.lower() == "autoexec.dol" and f.is_file()
+                                                               for f in k.iterdir()):
+                        found.append(d)
+                except OSError:
+                    pass
+            nxt += [k for k in kids if k.name.lower() != "actionreplay"]
+        level = nxt
+    return found
+
+
+def _roles_in(root: Path) -> dict:
+    """{role: Path} for an unpacked release folder (ActionReplay/AUTOEXEC.DOL, ActionReplay/SDLOADER.BIN,
+    DOL/swiss_r<N>.dol), matching names without caring about case."""
+    out = {}
+    for sub in ("ActionReplay", "DOL"):
+        d = next((k for k in root.iterdir() if k.is_dir() and k.name.lower() == sub.lower()), None)
+        if d is None:
+            continue
+        for f in sorted(d.iterdir()):
+            role = _member_role(f"{d.name}/{f.name}") if f.is_file() else None
+            if role and role not in out:
+                out[role] = f
+    return out
+
+
 def from_local(path: str) -> dict:
-    """Use a release the owner downloaded: the .tar.xz, the unpacked folder (from the .7z), or AUTOEXEC.DOL itself."""
-    p = Path(path)
+    """Use a release the owner downloaded: the .tar.xz, the unpacked folder (from the .7z), or AUTOEXEC.DOL itself.
+    Paths are stored absolute. A folder holding several unpacked releases uses the newest (highest r-number)."""
+    p = Path(os.path.abspath(os.path.expanduser(str(path))))
     name = p.name.lower()
+    if p.is_dir() and (p / AUTOEXEC).is_file() and not (p / "ActionReplay").is_dir():
+        files = {AUTOEXEC: str(p / AUTOEXEC)}                  # a folder laid out like Pawtation's own downloads
+        files.update({r: str(q) for r, q in companions(p / AUTOEXEC).items()})
+        return {"tag": p.name, "source": str(p), "files": files}
     if p.is_dir():
-        hits = sorted(q for q in p.rglob("*") if q.is_file() and _member_role(q.relative_to(p).as_posix()))
-        roles = {}
-        for q in hits:
-            roles.setdefault(_member_role(q.relative_to(p).as_posix()), q)
-        if AUTOEXEC not in roles:
-            raise SwissError(f"No ActionReplay/AUTOEXEC.DOL inside {p}. Choose the folder you unpacked the Swiss "
-                             "release into (it has an ActionReplay folder).")
-        return {"tag": p.name, "source": str(p), "files": {r: str(q) for r, q in roles.items()}}
+        roots = _release_roots(p)
+        if not roots:
+            raise SwissError(f"No ActionReplay/AUTOEXEC.DOL in {p} (or the folders just below it). Choose the folder "
+                             "you unpacked the Swiss release into (it has an ActionReplay folder).")
+
+        def number(d):
+            m = _RELEASE_NO.search(d.name)
+            return int(m.group(1)) if m else -1
+        root = max(roots, key=lambda d: (number(d), d.name))
+        roles = _roles_in(root)
+        rec = {"tag": root.name, "source": str(root), "files": {r: str(q) for r, q in roles.items()}}
+        if len(roots) > 1:
+            rec["note"] = f"{len(roots)} releases in that folder; using the newest, {root.name}"
+        return rec
     if not p.is_file():
         raise SwissError(f"Not found: {p}")
     if name.endswith(".7z"):
@@ -231,17 +295,43 @@ def from_local(path: str) -> dict:
         extract_boot_files(p, out_dir)
         return _record(out_dir, {"tag": p.name[:-7], "source": str(p)})
     if name == "autoexec.dol":
-        return {"tag": p.parent.name, "source": str(p), "files": {AUTOEXEC: str(p)}}
+        files = {AUTOEXEC: str(p)}
+        files.update({r: str(q) for r, q in companions(p).items()})
+        return {"tag": p.parent.name, "source": str(p), "files": files}
     raise SwissError("Choose the Swiss release .tar.xz, the folder you unpacked it into, or its "
                      "ActionReplay/AUTOEXEC.DOL.")
 
 
 def cached(out_dir: Path | None = None) -> dict | None:
-    """The release record in out_dir, or the newest downloaded one, if its AUTOEXEC.DOL is still there."""
+    """The release record in out_dir, or the newest downloaded one, if its AUTOEXEC.DOL is still there. File paths
+    are rebuilt from the record's own folder, so a Pawtation folder that was moved keeps working."""
     dirs = [Path(out_dir)] if out_dir else sorted((d for d in swiss_dir().glob("*") if d.is_dir()),
                                                   key=lambda d: d.stat().st_mtime, reverse=True) if swiss_dir().is_dir() else []
     for d in dirs:
         rec = core.load_json(d / "release.json", None)
-        if isinstance(rec, dict) and isinstance(rec.get("files"), dict) and Path(str(rec["files"].get(AUTOEXEC, ""))).is_file():
-            return rec
+        if isinstance(rec, dict) and (d / AUTOEXEC).is_file():
+            return {**rec, "files": {r: str(d / r) for r in (AUTOEXEC, SDLOADER, MAIN_DOL) if (d / r).is_file()}}
     return None
+
+
+def companions(autoexec: Path) -> dict:
+    """The backup-route files that belong with an AUTOEXEC.DOL: SDLOADER.BIN and the main DOL (as swiss.dol).
+    Pawtation's own downloads keep them in the same folder; an unpacked release has ActionReplay/SDLOADER.BIN and
+    DOL/swiss_r<N>.dol."""
+    a = Path(autoexec)
+    if (a.parent / SDLOADER).is_file() and (a.parent / MAIN_DOL).is_file():
+        return {SDLOADER: a.parent / SDLOADER, MAIN_DOL: a.parent / MAIN_DOL}
+    if a.parent.name.lower() == "actionreplay":
+        return {r: q for r, q in _roles_in(a.parent.parent).items() if r != AUTOEXEC}
+    return {}
+
+
+def boot_file(cfg: dict) -> str | None:
+    """The AUTOEXEC.DOL to put on the boot card: the one chosen in config.json if it is still there, otherwise the
+    newest release Pawtation downloaded (e.g. after the Pawtation folder was moved)."""
+    boot = cfg.get("boot_card") if isinstance(cfg.get("boot_card"), dict) else {}
+    dol = boot.get("swiss_dol")
+    if dol and Path(str(dol)).is_file():
+        return str(dol)
+    rec = cached()
+    return rec["files"][AUTOEXEC] if rec else None

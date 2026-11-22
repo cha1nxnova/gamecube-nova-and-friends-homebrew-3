@@ -1559,6 +1559,12 @@ if HAVE_TK:
                     w.retheme()
                 except tk.TclError:
                     pass
+            setup = getattr(self, "_setup", None)
+            if setup is not None:                            # the GameCube setup window follows the theme too
+                try:
+                    setup.retheme()
+                except tk.TclError:
+                    pass
             self.theme_btn.configure(text=f"{theme.label(name)} theme")
             self._update_moon()
             if hasattr(self, "chips"):

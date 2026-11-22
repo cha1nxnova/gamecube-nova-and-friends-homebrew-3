@@ -122,6 +122,140 @@ class Download(unittest.TestCase):
             swissget.extract_boot_files(self.tmp / "junk.tar.xz", self.tmp / "o2")
 
 
+class Flaky:
+    """A response that delivers some bytes, then fails the way a dropped Wi-Fi connection does."""
+    def __init__(self, data, exc):
+        self.data, self.exc, self.sent = data, exc, False
+    def __enter__(self): return self
+    def __exit__(self, *a): return False
+    def read(self, n=-1):
+        if self.sent:
+            raise self.exc
+        self.sent = True
+        return self.data[:min(n, 100)] if n and n > 0 else self.data
+
+
+class NetworkTrouble(unittest.TestCase):
+    def setUp(self):
+        self.tmp = mktmp(self)
+        p = mock.patch.object(core, "HOME", self.tmp / "home"); p.start(); self.addCleanup(p.stop)
+        self.gh = FakeGitHub(fake_release(self.tmp))
+
+    def test_a_dropped_download_is_a_plain_error_and_leaves_nothing(self):
+        def opener(req, timeout=None):
+            if req.full_url == swissget.RELEASES_API:
+                return self.gh(req, timeout)
+            return Flaky(self.gh.data, TimeoutError("The read operation timed out"))
+        with self.assertRaises(swissget.SwissError) as e:
+            swissget.get_latest(opener=opener)
+        self.assertIn("interrupted", str(e.exception))
+        self.assertEqual([p for p in (self.tmp / "home").rglob("*") if p.is_file()], [])
+
+    def test_a_cut_off_release_listing_is_a_plain_error(self):
+        import http.client
+        with self.assertRaises(swissget.SwissError):
+            swissget.latest_release(opener=lambda req, timeout=None: _Raising(http.client.IncompleteRead(b"")))
+
+    def test_cli_reports_network_and_disk_trouble_without_a_traceback(self):
+        out = io.StringIO()
+        with mock.patch.object(swissget, "get_latest", side_effect=PermissionError("read-only folder")), \
+                contextlib.redirect_stdout(out):
+            self.assertEqual(cli.cmd_swiss(argparse.Namespace(action="get", path=None)), 1)
+        self.assertIn("could not save", out.getvalue())
+
+
+class _Raising:
+    def __init__(self, exc): self.exc = exc
+    def __enter__(self): return self
+    def __exit__(self, *a): return False
+    def read(self, n=-1): raise self.exc
+
+
+class Moving(unittest.TestCase):
+    """The Pawtation folder can be moved: Swiss files are found by their own folder, not by remembered paths."""
+    def setUp(self):
+        self.tmp = mktmp(self)
+
+    def test_a_moved_folder_still_finds_its_swiss_download(self):
+        a, b = self.tmp / "Downloads" / "Pawtation", self.tmp / "Documents" / "Pawtation"
+        a.mkdir(parents=True)
+        with mock.patch.object(core, "HOME", a):
+            rec = swissget.get_latest(opener=FakeGitHub(fake_release(self.tmp)))
+        cfg = {"boot_card": {"swiss_dol": rec["files"]["AUTOEXEC.DOL"]}}
+        b.parent.mkdir(parents=True); a.rename(b)
+        with mock.patch.object(core, "HOME", b):
+            got = swissget.cached()
+            self.assertTrue(got["files"]["AUTOEXEC.DOL"].startswith(str(b)))
+            self.assertEqual(swissget.boot_file(cfg), got["files"]["AUTOEXEC.DOL"])      # stale path -> the new place
+
+    def test_relative_paths_are_stored_absolute(self):
+        rel = self.tmp / "swiss_r9999" / "ActionReplay"; rel.mkdir(parents=True); (rel / "AUTOEXEC.DOL").write_bytes(b"A")
+        import os
+        old = os.getcwd()
+        os.chdir(self.tmp)                                                  # `swiss use swiss_r9999` from Downloads
+        self.addCleanup(os.chdir, old)
+        got = swissget.from_local("swiss_r9999")["files"]["AUTOEXEC.DOL"]
+        self.assertTrue(Path(got).is_absolute())
+        self.assertTrue(Path(got).is_file())                              # still found from another folder
+
+    def test_a_folder_with_several_releases_uses_the_newest(self):
+        for n in (999, 1000, 2100):
+            d = self.tmp / "Downloads" / f"swiss_r{n}" / "ActionReplay"; d.mkdir(parents=True)
+            (d / "AUTOEXEC.DOL").write_bytes(str(n).encode())
+        rec = swissget.from_local(str(self.tmp / "Downloads"))
+        self.assertEqual(Path(rec["files"]["AUTOEXEC.DOL"]).read_bytes(), b"2100")
+        self.assertEqual(rec["tag"], "swiss_r2100"); self.assertIn("3 releases", rec["note"])
+
+    def test_pawtations_own_download_folder_can_be_chosen(self):
+        with mock.patch.object(core, "HOME", self.tmp):
+            rec = swissget.get_latest(opener=FakeGitHub(fake_release(self.tmp)))
+        folder = Path(rec["files"]["AUTOEXEC.DOL"]).parent
+        got = swissget.from_local(str(folder))
+        self.assertEqual(set(got["files"]), {"AUTOEXEC.DOL", "SDLOADER.BIN", "swiss.dol"})
+
+
+class BackupRoute(unittest.TestCase):
+    def setUp(self):
+        self.tmp = mktmp(self)
+        rel = self.tmp / "swiss_r9999"
+        (rel / "ActionReplay").mkdir(parents=True); (rel / "DOL").mkdir()
+        (rel / "ActionReplay" / "AUTOEXEC.DOL").write_bytes(b"AR"); (rel / "ActionReplay" / "SDLOADER.BIN").write_bytes(b"SDL")
+        (rel / "DOL" / "swiss_r9999.dol").write_bytes(b"MAIN")
+        self.dol = rel / "ActionReplay" / "AUTOEXEC.DOL"
+        self.card = self.tmp / "card"; self.card.mkdir()
+
+    def test_companions_of_an_unpacked_release(self):
+        c = swissget.companions(self.dol)
+        self.assertEqual((c["SDLOADER.BIN"].read_bytes(), c["swiss.dol"].read_bytes()), (b"SDL", b"MAIN"))
+
+    def test_boot_card_with_the_backup_files(self):
+        extras = dict(swissget.companions(self.dol))
+        core.prepare_boot_card(str(self.card), str(self.dol), dry_run=False, log=lambda *_: None, extras=extras)
+        self.assertEqual(sorted(p.name for p in self.card.iterdir()), ["SDLOADER.BIN", "autoexec.dol", "swiss.dol"])
+        rep = core.prepare_boot_card(str(self.card), str(self.dol), dry_run=False, log=lambda *_: None, extras=extras)
+        self.assertTrue(rep["unchanged"])
+        with self.assertRaises(FileNotFoundError):                         # only the two backup files, nothing else
+            core.prepare_boot_card(str(self.card), str(self.dol), log=lambda *_: None, extras={"evil.dol": self.dol})
+
+    def test_cli_backup_route(self):
+        out = io.StringIO()
+        with mock.patch.object(core, "CONFIG_PATH", self.tmp / "config.json"), mock.patch.object(core, "HOME", self.tmp), \
+                contextlib.redirect_stdout(out):
+            cli.cmd_boot_card(argparse.Namespace(mount=str(self.card), swiss_dol=str(self.dol), go=True, force=False,
+                                                 backup_route=True))
+        self.assertEqual((self.card / "swiss.dol").read_bytes(), b"MAIN")
+
+
+class InitMerges(unittest.TestCase):
+    def test_init_sets_the_library_on_an_existing_config(self):
+        tmp = mktmp(self)
+        cfgp = tmp / "config.json"; cfgp.write_text(json.dumps({"boot_card": {"swiss_dol": "X"}}))
+        with mock.patch.object(core, "CONFIG_PATH", cfgp), contextlib.redirect_stdout(io.StringIO()):
+            cli.cmd_init(argparse.Namespace(library="D:/Games", force=False))
+        saved = json.loads(cfgp.read_text())
+        self.assertEqual((saved["library_dir"], saved["boot_card"]["swiss_dol"]), ("D:/Games", "X"))
+
+
 class LocalFiles(unittest.TestCase):
     def setUp(self):
         self.tmp = mktmp(self)
